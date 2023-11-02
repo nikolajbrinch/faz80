@@ -31,7 +31,6 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     }
 
     return null;
-
   }
 
   public Token peek() {
@@ -74,145 +73,9 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     try {
       while (token == null) {
         if (!charReader.hasNext()) {
-          token = createToken(TokenType.EOF, charReader.getLine(), charReader.getPosition());
+          token = createEofToken(charReader.getLine(), charReader.getPosition());
         } else {
-          Char ch = charReader.next();
-          token = switch (ch.character()) {
-            case '\n' -> createCharsToken(TokenType.NEWLINE, ch);
-            case ';' -> createMultiCharToken(TokenType.COMMENT, ch, charReader, nextChar -> nextChar != '\n');
-            case '(' -> createCharsToken(TokenType.LEFT_PAREN, ch);
-            case ')' -> createCharsToken(TokenType.RIGHT_PAREN, ch);
-            case '[' -> createCharsToken(TokenType.LEFT_BRACKET, ch);
-            case ']' -> createCharsToken(TokenType.RIGHT_BRACKET, ch);
-            case '{' -> createCharsToken(TokenType.LEFT_BRACE, ch);
-            case '}' -> createCharsToken(TokenType.RIGHT_BRACE, ch);
-            case '+' -> createCharsToken(TokenType.PLUS, ch);
-            case '-' -> createCharsToken(TokenType.MINUS, ch);
-            case '*' -> createCharsToken(TokenType.STAR, ch);
-            case '/' -> createCharsToken(TokenType.SLASH, ch);
-            case '^' -> createCharsToken(TokenType.CARET, ch);
-            case '&' -> {
-              if (checkNextChar(charReader, '&')) {
-                yield createCharsToken(TokenType.AND_AND, ch, charReader.next());
-              } else if (checkNextChar(charReader, Character::isDigit)) {
-                yield createHexHumberToken(ch, charReader);
-              }
-
-              yield createCharsToken(TokenType.AND, ch);
-            }
-            case '~' -> createCharsToken(TokenType.TILDE, ch);
-            case '|' -> {
-              if (checkNextChar(charReader, '|')) {
-                yield createCharsToken(TokenType.PIPE_PIPE, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.PIPE, ch);
-            }
-            case '#' -> {
-              if (checkNextChar(charReader, Character::isAlphabetic)) {
-                yield createIdentifierToken(ch, charReader);
-              }
-
-              yield createCharsToken(TokenType.HASH, ch);
-            }
-            case ':' -> {
-              if (checkNextChar(charReader, ':')) {
-                yield createCharsToken(TokenType.COLON_COLON, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.COLON, ch);
-            }
-            case '!' -> {
-              if (checkNextChar(charReader, '=')) {
-                yield createCharsToken(TokenType.EQUAL_EQUAL, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.BANG, ch);
-            }
-            case '$' -> {
-              if (checkNextChar(charReader, this::isHexDigit)) {
-                yield createHexHumberToken(ch, charReader);
-              }
-              if (checkNextChar(charReader, '$')) {
-                yield createCharsToken(TokenType.DOLLAR_DOLLAR, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.DOLLAR, ch);
-            }
-            case '%' -> createBinaryNumberToken(ch, charReader);
-            case ',' -> createCharsToken(TokenType.COMMA, ch);
-            case '"', '\'' -> createTextToken(ch, charReader);
-            case '0' -> createNumberToken(ch, charReader);
-            case '=' -> {
-              if (checkNextChar(charReader, '=')) {
-                yield createCharsToken(TokenType.EQUAL_EQUAL, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.EQUAL, ch);
-            }
-            case '<' -> {
-              if (checkNextChar(charReader, '<')) {
-                yield createCharsToken(TokenType.LESS_LESS, ch, charReader.next());
-              }
-              if (checkNextChar(charReader, '=')) {
-                yield createCharsToken(TokenType.LESS_EQUAL, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.LESS, ch);
-            }
-            case '>' -> {
-              if (checkNextChar(charReader, '>')) {
-                Char second = charReader.next();
-                if (checkNextChar(charReader, '>')) {
-                  yield createCharsToken(TokenType.GREATER_GREATER_GREATER, ch, second, charReader.next());
-                }
-                yield createCharsToken(TokenType.GREATER_GREATER, ch, second);
-              }
-              if (checkNextChar(charReader, '=')) {
-                yield createCharsToken(TokenType.GREATER_EQUAL, ch, charReader.next());
-              }
-
-              yield createCharsToken(TokenType.GREATER, ch);
-            }
-            default -> {
-              if (Character.isDigit(ch.character())) {
-                Token number = createMultiCharToken(TokenType.DECIMAL_NUMBER, ch, charReader, Character::isDigit);
-
-                int value = Integer.parseInt(number.text());
-                if (value >= 0 && value <= 99) {
-                  if (checkNextChar(charReader, ':')) {
-                    Char next = charReader.next();
-                    yield new Token(TokenType.IDENTIFIER, number.line(), number.start(), next.position(),
-                        number.text() + next.character());
-                  } else if (checkNextChar(charReader, nextChar -> nextChar == 'b' || nextChar == 'f')) {
-                    Char next = charReader.next();
-                    yield new Token(TokenType.IDENTIFIER, number.line(), number.start(), next.position(),
-                        number.text() + next.character());
-                  } else if (checkNextChar(charReader, '$')) {
-                    Char dollar = charReader.next();
-                    Token identifier = new Token(TokenType.IDENTIFIER, number.line(), number.start(), dollar.position(),
-                        number.text() + dollar.character());
-
-                    if (checkNextChar(charReader, ':')) {
-                      Char colon = charReader.next();
-                      yield new Token(TokenType.IDENTIFIER, identifier.line(), identifier.start(), colon.position(),
-                          identifier.text() + colon.character());
-                    }
-
-                    yield identifier;
-                  }
-                }
-
-                yield number;
-              }
-
-              if (Character.isAlphabetic(ch.character()) || ch.character() == '_' || ch.character() == '.') {
-                yield createIdentifierToken(ch, charReader);
-              }
-
-              yield null;
-            }
-          };
+          token = doReadToken();
         }
       }
     } catch (IOException e) {
@@ -222,115 +85,289 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     return token;
   }
 
-  private Token createHexHumberToken(Char ch, CharReader charReader) throws IOException {
-    StringBuilder builder = new StringBuilder();
+  private Token doReadToken() throws IOException {
+    Char ch = charReader.next();
 
-    Char last = null;
+    return switch (ch.character()) {
+      case '\n' -> createCharsToken(TokenType.NEWLINE, ch);
+      case '\r' -> createCarriageReturnToken(ch);
+      case ';' -> createCommentToken(ch);
+      case '(' -> createCharsToken(TokenType.LEFT_PAREN, ch);
+      case ')' -> createCharsToken(TokenType.RIGHT_PAREN, ch);
+      case '[' -> createCharsToken(TokenType.LEFT_BRACKET, ch);
+      case ']' -> createCharsToken(TokenType.RIGHT_BRACKET, ch);
+      case '{' -> createCharsToken(TokenType.LEFT_BRACE, ch);
+      case '}' -> createCharsToken(TokenType.RIGHT_BRACE, ch);
+      case '+' -> createCharsToken(TokenType.PLUS, ch);
+      case '-' -> createCharsToken(TokenType.MINUS, ch);
+      case '*' -> createCharsToken(TokenType.STAR, ch);
+      case '/' -> createCharsToken(TokenType.SLASH, ch);
+      case '^' -> createCharsToken(TokenType.CARET, ch);
+      case '&' -> createAmpersandBasedToken(ch);
+      case '~' -> createCharsToken(TokenType.TILDE, ch);
+      case '|' -> createPipeBasedToken(ch);
+      case '#' -> createHashBasedToken(ch);
+      case ':' -> createColonBasedToken(ch);
+      case '!' -> createBangBasedToken(ch);
+      case '$' -> createDollarBasedToken(ch);
+      case '%' -> createBinaryNumberToken(ch);
+      case ',' -> createCharsToken(TokenType.COMMA, ch);
+      case '"', '\'' -> createTextToken(ch);
+      case '0' -> createNumberToken(ch);
+      case '=' -> createEqualBasedToken(ch);
+      case '<' -> createLessBasedToken(ch);
+      case '>' -> createGreaterBasedToken(ch);
+      default -> {
+        Token token = isNumberStart(ch.character()) ? createDigitBasedToken(ch) : null;
 
-    while (checkNextChar(charReader, this::isHexDigit)) {
-      last = appendChar(builder, charReader);
-    }
+        if (token != null) {
+          yield token;
+        }
 
-    return new Token(TokenType.HEX_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+        yield isIdentifierStart(ch.character()) ? createIdentifierToken(ch) : null;
+      }
+    };
   }
 
-  private Token createBinaryNumberToken(Char ch, CharReader charReader) throws IOException {
-    StringBuilder builder = new StringBuilder();
-
-    Char last = null;
-
-    while (checkNextChar(charReader, this::isBinaryDigit)) {
-      last = appendChar(builder, charReader);
+  private Token createCarriageReturnToken(Char ch) throws IOException {
+    if (checkNextChar('\n')) {
+      return createCharsToken(TokenType.NEWLINE, ch, charReader.next());
     }
 
-    return new Token(TokenType.BINARY_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+    return createCharsToken(TokenType.NEWLINE, ch);
   }
 
-  private Token createOctalHumberToken(Char ch, CharReader charReader) throws IOException {
+  private Token createDigitBasedToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
+    builder.append(ch.toString());
 
-    Char last = null;
+    CharReader.Char last = ch;
 
-    while (checkNextChar(charReader, this::isOctalDigit)) {
-      last = appendChar(builder, charReader);
+    while (checkNextChar(Character::isDigit)) {
+      last = appendChar(builder);
     }
 
-    if (checkNextChar(charReader, ':')) {
-      last = appendChar(builder, charReader);
+    if (checkNextChar(
+        nextChar -> nextChar == ':' || nextChar == 'b' || nextChar == 'f' || nextChar == '$')) {
+      last = appendChar(builder);
 
-      return new Token(TokenType.IDENTIFIER, ch.line(), ch.position(), last.position(), builder.toString());
+      if (last.character() == '$' && checkNextChar(':')) {
+        last = appendChar(builder);
+      }
+
+      return new Token(
+          TokenType.IDENTIFIER, ch.line(), ch.position(), last.position(), builder.toString());
     }
 
-    return new Token(TokenType.OCTAL_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+    return new Token(
+        TokenType.DECIMAL_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
   }
 
-  private Token createNumberToken(Char ch, CharReader charReader) throws IOException {
+  private Token createGreaterBasedToken(Char ch) throws IOException {
+    if (checkNextChar('>')) {
+      Char second = charReader.next();
+
+      if (checkNextChar('>')) {
+        return createCharsToken(TokenType.GREATER_GREATER_GREATER, ch, second, charReader.next());
+      }
+
+      return createCharsToken(TokenType.GREATER_GREATER, ch, second);
+    }
+
+    if (checkNextChar('=')) {
+      return createCharsToken(TokenType.GREATER_EQUAL, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.GREATER, ch);
+  }
+
+  private Token createLessBasedToken(Char ch) throws IOException {
+    if (checkNextChar('<')) {
+      return createCharsToken(TokenType.LESS_LESS, ch, charReader.next());
+    }
+    if (checkNextChar('=')) {
+      return createCharsToken(TokenType.LESS_EQUAL, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.LESS, ch);
+  }
+
+  private Token createEqualBasedToken(Char ch) throws IOException {
+    if (checkNextChar('=')) {
+      return createCharsToken(TokenType.EQUAL_EQUAL, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.EQUAL, ch);
+  }
+
+  private Token createDollarBasedToken(Char ch) throws IOException {
+    if (checkNextChar(this::isHexDigit)) {
+      return createHexHumberToken(ch);
+    }
+
+    if (checkNextChar('$')) {
+      return createCharsToken(TokenType.DOLLAR_DOLLAR, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.DOLLAR, ch);
+  }
+
+  private Token createBangBasedToken(Char ch) throws IOException {
+    if (checkNextChar('=')) {
+      return createCharsToken(TokenType.EQUAL_EQUAL, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.BANG, ch);
+  }
+
+  private Token createColonBasedToken(Char ch) throws IOException {
+    if (checkNextChar(':')) {
+      return createCharsToken(TokenType.COLON_COLON, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.COLON, ch);
+  }
+
+  private Token createHashBasedToken(Char ch) throws IOException {
+    if (checkNextChar(Character::isAlphabetic)) {
+      return createIdentifierToken(ch);
+    }
+
+    return createCharsToken(TokenType.HASH, ch);
+  }
+
+  private Token createPipeBasedToken(Char ch) throws IOException {
+    if (checkNextChar('|')) {
+      return createCharsToken(TokenType.PIPE_PIPE, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.PIPE, ch);
+  }
+
+  private Token createAmpersandBasedToken(Char ch) throws IOException {
+    if (checkNextChar('&')) {
+      return createCharsToken(TokenType.AND_AND, ch, charReader.next());
+    } else if (checkNextChar(Character::isDigit)) {
+      return createHexHumberToken(ch);
+    }
+
+    return createCharsToken(TokenType.AND, ch);
+  }
+
+  private Token createHexHumberToken(Char ch) throws IOException {
+    StringBuilder builder = new StringBuilder();
+
+    Char last = ch;
+
+    while (checkNextChar(this::isHexDigit)) {
+      last = appendChar(builder);
+    }
+
+    return new Token(
+        TokenType.HEX_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+  }
+
+  private Token createBinaryNumberToken(Char ch) throws IOException {
+    StringBuilder builder = new StringBuilder();
+
+    Char last = ch;
+
+    while (checkNextChar(this::isBinaryDigit)) {
+      last = appendChar(builder);
+    }
+
+    return new Token(
+        TokenType.BINARY_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+  }
+
+  private Token createOctalHumberToken(Char ch) throws IOException {
+    StringBuilder builder = new StringBuilder();
+
+    Char last = ch;
+
+    while (checkNextChar(this::isOctalDigit)) {
+      last = appendChar(builder);
+    }
+
+    if (checkNextChar(':')) {
+      last = appendChar(builder);
+
+      return new Token(
+          TokenType.IDENTIFIER, ch.line(), ch.position(), last.position(), builder.toString());
+    }
+
+    return new Token(
+        TokenType.OCTAL_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+  }
+
+  private Token createNumberToken(Char ch) throws IOException {
     Char nextChar = charReader.peek();
 
     Token number = null;
 
     if (nextChar != null) {
-      number = switch (nextChar.character()) {
-        case 'x', 'X' -> {
-          charReader.next();
-          yield createHexHumberToken(ch, charReader);
-        }
-        case 'b', 'B' -> {
-          Char b = charReader.next();
-          if (checkNextChar(charReader, next -> !isBinaryDigit(next))) {
-            yield createCharsToken(TokenType.IDENTIFIER, ch, b);
-          }
-
-          yield createBinaryNumberToken(ch, charReader);
-        }
-        case 'f' -> createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
-        case 'o', 'O' -> {
-          charReader.next();
-          yield createOctalHumberToken(ch, charReader);
-        }
-        case '0', '1', '2', '3', '4', '5', '6', '7' -> createOctalHumberToken(ch, charReader);
-        default -> {
-          if (!Character.isDigit(nextChar.character())) {
-            if (checkNextChar(charReader, ':')) {
-              yield createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
-            } else if (checkNextChar(charReader, '$')) {
-              Char dollar = charReader.next();
-
-              if (checkNextChar(charReader, ':')) {
-                yield createCharsToken(TokenType.IDENTIFIER, ch, dollar, charReader.next());
+      number =
+          switch (nextChar.character()) {
+            case 'x', 'X' -> {
+              charReader.next();
+              yield createHexHumberToken(ch);
+            }
+            case 'b', 'B' -> {
+              Char b = charReader.next();
+              if (checkNextChar(next -> !isBinaryDigit(next))) {
+                yield createCharsToken(TokenType.IDENTIFIER, ch, b);
               }
 
-              yield createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
+              yield createBinaryNumberToken(ch);
             }
+            case 'f' -> createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
+            case 'o', 'O' -> {
+              charReader.next();
+              yield createOctalHumberToken(ch);
+            }
+            case '0', '1', '2', '3', '4', '5', '6', '7' -> createOctalHumberToken(ch);
+            default -> {
+              if (!Character.isDigit(nextChar.character())) {
+                if (checkNextChar(':')) {
+                  yield createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
+                } else if (checkNextChar('$')) {
+                  Char dollar = charReader.next();
 
-            yield createCharsToken(TokenType.DECIMAL_NUMBER, ch);
-          }
+                  if (checkNextChar(':')) {
+                    yield createCharsToken(TokenType.IDENTIFIER, ch, dollar, charReader.next());
+                  }
 
-          yield null;
-        }
-      };
+                  yield createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
+                }
+
+                yield createCharsToken(TokenType.DECIMAL_NUMBER, ch);
+              }
+
+              yield null;
+            }
+          };
     }
 
     return number;
   }
 
-  private Token createTextToken(Char ch, CharReader charReader) throws IOException {
+  private Token createTextToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
     builder.append(ch.toString());
 
-    Char last = ch;
+    Char last;
 
     while (true) {
       Char nextChar = charReader.peek();
 
       if (nextChar != null) {
         if (nextChar.character() == '\\') {
-          last = appendStringChar(charReader, builder);
+          last = appendStringChar(builder);
         } else if (nextChar.character().equals(ch.character())) {
-          last = appendChar(builder, charReader);
+          last = appendChar(builder);
           break;
         } else {
-          last = appendChar(builder, charReader);
+          last = appendChar(builder);
         }
       }
     }
@@ -344,18 +381,19 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     return new Token(type, ch.line(), ch.position(), last.position(), builder.toString());
   }
 
-  private Token createIdentifierToken(Char ch, CharReader charReader) throws IOException {
+  private Token createIdentifierToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
     builder.append(ch.toString());
 
     Char last = ch;
 
-    while (checkNextChar(charReader, nextChar -> Character.isLetterOrDigit(nextChar) || nextChar == ':' || nextChar == '_')) {
-      last = appendChar(builder, charReader);
+    while (checkNextChar(
+        nextChar -> Character.isLetterOrDigit(nextChar) || nextChar == ':' || nextChar == '_')) {
+      last = appendChar(builder);
 
       if (last.character() == ':') {
-        if (checkNextChar(charReader, ':')) {
-          last = appendChar(builder, charReader);
+        if (checkNextChar(':')) {
+          last = appendChar(builder);
         }
 
         break;
@@ -375,7 +413,7 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     return new Token(tokenType, ch.line(), ch.position(), last.position(), text);
   }
 
-  private CharReader.Char appendChar(StringBuilder buffer, CharReader charReader) throws IOException {
+  private CharReader.Char appendChar(StringBuilder buffer) throws IOException {
     return appendChar(buffer, charReader.next());
   }
 
@@ -385,7 +423,7 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     return ch;
   }
 
-  private Char appendStringChar(CharReader charReader, StringBuilder builder) throws IOException {
+  private Char appendStringChar(StringBuilder builder) throws IOException {
     charReader.next();
 
     Char last = charReader.next();
@@ -418,61 +456,87 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     return last;
   }
 
-  private Token createMultiCharToken(TokenType tokenType, CharReader.Char ch, CharReader charReader, Predicate<Character> predicate)
-      throws IOException {
+  private Token createCommentToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
     builder.append(ch.toString());
 
     CharReader.Char last = ch;
 
-    while (checkNextChar(charReader, predicate)) {
-      last = appendChar(builder, charReader);
+    while (checkNextChar(nextChar -> nextChar != '\n')) {
+      last = appendChar(builder);
     }
 
-    return new Token(tokenType, ch.line(), ch.position(), last.position(), builder.toString());
+    return new Token(
+        TokenType.COMMENT, ch.line(), ch.position(), last.position(), builder.toString());
   }
 
-  private Token createToken(TokenType tokenType, int line, int position) {
-    return new Token(tokenType, line, position, position, "");
+  private Token createEofToken(int line, int position) {
+    return new Token(TokenType.EOF, line, position, position, "");
   }
 
   private Token createCharsToken(TokenType tokenType, Char... chars) {
     Char first = chars[0];
     Char last = chars[chars.length - 1];
 
-    return new Token(tokenType, first.line(), first.position(), last.position(),
+    return new Token(
+        tokenType,
+        first.line(),
+        first.position(),
+        last.position(),
         String.valueOf(Arrays.stream(chars).map(Char::toString).collect(Collectors.joining())));
   }
 
-  private boolean checkNextChar(CharReader charReader, char ch) throws IOException {
-    return checkNextChar(charReader, nextChar -> nextChar == ch);
+  private boolean checkNextChar(char ch) throws IOException {
+    return checkNextChar(nextChar -> nextChar == ch);
   }
 
-  private boolean checkNextChar(CharReader charReader, Predicate<Character> predicate) throws IOException {
+  private boolean checkNextChar(Predicate<Character> predicate) throws IOException {
     CharReader.Char nextChar = charReader.peek();
 
     return nextChar != null && predicate.test(nextChar.character());
   }
 
+  private boolean isDecimalDigit(Character character) {
+    return Character.isDigit(character);
+  }
+
   private boolean isHexDigit(Character character) {
     return Character.isDigit(character)
-        || character == 'a' || character == 'A'
-        || character == 'b' || character == 'B'
-        || character == 'c' || character == 'C'
-        || character == 'd' || character == 'D'
-        || character == 'e' || character == 'E'
-        || character == 'f' || character == 'F';
+        || character == 'a'
+        || character == 'A'
+        || character == 'b'
+        || character == 'B'
+        || character == 'c'
+        || character == 'C'
+        || character == 'd'
+        || character == 'D'
+        || character == 'e'
+        || character == 'E'
+        || character == 'f'
+        || character == 'F';
   }
 
   private boolean isOctalDigit(Character character) {
-    return character == '0' || character == '1'
-        || character == '2' || character == '3'
-        || character == '4' || character == '5'
-        || character == '6' || character == '7';
+    return character == '0'
+        || character == '1'
+        || character == '2'
+        || character == '3'
+        || character == '4'
+        || character == '5'
+        || character == '6'
+        || character == '7';
   }
 
   private boolean isBinaryDigit(Character character) {
     return character == '0' || character == '1';
+  }
+
+  private boolean isNumberStart(Character character) {
+    return isDecimalDigit(character);
+  }
+
+  private boolean isIdentifierStart(Character character) {
+    return Character.isAlphabetic(character) || character == '_' || character == '.';
   }
 
   @Override
@@ -512,6 +576,4 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
   public void close() throws IOException {
     charReader.close();
   }
-
-
 }

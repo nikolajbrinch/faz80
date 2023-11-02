@@ -201,8 +201,6 @@ class ScannerTests {
     Assertions.assertEquals("1234567890", scanner.peek(7).text());
     Assertions.assertEquals(TokenType.DECIMAL_NUMBER, scanner.peek(11).type());
     Assertions.assertEquals("91", scanner.peek(11).text());
-
-    scanner.forEach(System.out::println);
   }
 
 }
