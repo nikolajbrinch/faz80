@@ -61,7 +61,6 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
     return parenthesize("group", expression.expression());
   }
 
-
   @Override
   public String visitLiteralExpression(LiteralExpression expression) {
     return expression.token().text();
@@ -86,7 +85,6 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
   public String visitInstructionStatement(InstructionStatement statement) {
     return parenthesize(statement.mnemonic().text(), statement.left(), statement.right());
   }
-
 
   @Override
   public String visitConstantStatement(ConstantStatement statement) {
@@ -126,7 +124,10 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
   @Override
   public String visitBlockStatement(BlockStatement statement) {
     return parenthesize(
-        "block: " + statement.statements().stream().map(s -> s.accept(this)).collect(Collectors.joining("\n")));
+        "block: "
+            + statement.statements().stream()
+                .map(s -> s.accept(this))
+                .collect(Collectors.joining("\n")));
   }
 
   @Override
@@ -136,11 +137,15 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
 
   @Override
   public String visitMacroStatement(MacroStatement statement) {
-    return parenthesize("macro: [" + statement.name() + "] (" +
-        statement.parameters().stream()
-            .map(parameter -> parameter.name().text() + defaultValue(parameter))
-            .collect(Collectors.joining(",")) + ") " +
-        statement.block().accept(this));
+    return parenthesize(
+        "macro: ["
+            + statement.name()
+            + "] ("
+            + statement.parameters().stream()
+                .map(parameter -> parameter.name().text() + defaultValue(parameter))
+                .collect(Collectors.joining(","))
+            + ") "
+            + statement.block().accept(this));
   }
 
   private String defaultValue(Parameter parameter) {
@@ -159,7 +164,9 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
 
   @Override
   public String visitConditionalStatement(ConditionalStatement statement) {
-    return "if: " + parenthesize("", statement.condition()) + statement.thenBranch().accept(this)
+    return "if: "
+        + parenthesize("", statement.condition())
+        + statement.thenBranch().accept(this)
         + (statement.elseBranch() == null ? "" : " else: " + statement.elseBranch().accept(this));
   }
 
@@ -180,7 +187,8 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
 
   @Override
   public String visitMacroCallStatement(MacroCallStatement statement) {
-    return parenthesize("call: " + statement.name(), statement.arguments().toArray(new Expression[0]));
+    return parenthesize(
+        "call: " + statement.name(), statement.arguments().toArray(new Expression[0]));
   }
 
   @Override
@@ -211,8 +219,5 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
     builder.append(")");
 
     return builder.toString();
-
   }
-
-
 }

@@ -113,12 +113,11 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
       case '%' -> createBinaryNumberToken(ch);
       case ',' -> createCharsToken(TokenType.COMMA, ch);
       case '"', '\'' -> createTextToken(ch);
-      case '0' -> createNumberToken(ch);
       case '=' -> createEqualBasedToken(ch);
       case '<' -> createLessBasedToken(ch);
       case '>' -> createGreaterBasedToken(ch);
       default -> {
-        Token token = isNumberStart(ch.character()) ? createDigitBasedToken(ch) : null;
+        Token token = isNumberStart(ch.character()) ? createNumberToken(ch) : null;
 
         if (token != null) {
           yield token;
@@ -137,11 +136,50 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
     return createCharsToken(TokenType.NEWLINE, ch);
   }
 
-  private Token createDigitBasedToken(Char ch) throws IOException {
-    StringBuilder builder = new StringBuilder();
-    builder.append(ch.toString());
+  private Token createNumberToken(Char ch) throws IOException {
+    Token number = null;
 
-    CharReader.Char last = ch;
+    if (ch.character() == '0') {
+      Char nextChar = charReader.peek();
+
+      if (nextChar != null) {
+        number =
+            switch (nextChar.character()) {
+              case 'x', 'X' -> {
+                charReader.next();
+                yield createHexHumberToken(ch);
+              }
+              case 'b', 'B' -> {
+                charReader.next();
+                yield createBinaryNumberToken(ch);
+              }
+              case 'o', 'O', '0', '1', '2', '3', '4', '5', '6', '7' -> {
+                if (nextChar.character() == 'o' || nextChar.character() == 'O') {
+                  charReader.next();
+                }
+                yield createOctalHumberToken(ch);
+              }
+              default -> {
+                /*
+                 * TODO: Handle that this could be a hex number, if followed by 'h' or 'H'
+                 */
+                yield null;
+              }
+            };
+      }
+    }
+
+    if (number != null) {
+      return number;
+    }
+
+    /*
+     * Decimal number
+     *
+     * TODO: Handle if the string is followed by 'o', 'O', 'q', 'Q', 'd', 'D'
+     */
+    StringBuilder builder = new StringBuilder();
+    Char last = appendChar(builder, ch);
 
     while (checkNextChar(Character::isDigit)) {
       last = appendChar(builder);
@@ -263,8 +301,10 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
       last = appendChar(builder);
     }
 
-    return new Token(
-        TokenType.HEX_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+    return builder.isEmpty()
+        ? null
+        : new Token(
+            TokenType.HEX_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
   }
 
   private Token createBinaryNumberToken(Char ch) throws IOException {
@@ -276,8 +316,10 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
       last = appendChar(builder);
     }
 
-    return new Token(
-        TokenType.BINARY_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
+    return builder.isEmpty()
+        ? null
+        : new Token(
+            TokenType.BINARY_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
   }
 
   private Token createOctalHumberToken(Char ch) throws IOException {
@@ -296,59 +338,10 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
           TokenType.IDENTIFIER, ch.line(), ch.position(), last.position(), builder.toString());
     }
 
-    return new Token(
-        TokenType.OCTAL_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
-  }
-
-  private Token createNumberToken(Char ch) throws IOException {
-    Char nextChar = charReader.peek();
-
-    Token number = null;
-
-    if (nextChar != null) {
-      number =
-          switch (nextChar.character()) {
-            case 'x', 'X' -> {
-              charReader.next();
-              yield createHexHumberToken(ch);
-            }
-            case 'b', 'B' -> {
-              Char b = charReader.next();
-              if (checkNextChar(next -> !isBinaryDigit(next))) {
-                yield createCharsToken(TokenType.IDENTIFIER, ch, b);
-              }
-
-              yield createBinaryNumberToken(ch);
-            }
-            case 'f' -> createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
-            case 'o', 'O' -> {
-              charReader.next();
-              yield createOctalHumberToken(ch);
-            }
-            case '0', '1', '2', '3', '4', '5', '6', '7' -> createOctalHumberToken(ch);
-            default -> {
-              if (!Character.isDigit(nextChar.character())) {
-                if (checkNextChar(':')) {
-                  yield createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
-                } else if (checkNextChar('$')) {
-                  Char dollar = charReader.next();
-
-                  if (checkNextChar(':')) {
-                    yield createCharsToken(TokenType.IDENTIFIER, ch, dollar, charReader.next());
-                  }
-
-                  yield createCharsToken(TokenType.IDENTIFIER, ch, charReader.next());
-                }
-
-                yield createCharsToken(TokenType.DECIMAL_NUMBER, ch);
-              }
-
-              yield null;
-            }
-          };
-    }
-
-    return number;
+    return builder.isEmpty()
+        ? null
+        : new Token(
+            TokenType.OCTAL_NUMBER, ch.line(), ch.position(), last.position(), builder.toString());
   }
 
   private Token createTextToken(Char ch) throws IOException {
