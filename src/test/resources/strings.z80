@@ -1,0 +1,4 @@
+text "string\n\""
+ text 'string\'\n'
+ db 'a', '\n', '\''
+

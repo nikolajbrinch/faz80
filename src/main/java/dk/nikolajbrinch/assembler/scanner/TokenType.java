@@ -1,0 +1,95 @@
+package dk.nikolajbrinch.assembler.scanner;
+
+public enum TokenType {
+  /*
+   * Single character tokens
+   */
+
+  NEWLINE,
+  LEFT_PAREN,
+  RIGHT_PAREN,
+  LEFT_BRACKET,
+  RIGHT_BRACKET,
+  LEFT_BRACE,
+  RIGHT_BRACE,
+  PLUS,
+  MINUS,
+  STAR,
+  SLASH,
+  PERCENT,
+  HASH,
+  COMMA,
+
+
+  /*
+   * One, two or three character tokens
+   */
+  DOLLAR,
+  DOLLAR_DOLLAR,
+  COLON,
+  COLON_COLON,
+  BANG,
+  BANG_EQUAL,
+  EQUAL,
+  EQUAL_EQUAL,
+  GREATER,
+  GREATER_GREATER,
+  GREATER_GREATER_GREATER,
+  GREATER_EQUAL,
+  LESS,
+  LESS_LESS,
+  LESS_EQUAL,
+  AND,
+  AND_AND,
+  PIPE,
+  PIPE_PIPE,
+  TILDE,
+  CARET,
+
+  /*
+   * Literals
+   */
+  IDENTIFIER,
+  STRING,
+  CHAR,
+  DECIMAL_NUMBER,
+  HEX_NUMBER,
+  BINARY_NUMBER,
+  OCTAL_NUMBER,
+  COMMENT,
+
+  /*
+   * Keywords
+   */
+  ORIGIN,
+  CONSTANT,
+  SET,
+  ASSIGN,
+  INCLUDE,
+  INSERT,
+  ALIGN,
+  MACRO,
+  ENDMACRO,
+  REPEAT,
+  ENDREPEAT,
+  DUPLICATE,
+  ENDDUPLICATE,
+  LOCAL,
+  ENDLOCAL,
+  PHASE,
+  DEPHASE,
+  IF,
+  ELSE,
+  ELSE_IF,
+  ENDIF,
+  ASSERT,
+  GLOBAL,
+  DATA_BYTE,
+  DATA_WORD,
+  DATA_LONG,
+  DATA_TEXT,
+  DATA_BLOCK,
+  DATA,
+  END,
+  EOF;
+}
