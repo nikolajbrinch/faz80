@@ -102,7 +102,7 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
       case '-' -> createCharsToken(TokenType.MINUS, ch);
       case '*' -> createCharsToken(TokenType.STAR, ch);
       case '/' -> createCharsToken(TokenType.SLASH, ch);
-      case '^' -> createCharsToken(TokenType.CARET, ch);
+      case '^' -> createCaretBaseToken(ch);
       case '&' -> createAmpersandBasedToken(ch);
       case '~' -> createCharsToken(TokenType.TILDE, ch);
       case '|' -> createPipeBasedToken(ch);
@@ -110,7 +110,7 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
       case ':' -> createColonBasedToken(ch);
       case '!' -> createBangBasedToken(ch);
       case '$' -> createDollarBasedToken(ch);
-      case '%' -> createBinaryNumberToken(ch);
+      case '%' -> createPercentBasedToken(ch);
       case ',' -> createCharsToken(TokenType.COMMA, ch);
       case '"', '\'' -> createTextToken(ch);
       case '=' -> createEqualBasedToken(ch);
@@ -126,6 +126,22 @@ public class Scanner implements Iterable<Token>, AutoCloseable, Closeable {
         yield isIdentifierStart(ch.character()) ? createIdentifierToken(ch) : null;
       }
     };
+  }
+
+  private Token createCaretBaseToken(Char ch) throws IOException {
+    if (checkNextChar('^')) {
+      return createCharsToken(TokenType.CARET_CARET, ch, charReader.next());
+    }
+
+    return createCharsToken(TokenType.CARET, ch);
+  }
+
+  private Token createPercentBasedToken(Char ch) throws IOException {
+    if (checkNextChar(this::isBinaryDigit)) {
+      return createBinaryNumberToken(ch);
+    }
+
+    return createCharsToken(TokenType.PERCENT, ch);
   }
 
   private Token createCarriageReturnToken(Char ch) throws IOException {

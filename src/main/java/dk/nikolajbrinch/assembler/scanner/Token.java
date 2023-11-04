@@ -4,6 +4,28 @@ public record Token(TokenType type, int line, int start, int end, String text) {
 
   @Override
   public String toString() {
-    return  type() + "[@" + line() + ":" + start() + "-" + end() + "(" + text() + ")]";
+    return type() + "[@" + line() + ":" + start() + "-" + end() + "(" + sanitize(text()) + ")]";
+  }
+
+  private String sanitize(String value) {
+    StringBuilder builder = new StringBuilder();
+
+    for (int i = 0; i < value.length(); i++) {
+      char ch = value.charAt(i);
+
+      builder.append(
+          switch (ch) {
+            case '\0' -> "\\0";
+            case '\n' -> "\\n";
+            case '\r' -> "\\r";
+            case '\t' -> "\\t";
+            case '\b' -> "\\b";
+            case '\f' -> "\\f";
+            case '\\' -> "\\";
+            default -> ch;
+          });
+    }
+
+    return builder.toString();
   }
 }

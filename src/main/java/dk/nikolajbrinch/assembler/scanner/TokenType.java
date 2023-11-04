@@ -20,12 +20,13 @@ public enum TokenType {
   HASH,
   COMMA,
 
-
   /*
    * One, two or three character tokens
    */
   DOLLAR,
   DOLLAR_DOLLAR,
+  CARET,
+  CARET_CARET,
   COLON,
   COLON_COLON,
   BANG,
@@ -44,7 +45,6 @@ public enum TokenType {
   PIPE,
   PIPE_PIPE,
   TILDE,
-  CARET,
 
   /*
    * Literals
