@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.parser.compiler;
+package dk.nikolajbrinch.assembler.compiler;
 
 public class IntegerMath {
 

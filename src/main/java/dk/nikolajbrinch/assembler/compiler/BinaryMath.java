@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.parser.compiler;
+package dk.nikolajbrinch.assembler.compiler;
 
 public class BinaryMath {
 
@@ -8,9 +8,7 @@ public class BinaryMath {
     }
 
     throw new IllegalStateException("Operands for subtraction are not integers");
-
   }
-
 
   public static Object or(Object left, Object right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
@@ -18,7 +16,6 @@ public class BinaryMath {
     }
 
     throw new IllegalStateException("Operands for subtraction are not integers");
-
   }
 
   public static Object xor(Object left, Object right) {
@@ -27,7 +24,6 @@ public class BinaryMath {
     }
 
     throw new IllegalStateException("Operands for subtraction are not integers");
-
   }
 
   public static Object shiftRight(Object left, Object right) {
@@ -36,7 +32,6 @@ public class BinaryMath {
     }
 
     throw new IllegalStateException("Operands for subtraction are not integers");
-
   }
 
   public static Object shiftLeft(Object left, Object right) {
@@ -45,7 +40,6 @@ public class BinaryMath {
     }
 
     throw new IllegalStateException("Operands for subtraction are not integers");
-
   }
 
   public static Object not(Object value) {
@@ -55,5 +49,4 @@ public class BinaryMath {
 
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
-
 }

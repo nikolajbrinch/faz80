@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.util;
 
+import dk.nikolajbrinch.assembler.parser.expressions.ConditionExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
@@ -17,6 +18,7 @@ import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.parser.statements.EndStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
@@ -33,7 +35,7 @@ import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.parser.statements.WordStatement;
-import dk.nikolajbrinch.assembler.scanner.Token;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<String> {
@@ -83,7 +85,8 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
 
   @Override
   public String visitInstructionStatement(InstructionStatement statement) {
-    return parenthesize(statement.mnemonic().text(), statement.left(), statement.right());
+    return parenthesize(
+        "instruction: " + statement.mnemonic().text(), statement.operand1(), statement.operand2());
   }
 
   @Override
@@ -187,13 +190,17 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
 
   @Override
   public String visitMacroCallStatement(MacroCallStatement statement) {
-    return parenthesize(
-        "call: " + statement.name(), statement.arguments().toArray(new Expression[0]));
+    return parenthesize("call: " + statement.name(), statement.arguments());
   }
 
   @Override
   public String visitEndStatement(EndStatement endStatement) {
     return parenthesize("end");
+  }
+
+  @Override
+  public String visitEmptyStatement(EmptyStatement emptyStatement) {
+    return parenthesize("empty");
   }
 
   @Override
@@ -206,6 +213,11 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
     return "register: " + expression.register();
   }
 
+  @Override
+  public String visitConditionExpression(ConditionExpression expression) {
+    return "condition: " + expression.condition();
+  }
+
   private String parenthesize(String name, Expression... expressions) {
     StringBuilder builder = new StringBuilder();
 
@@ -214,6 +226,21 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
       if (expression != null) {
         builder.append(" ");
         builder.append(expression.accept(this));
+      }
+    }
+    builder.append(")");
+
+    return builder.toString();
+  }
+
+  private String parenthesize(String name, List<Statement> statements) {
+    StringBuilder builder = new StringBuilder();
+
+    builder.append("(").append(name);
+    for (Statement statement : statements) {
+      if (statement != null) {
+        builder.append(" ");
+        builder.append(statement.accept(this));
       }
     }
     builder.append(")");

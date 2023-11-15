@@ -1,13 +1,14 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.parser.compiler.Compiler;
+import dk.nikolajbrinch.assembler.compiler.Compiler;
+import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
+import dk.nikolajbrinch.assembler.compiler.MacroResolver;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.scanner.Scanner;
 import dk.nikolajbrinch.assembler.util.AstPrinter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -56,6 +57,26 @@ class ParserTests {
       for (Statement statement : statements) {
         System.out.println(new AstPrinter().print(statement));
       }
+    }
+  }
+
+  @Test
+  void testParseIndexed() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+        d set 5
+        xor (ix+d)
+        """.getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      for (Statement statement : statements) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      new Compiler().compile(statements);
     }
   }
 
@@ -143,6 +164,126 @@ class ParserTests {
       for (Statement statement : statements) {
         System.out.println(new AstPrinter().print(statement));
       }
+
+      System.out.println("-----");
+
+      List<Statement> resolved = new MacroResolver(new ExpressionEvaluator()).resolve(statements);
+      for (Statement statement : resolved) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
+
+      new Compiler().compile(statements);
+    }
+  }
+
+  @Test
+  void testParseMacroCall() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+        macro1 macro a1, a2=0
+        endm
+        label: set 89
+        macro1 1
+        macro1 <ld a, b>, <2>
+        macro1 (1, 2)
+        macro1 (<1>, <"string">)
+        macro1 label, <>
+        ; comment
+        """
+                    .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      for (Statement statement : statements) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
+
+      List<Statement> resolved = new MacroResolver(new ExpressionEvaluator()).resolve(statements);
+      for (Statement statement : resolved) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
+
+      new Compiler().compile(statements);
+    }
+  }
+
+  @Test
+  void testParseRepeat() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+        count1 equ 4
+        rept count1
+        label: set 89
+        ; comment
+        endr
+        count2 set 5
+        rept count2
+        label: set 89
+        ; comment
+        endr
+        """
+                    .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      for (Statement statement : statements) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
+
+      List<Statement> resolved = new MacroResolver(new ExpressionEvaluator()).resolve(statements);
+      for (Statement statement : resolved) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
+
+      new Compiler().compile(statements);
+    }
+  }
+
+  @Test
+  void testParseMacroCallSpecial() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+        macro1 macro p1, p2, p3, p4
+        ld a, p1
+        ld b, p2
+        ld c, p3
+        ld d, p4
+        endm
+        label: set 89
+        macro1 <label>, <>, <<>, <>>
+        """
+                    .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      for (Statement statement : statements) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
+
+      List<Statement> resolved = new MacroResolver(new ExpressionEvaluator()).resolve(statements);
+      for (Statement statement : resolved) {
+        System.out.println(new AstPrinter().print(statement));
+      }
+
+      System.out.println("-----");
 
       new Compiler().compile(statements);
     }

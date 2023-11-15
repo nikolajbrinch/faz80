@@ -1,17 +1,17 @@
-package dk.nikolajbrinch.assembler.parser.compiler;
+package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.parser.compiler.StringValue.Type;
+import dk.nikolajbrinch.assembler.compiler.StringValue.Type;
 import dk.nikolajbrinch.assembler.scanner.Token;
 
 public record NumberValue(long value, Size size) implements Value<NumberValue> {
 
-  enum Size {
+  public enum Size {
     BYTE,
     WORD,
     LONG
   }
 
-  public static NumberValue create(int value) {
+  public static NumberValue create(long value) {
     return fromDecimal(value);
   }
 
@@ -46,12 +46,13 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   }
 
   private static NumberValue fromHex(Token token) {
-    Size size = switch (token.text().length()) {
-      case 1, 2 -> Size.BYTE;
-      case 3, 4 -> Size.WORD;
-      case 5, 6, 7, 8 -> Size.LONG;
-      default -> null;
-    };
+    Size size =
+        switch (token.text().length()) {
+          case 1, 2 -> Size.BYTE;
+          case 3, 4 -> Size.WORD;
+          case 5, 6, 7, 8 -> Size.LONG;
+          default -> null;
+        };
 
     if (size != null) {
       return new NumberValue(Long.parseLong(token.text(), 16), size);
@@ -109,7 +110,6 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   public NumberValue subtract(NumberValue other) {
     return new NumberValue(value() - other.value(), size(other));
   }
-
 
   public NumberValue add(NumberValue other) {
     return new NumberValue(value() + other.value(), size(other));
@@ -200,13 +200,21 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     return this;
   }
 
-  public Boolean asBoolean() {
-    return value() == 0 ? Boolean.FALSE : Boolean.TRUE;
+  public BooleanValue asBooleanValue() {
+    return new BooleanValue(value() != 0);
   }
 
   @Override
-  public Boolean compare(NumberValue other) {
-    return value() == other.value();
+  public BooleanValue compare(NumberValue other) {
+    return new BooleanValue(value() == other.value());
+  }
+
+  public static NumberValue twosComplement(NumberValue normal) {
+    return new NumberValue(twosComplement(normal.value()), normal.size());
+  }
+
+  public static long twosComplement(long normal) {
+    return normal < 0L ? (Math.abs(normal) ^ 0b11111111) + 1 : normal;
   }
 
   private Size size(NumberValue other) {

@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.parser.compiler;
+package dk.nikolajbrinch.assembler.compiler;
 
 public class Logic {
 
@@ -8,47 +8,47 @@ public class Logic {
     }
 
     if (value instanceof Value v) {
-      return !v.asBoolean();
+      return v.asBooleanValue().not();
     }
 
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
   public static Object and(Object left, Object right) {
-    if (left instanceof Boolean l && right instanceof Boolean r) {
-      return l && r;
+    if (left instanceof BooleanValue l && right instanceof BooleanValue r) {
+      return l.and(r);
     }
 
     if (left instanceof Value l && right instanceof Value r) {
-      return l.asBoolean() && r.asBoolean();
+      return l.asBooleanValue().and(r.asBooleanValue());
     }
 
-    if (left instanceof Boolean l && right instanceof Value r) {
-      return l && r.asBoolean();
+    if (left instanceof BooleanValue l && right instanceof Value r) {
+      return l.and(r.asBooleanValue());
     }
 
-    if (left instanceof Value l && right instanceof Boolean r) {
-      return l.asBoolean() && r;
+    if (left instanceof Value l && right instanceof BooleanValue r) {
+      return l.asBooleanValue().and(r);
     }
 
     throw new IllegalStateException("Operands for subtraction are not booleans");
-
   }
+
   public static Object or(Object left, Object right) {
-    if (left instanceof Boolean l && right instanceof Boolean r) {
-      return l || r;
+    if (left instanceof BooleanValue l && right instanceof BooleanValue r) {
+      return l.or(r);
     }
 
     if (left instanceof Value l && right instanceof Value r) {
-      return l.asBoolean() || r.asBoolean();
+      return l.asBooleanValue().or(r.asBooleanValue());
     }
 
-    if (left instanceof Boolean l && right instanceof Value r) {
-      return l || r.asBoolean();
+    if (left instanceof BooleanValue l && right instanceof Value r) {
+      return l.or(r.asBooleanValue());
     }
 
-    if (left instanceof Value l && right instanceof Boolean r) {
-      return l.asBoolean() || r;
+    if (left instanceof Value l && right instanceof BooleanValue r) {
+      return l.asBooleanValue().or(r);
     }
 
     throw new IllegalStateException("Operands for subtraction are not booleans");
@@ -63,16 +63,16 @@ public class Logic {
       return l.asStringValue().compare(r.asStringValue());
     }
 
-    if (left instanceof Boolean l && right instanceof Boolean r) {
-      return l.equals(r);
+    if (left instanceof BooleanValue l && right instanceof BooleanValue r) {
+      return l.compare(r);
     }
 
-    if (left instanceof Boolean l && right instanceof Value r) {
-      return l.equals(r.asBoolean());
+    if (left instanceof BooleanValue l && right instanceof Value r) {
+      return l.compare(r.asBooleanValue());
     }
 
-    if (left instanceof Value l && right instanceof Boolean r) {
-      return l.asBoolean().equals(r);
+    if (left instanceof Value l && right instanceof BooleanValue r) {
+      return l.asBooleanValue().compare(r);
     }
 
     throw new IllegalStateException("Operands for division are not integers");
@@ -85,6 +85,4 @@ public class Logic {
 
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
-
-
 }

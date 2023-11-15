@@ -41,4 +41,6 @@ public interface StatementVisitor<R> {
   R visitMacroCallStatement(MacroCallStatement macroCallStatement);
 
   R visitEndStatement(EndStatement endStatement);
+
+  R visitEmptyStatement(EmptyStatement emptyStatement);
 }

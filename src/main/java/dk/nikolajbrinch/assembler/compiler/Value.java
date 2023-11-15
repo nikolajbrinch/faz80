@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.parser.compiler;
+package dk.nikolajbrinch.assembler.compiler;
 
 public interface Value<T extends Value<T>> {
 
@@ -8,7 +8,7 @@ public interface Value<T extends Value<T>> {
 
   public NumberValue asNumberValue();
 
-  public Boolean asBoolean();
+  public BooleanValue asBooleanValue();
 
-  Boolean compare(T other);
+  BooleanValue compare(T other);
 }

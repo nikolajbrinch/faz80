@@ -167,7 +167,7 @@ public class Control {
     return token;
   }
 
-  void ignoreBlankLines() {
+  void consumeBlankLines() {
     while (match(TokenType.NEWLINE)) {
       nextToken();
     }

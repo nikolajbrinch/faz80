@@ -2,6 +2,7 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.ConditionExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
@@ -14,6 +15,7 @@ import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.parser.statements.EndStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
@@ -35,22 +37,41 @@ import dk.nikolajbrinch.assembler.scanner.Token;
 import dk.nikolajbrinch.assembler.scanner.TokenType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Parser {
 
+  static enum Mode {
+    NORMAL,
+    MACRO_CALL;
+  }
+
   private final Control control;
+
+  private TokenType eos = TokenType.NEWLINE;
+
+  private Mode mode = Mode.NORMAL;
 
   public Parser(Scanner scanner) {
     this.control = new Control(scanner);
   }
 
+  private final Set<Mnemonic> conditionalInstructions =
+      Set.of(Mnemonic.JR, Mnemonic.JP, Mnemonic.CALL, Mnemonic.RET);
+
   public List<Statement> parse() {
     List<Statement> statements = new ArrayList<>();
 
     while (!control.isEof()) {
-      control.ignoreBlankLines();
+      control.consumeBlankLines();
 
-      statements.add(declaration());
+      if (!control.isEof()) {
+        Statement declaration = declaration();
+
+        if (declaration != null) {
+          statements.add(declaration);
+        }
+      }
     }
 
     return statements;
@@ -62,21 +83,31 @@ public class Parser {
         case IDENTIFIER -> {
           Token identifier = control.consume(TokenType.IDENTIFIER, "Expect identifier");
 
+          if (Mnemonic.find(identifier.text()) != null) {
+            yield instruction(identifier);
+          }
+
           yield switch (control.peek().type()) {
             case CONSTANT -> constant(identifier);
             case ASSIGN, EQUAL -> variable(identifier);
-            case SET -> {
-              if (control.lineHasToken(TokenType.COMMA)) {
-                yield label(identifier);
-              }
-
-              yield variable(identifier);
-            }
+            case SET -> set(identifier);
             case MACRO -> macro(identifier);
             case LEFT_PAREN -> macroCall(identifier);
             default -> {
-              if (Mnemonic.find(identifier.text()) != null) {
-                yield instruction(identifier);
+              if (mode != Mode.MACRO_CALL) {
+                Statement macroCall = null;
+
+                try {
+                  macroCall = macroCall(identifier);
+                } catch (ParseException e) {
+                  /*
+                   * Not a macroCall
+                   */
+                }
+
+                if (macroCall != null) {
+                  yield macroCall;
+                }
               }
 
               yield label(identifier);
@@ -111,6 +142,14 @@ public class Parser {
 
       return null;
     }
+  }
+
+  private Statement set(Token identifier) {
+    if (control.lineHasToken(TokenType.COMMA)) {
+      return label(identifier);
+    }
+
+    return variable(identifier);
   }
 
   private Statement label(Token identifier) {
@@ -321,24 +360,101 @@ public class Parser {
   }
 
   private Statement macroCall(Token identifier) {
-    Token name = identifier;
+    mode = Mode.MACRO_CALL;
+    try {
+      Token name = identifier;
 
-    control.consume(TokenType.LEFT_PAREN, "Expect ( before macro call arguments");
+      TokenType stop;
 
-    List<Expression> arguments = new ArrayList<>();
+      if (control.checkType(TokenType.LEFT_PAREN)) {
+        control.consume(TokenType.LEFT_PAREN, "Expect ( before macro call arguments");
+        stop = TokenType.RIGHT_PAREN;
+      } else {
+        stop = TokenType.NEWLINE;
+      }
 
-    while (!control.checkType(TokenType.RIGHT_PAREN)) {
-      arguments.add(expression());
+      List<Statement> arguments = parseArgs(stop);
+
+      if (stop == TokenType.RIGHT_PAREN) {
+        control.consume(TokenType.RIGHT_PAREN, "Expect ) after macro call arguments");
+        control.consume(TokenType.NEWLINE, "Expect newline after macro.");
+
+        return new MacroCallStatement(name, arguments);
+      }
+
+      if (!arguments.isEmpty()) {
+        control.consume(TokenType.NEWLINE, "Expect newline after macro.");
+
+        return new MacroCallStatement(name, arguments);
+      }
+
+      return null;
+    } finally {
+      resetMode();
+    }
+  }
+
+  /*
+   * TODO: Rework scanner and parser to create args as strings for later macro expansion
+   */
+  private List<Statement> parseArgs(TokenType stop) {
+    List<Statement> arguments = new ArrayList<>();
+
+    while (!control.checkType(stop)) {
+      if (control.checkType(TokenType.LESS)) {
+        try {
+          control.consume(TokenType.LESS, "Expect < before macro call argument");
+          eos = TokenType.GREATER;
+          if (control.checkType(eos)) {
+            arguments.add(new EmptyStatement());
+            expectEol("Expect > after macro call argument");
+          } else if (control.checkType(TokenType.GREATER_GREATER)) {
+            Token token =
+                control.consume(TokenType.GREATER_GREATER, "Expect < before macro call argument");
+            arguments.add(
+                new ExpressionStatement(
+                    new LiteralExpression(
+                        new Token(
+                            TokenType.CHAR, token.line(), token.start(), token.end() - 1, "'>'"))));
+          } else {
+            arguments.add(declaration());
+            if (control.checkType(eos)) {
+              expectEol("Expect > after macro call argument");
+            }
+          }
+        } finally {
+          resetEos();
+        }
+      } else if (control.checkType(TokenType.LESS_LESS)) {
+        try {
+          Token token = control.consume(TokenType.LESS_LESS, "Expect < before macro call argument");
+          eos = TokenType.GREATER;
+          if (control.checkType(eos)) {
+            arguments.add(
+                new ExpressionStatement(
+                    new LiteralExpression(
+                        new Token(
+                            TokenType.CHAR, token.line(), token.start() + 1, token.end(), "'<'"))));
+            expectEol("Expect > after macro call argument");
+          } else {
+            arguments.add(declaration());
+            if (control.checkType(eos)) {
+              expectEol("Expect > after macro call argument");
+            }
+          }
+        } finally {
+          resetEos();
+        }
+      } else {
+        arguments.add(new ExpressionStatement(expression()));
+      }
 
       if (control.checkType(TokenType.COMMA)) {
         control.nextToken();
       }
     }
 
-    control.consume(TokenType.RIGHT_PAREN, "Expect ) after macro call arguments");
-    control.consume(TokenType.NEWLINE, "Expect newline after macro.");
-
-    return new MacroCallStatement(name, arguments);
+    return arguments;
   }
 
   private Statement repeat() {
@@ -440,7 +556,7 @@ public class Parser {
     List<Statement> statements = new ArrayList<>();
 
     while (!control.isEof()) {
-      control.ignoreBlankLines();
+      control.consumeBlankLines();
 
       if (control.checkType(endToken)) {
         break;
@@ -453,13 +569,13 @@ public class Parser {
   }
 
   private Statement instruction(Token mnemonic) {
-    Expression left = operand();
+    Expression left = operand(mnemonic);
 
     Expression right = null;
     if (control.match(TokenType.COMMA)) {
       control.nextToken();
 
-      right = operand();
+      right = operand(mnemonic);
     }
 
     expectEol("Expect newline or eof after instruction.");
@@ -467,19 +583,57 @@ public class Parser {
     return new InstructionStatement(mnemonic, left, right);
   }
 
-  private Expression operand() {
-    if (control.checkType(TokenType.IDENTIFIER)) {
-      Token token = control.peek();
+  private Expression operand(Token mnemonic) {
+    Expression expression = null;
 
-      Register register = Register.find(token.text());
+    if (conditionalInstructions.contains(Mnemonic.find(mnemonic.text()))) {
+      Token token = control.consume(TokenType.IDENTIFIER, "Expect condition!");
 
-      if (register != null) {
+      Condition condition = Condition.find(token.text());
+
+      if (condition != null) {
         control.nextToken();
-        return new RegisterExpression(register);
+        expression = new ConditionExpression(condition);
+      }
+    } else {
+      boolean isGrouping = false;
+
+      if (control.checkType(TokenType.LEFT_PAREN)) {
+        control.nextToken();
+        isGrouping = true;
+      }
+
+      if (control.checkType(TokenType.IDENTIFIER)) {
+        Token token = control.consume(TokenType.IDENTIFIER, "Expect identifier");
+
+        Register register = Register.find(token.text());
+
+        if (register != null) {
+          if (register == Register.AF && control.checkType(TokenType.BANG)) {
+            control.nextToken();
+            register = Register.AF_BANG;
+          }
+
+          Expression displacement = null;
+
+          if (control.checkType(TokenType.PLUS)) {
+            control.nextToken();
+            displacement = expression();
+          }
+
+          expression = new RegisterExpression(register, displacement);
+        } else {
+          expression = expression();
+        }
+
+        if (isGrouping) {
+          expression = new GroupingExpression(expression);
+          control.consume(TokenType.RIGHT_PAREN, "Expect ) after indirect or indexed expression");
+        }
       }
     }
 
-    return expression();
+    return expression;
   }
 
   private Statement statement() {
@@ -501,12 +655,12 @@ public class Parser {
   private Expression assignment() {
     Expression expression = logicalOr();
 
-//    if (control.match(TokenType.EQUAL)) {
-//      control.nextToken();
-//      Expression expression = logicalOr();
-//
-//      return new AssignExpression(control.getAndClearLastIdentifier(), expression);
-//    }
+    //    if (control.match(TokenType.EQUAL)) {
+    //      control.nextToken();
+    //      Expression expression = logicalOr();
+    //
+    //      return new AssignExpression(control.getAndClearLastIdentifier(), expression);
+    //    }
 
     return expression;
   }
@@ -586,7 +740,10 @@ public class Parser {
   private Expression relational() {
     Expression expression = shift();
 
-    while (control.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+    while (eos == TokenType.NEWLINE
+        ? control.match(
+            TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)
+        : control.match(TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
       Token operator = control.nextToken();
       Expression right = shift();
       expression = new BinaryExpression(expression, operator, right);
@@ -598,7 +755,8 @@ public class Parser {
   private Expression shift() {
     Expression expression = additive();
 
-    while (control.match(TokenType.LESS_LESS, TokenType.GREATER_GREATER, TokenType.GREATER_GREATER_GREATER)) {
+    while (control.match(
+        TokenType.LESS_LESS, TokenType.GREATER_GREATER, TokenType.GREATER_GREATER_GREATER)) {
       Token operator = control.nextToken();
       Expression right = additive();
       expression = new BinaryExpression(expression, operator, right);
@@ -645,7 +803,12 @@ public class Parser {
     /*
      * Literal expressions
      */
-    if (control.match(TokenType.DECIMAL_NUMBER, TokenType.OCTAL_NUMBER, TokenType.HEX_NUMBER, TokenType.BINARY_NUMBER, TokenType.STRING,
+    if (control.match(
+        TokenType.DECIMAL_NUMBER,
+        TokenType.OCTAL_NUMBER,
+        TokenType.HEX_NUMBER,
+        TokenType.BINARY_NUMBER,
+        TokenType.STRING,
         TokenType.CHAR)) {
       return new LiteralExpression(control.nextToken());
     }
@@ -679,6 +842,7 @@ public class Parser {
   }
 
   private void synchronize() {
+    resetEos();
     while (!control.isEol()) {
       control.nextToken();
     }
@@ -686,10 +850,21 @@ public class Parser {
     expectEol("Expect newline");
   }
 
-  private void expectEol(String message) {
-    if (!control.isEof()) {
-      control.consume(TokenType.NEWLINE, message);
-    }
+  private void resetEos() {
+    eos = TokenType.NEWLINE;
   }
 
+  private void resetMode() {
+    mode = Mode.NORMAL;
+  }
+
+  private void expectEol(String message) {
+    if (eos == TokenType.NEWLINE) {
+      if (!control.isEof()) {
+        control.consume(eos, message);
+      }
+    } else {
+      control.consume(eos, message);
+    }
+  }
 }

@@ -42,4 +42,6 @@ public interface ExpressionVisitor<R> {
   R visitAssignExpression(AssignExpression assignExpression);
 
   R visitRegisterExpression(RegisterExpression registerExpression);
+
+  R visitConditionExpression(ConditionExpression conditionExpression);
 }

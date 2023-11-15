@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.parser.compiler;
+package dk.nikolajbrinch.assembler.compiler;
 
 import dk.nikolajbrinch.assembler.scanner.Token;
 
@@ -10,28 +10,13 @@ public record StringValue(String value, Type type) implements Value<StringValue>
   }
 
   public static StringValue create(Token token) {
-    return new StringValue(unquote(token.text()),
+    return new StringValue(
+        unquote(token.text()),
         switch (token.type()) {
           case STRING -> Type.STRING;
           case CHAR -> Type.CHAR;
           default -> null;
         });
-  }
-
-  private static String unquote(String value) {
-    if (value.startsWith("\"") && value.endsWith("\"")) {
-      return removeQuotes(value);
-    }
-
-    if (value.startsWith("'") && value.endsWith("'")) {
-      return removeQuotes(value);
-    }
-
-    return value;
-  }
-
-  private static String removeQuotes(String value) {
-    return value.substring(1, value.length() - 1);
   }
 
   public StringValue add(StringValue other) {
@@ -53,13 +38,28 @@ public record StringValue(String value, Type type) implements Value<StringValue>
   }
 
   @Override
-  public Boolean asBoolean() {
-    return value().length() == 1 && value().getBytes()[0] == 0 ? Boolean.FALSE : Boolean.TRUE;
+  public BooleanValue asBooleanValue() {
+    return new BooleanValue(!(value().length() == 1 && value().getBytes()[0] == 0));
   }
 
   @Override
-  public Boolean compare(StringValue other) {
-    return value().equals(other.value());
+  public BooleanValue compare(StringValue other) {
+    return new BooleanValue(value().equals(other.value()));
   }
 
+  private static String unquote(String value) {
+    if (value.startsWith("\"") && value.endsWith("\"")) {
+      return removeQuotes(value);
+    }
+
+    if (value.startsWith("'") && value.endsWith("'")) {
+      return removeQuotes(value);
+    }
+
+    return value;
+  }
+
+  private static String removeQuotes(String value) {
+    return value.substring(1, value.length() - 1);
+  }
 }
