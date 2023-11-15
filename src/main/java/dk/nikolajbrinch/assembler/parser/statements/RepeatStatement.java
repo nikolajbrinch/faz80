@@ -8,5 +8,4 @@ public record RepeatStatement(Expression count, Statement blockStatement) implem
   public <R> R accept(StatementVisitor<R> visitor) {
     return visitor.visitRepeatStatement(this);
   }
-
 }

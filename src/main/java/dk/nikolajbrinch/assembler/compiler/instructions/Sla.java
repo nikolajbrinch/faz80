@@ -8,7 +8,6 @@ import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Sla implements InstructionGenerator {
 
-
   @Override
   public ByteSource generateRegister(NumberValue currentAddress, Register register) {
     return ByteSource.of(0xCB, InstructionGenerator.implied1(0b00100000, Registers.r, register));

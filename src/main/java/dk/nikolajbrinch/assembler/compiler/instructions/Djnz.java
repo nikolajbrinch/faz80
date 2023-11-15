@@ -10,5 +10,4 @@ public class Djnz implements InstructionGenerator {
   public ByteSource generate(NumberValue currentAddress, Operand operand1, Operand operand2) {
     return ByteSource.of(0x20, operand1.displacementE(currentAddress).value());
   }
-
 }

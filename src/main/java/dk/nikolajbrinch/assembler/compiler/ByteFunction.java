@@ -4,6 +4,4 @@ import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import java.util.function.BiFunction;
 
 @FunctionalInterface
-public interface ByteFunction extends BiFunction<Operand, Operand, ByteSource> {
-
-}
+public interface ByteFunction extends BiFunction<Operand, Operand, ByteSource> {}

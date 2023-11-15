@@ -41,7 +41,9 @@ public enum Directive {
   }
 
   public static Directive find(String text) {
-    return Arrays.stream(values()).filter(directive -> matchKeyword(text, directive)).findAny()
+    return Arrays.stream(values())
+        .filter(directive -> matchKeyword(text, directive))
+        .findAny()
         .orElse(null);
   }
 

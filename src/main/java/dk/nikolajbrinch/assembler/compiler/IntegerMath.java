@@ -45,5 +45,4 @@ public class IntegerMath {
 
     throw new IllegalStateException("Operand for negation is not integer");
   }
-
 }

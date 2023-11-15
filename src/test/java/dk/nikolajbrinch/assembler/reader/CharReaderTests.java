@@ -17,7 +17,8 @@ class CharReaderTests {
   second line
   """;
 
-    try (CharReader charReader = new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+    try (CharReader charReader =
+        new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       Assertions.assertTrue(charReader.hasNext());
 
       Assertions.assertEquals('t', charReader.peek().character());
@@ -53,7 +54,8 @@ class CharReaderTests {
   second line
   """;
 
-    try (CharReader charReader = new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+    try (CharReader charReader =
+        new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       Iterator<Char> iterator = charReader.iterator();
 
       Char last = null;
@@ -76,7 +78,8 @@ class CharReaderTests {
   second line
   """;
 
-    try (CharReader charReader = new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+    try (CharReader charReader =
+        new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       StringBuilder builder = new StringBuilder();
 
       charReader.stream().map(read -> read.character()).forEach(read -> builder.append(read));

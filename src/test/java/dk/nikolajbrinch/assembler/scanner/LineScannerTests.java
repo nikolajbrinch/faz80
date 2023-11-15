@@ -9,7 +9,8 @@ class LineScannerTests {
 
   @Test
   void testScan1() throws IOException {
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(input1.getBytes(StandardCharsets.UTF_8));
+    ByteArrayInputStream inputStream =
+        new ByteArrayInputStream(input1.getBytes(StandardCharsets.UTF_8));
 
     LineScanner scanner = new LineScanner(new Scanner(inputStream));
 
@@ -20,7 +21,8 @@ class LineScannerTests {
 
   @Test
   void testScan2() throws IOException {
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(input2.getBytes(StandardCharsets.UTF_8));
+    ByteArrayInputStream inputStream =
+        new ByteArrayInputStream(input2.getBytes(StandardCharsets.UTF_8));
 
     LineScanner scanner = new LineScanner(new Scanner(inputStream));
 
@@ -31,7 +33,8 @@ class LineScannerTests {
 
   @Test
   void testScan3() throws IOException {
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(input3.getBytes(StandardCharsets.UTF_8));
+    ByteArrayInputStream inputStream =
+        new ByteArrayInputStream(input3.getBytes(StandardCharsets.UTF_8));
 
     LineScanner scanner = new LineScanner(new Scanner(inputStream));
 
@@ -39,7 +42,9 @@ class LineScannerTests {
       System.out.println(line);
     }
   }
-  private String input1 = """
+
+  private String input1 =
+      """
 ;;
 ;; Simple monitor program.
 ;;
@@ -409,7 +414,8 @@ stack_start:
 input_buffer:
 """;
 
-  private String input2 = """
+  private String input2 =
+      """
             ORG 30000         ; Origin
 
 LASTK       EQU 23560         ; last key press (system variable)
@@ -477,7 +483,8 @@ GFX         DEFB 6, 62, 124, 52, 62, 60, 24, 60
             DEFB 126, 126, 247, 251, 60, 118, 110, 119
 """;
 
-  String input3 = """
+  String input3 =
+      """
 ; Print "Hello world!" under MSX-DOS using BDOS function.
 ;
 ; Save the assembled file with the name HELLO.COM then

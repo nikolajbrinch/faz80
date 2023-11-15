@@ -117,7 +117,8 @@ public class Control {
 
     int position = 1;
 
-    while (!(peek(position).type() == TokenType.NEWLINE || peek(position).type() == TokenType.EOF) && !hasToken) {
+    while (!(peek(position).type() == TokenType.NEWLINE || peek(position).type() == TokenType.EOF)
+        && !hasToken) {
       hasToken = (peek(position).type() == type);
 
       position++;
@@ -178,5 +179,4 @@ public class Control {
       scanner.next();
     }
   }
-
 }

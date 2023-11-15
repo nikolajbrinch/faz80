@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.parser.expressions;
 
-
 public interface ExpressionVisitor<R> {
 
   R visitBinaryExpression(BinaryExpression expression);

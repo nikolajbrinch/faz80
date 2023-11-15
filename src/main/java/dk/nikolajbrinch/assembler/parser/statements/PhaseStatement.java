@@ -8,5 +8,4 @@ public record PhaseStatement(Expression expression, Statement block) implements 
   public <R> R accept(StatementVisitor<R> visitor) {
     return visitor.visitPhaseStatement(this);
   }
-
 }

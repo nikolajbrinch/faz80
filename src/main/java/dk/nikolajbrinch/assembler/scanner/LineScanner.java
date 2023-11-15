@@ -126,5 +126,4 @@ public class LineScanner implements Iterable<Line> {
   public Stream<Line> stream() {
     return StreamSupport.stream(this.spliterator(), false);
   }
-
 }

@@ -67,7 +67,8 @@ class ParserTests {
                 """
         d set 5
         xor (ix+d)
-        """.getBytes(StandardCharsets.UTF_8));
+        """
+                    .getBytes(StandardCharsets.UTF_8));
         Scanner scanner = new Scanner(inputStream)) {
 
       List<Statement> statements = new Parser(scanner).parse();

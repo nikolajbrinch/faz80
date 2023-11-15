@@ -70,7 +70,11 @@ public enum Mnemonic {
   SRL,
   SUB,
   XOR;
+
   public static Mnemonic find(String text) {
-    return Arrays.stream(values()).filter(mnemonic -> mnemonic.name().equalsIgnoreCase(text)).findAny().orElse(null);
+    return Arrays.stream(values())
+        .filter(mnemonic -> mnemonic.name().equalsIgnoreCase(text))
+        .findAny()
+        .orElse(null);
   }
 }

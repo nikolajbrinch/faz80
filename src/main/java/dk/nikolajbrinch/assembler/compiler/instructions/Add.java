@@ -39,21 +39,24 @@ public class Add implements InstructionGenerator {
             };
             case Register.HL -> {
               if (operand2.operand() instanceof Register register2) {
-                yield ByteSource.of(InstructionGenerator.implied5(0b00001001, Registers.ss, register2));
+                yield ByteSource.of(
+                    InstructionGenerator.implied5(0b00001001, Registers.ss, register2));
               }
 
               yield null;
             }
             case Register.IX -> {
               if (operand2.operand() instanceof Register register2) {
-                yield ByteSource.of(0xDD, InstructionGenerator.implied5(0b00001001, Registers.pp, register2));
+                yield ByteSource.of(
+                    0xDD, InstructionGenerator.implied5(0b00001001, Registers.pp, register2));
               }
 
               yield null;
             }
             case Register.IY -> {
               if (operand2.operand() instanceof Register register2) {
-                yield ByteSource.of(0xFD, InstructionGenerator.implied5(0b00001001, Registers.rr, register2));
+                yield ByteSource.of(
+                    0xFD, InstructionGenerator.implied5(0b00001001, Registers.rr, register2));
               }
 
               yield null;

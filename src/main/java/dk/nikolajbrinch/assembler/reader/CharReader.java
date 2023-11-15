@@ -16,9 +16,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-/**
- * A simple Char Scanner that implements look ahead
- */
+/** A simple Char Scanner that implements look ahead */
 public class CharReader implements Closeable, AutoCloseable, Iterable<CharReader.Char> {
 
   public record Char(int line, int position, Character character) {
@@ -70,8 +68,8 @@ public class CharReader implements Closeable, AutoCloseable, Iterable<CharReader
 
   /**
    * Looks at the next character
-   * <p>
-   * The same as <code>peek(1)</code>
+   *
+   * <p>The same as <code>peek(1)</code>
    *
    * @return the next character without advancing
    * @throws IOException
@@ -93,7 +91,6 @@ public class CharReader implements Closeable, AutoCloseable, Iterable<CharReader
 
     return null;
   }
-
 
   /**
    * Fills the buffer if necessary
