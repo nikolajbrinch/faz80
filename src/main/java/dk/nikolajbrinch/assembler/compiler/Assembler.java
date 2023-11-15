@@ -1,11 +1,11 @@
 package dk.nikolajbrinch.assembler.compiler;
 
+import dk.nikolajbrinch.assembler.compiler.NumberValue.Size;
 import dk.nikolajbrinch.assembler.compiler.operands.AddressingDecoder;
 import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Environment;
 import dk.nikolajbrinch.assembler.parser.Register;
-import dk.nikolajbrinch.assembler.compiler.NumberValue.Size;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;

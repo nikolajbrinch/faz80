@@ -1,12 +1,12 @@
 package dk.nikolajbrinch.assembler.util;
 
-import dk.nikolajbrinch.assembler.parser.expressions.ConditionExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.AssignExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.ConditionExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
@@ -22,12 +22,12 @@ import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.parser.statements.EndStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LongStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
-import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
 import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;

@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
-import dk.nikolajbrinch.assembler.compiler.ByteFunction;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;

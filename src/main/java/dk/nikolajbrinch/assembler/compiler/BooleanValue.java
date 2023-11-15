@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.compiler.NumberValue.Size;
 import dk.nikolajbrinch.assembler.compiler.StringValue.Type;
 
 public record BooleanValue(boolean value) implements Value<BooleanValue> {

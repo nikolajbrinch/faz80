@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.parser.statements;
 
-import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.assembler.scanner.Token;
 

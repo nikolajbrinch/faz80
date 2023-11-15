@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import java.util.HashMap;
 import java.util.Map;
 
