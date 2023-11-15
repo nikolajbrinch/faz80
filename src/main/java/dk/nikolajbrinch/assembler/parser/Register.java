@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.compiler.NumberValue.Size;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import java.util.Arrays;
 import java.util.Set;
 

@@ -1,8 +1,8 @@
 package dk.nikolajbrinch.assembler.compiler.operands;
 
-import dk.nikolajbrinch.assembler.compiler.NumberValue;
-import dk.nikolajbrinch.assembler.compiler.NumberValue.Size;
-import dk.nikolajbrinch.assembler.compiler.Value;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
+import dk.nikolajbrinch.assembler.compiler.values.Value;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Register;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;

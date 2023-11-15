@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.compiler.values;
 
 public interface Value<T extends Value<T>> {
 

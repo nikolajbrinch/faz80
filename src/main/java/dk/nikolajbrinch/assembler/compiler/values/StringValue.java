@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.compiler.values;
 
 import dk.nikolajbrinch.assembler.scanner.Token;
 

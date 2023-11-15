@@ -1,6 +1,6 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.compiler.values;
 
-import dk.nikolajbrinch.assembler.compiler.StringValue.Type;
+import dk.nikolajbrinch.assembler.compiler.values.StringValue.Type;
 
 public record BooleanValue(boolean value) implements Value<BooleanValue> {
 

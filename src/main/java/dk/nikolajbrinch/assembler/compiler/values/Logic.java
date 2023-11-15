@@ -1,6 +1,7 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.compiler.values;
 
-public class Logic {
+
+public final class Logic {
 
   public static Object not(Object value) {
     if (value instanceof Boolean v) {

@@ -1,6 +1,7 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.compiler.values;
 
-public class BinaryMath {
+
+public final class BinaryMath {
 
   public static Object and(Object left, Object right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {

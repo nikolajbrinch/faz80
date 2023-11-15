@@ -1,6 +1,7 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.compiler.values;
 
-public class IntegerMath {
+
+public final class IntegerMath {
 
   public static Object divide(Object left, Object right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {

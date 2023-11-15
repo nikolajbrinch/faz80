@@ -69,6 +69,7 @@ import dk.nikolajbrinch.assembler.compiler.instructions.Srl;
 import dk.nikolajbrinch.assembler.compiler.instructions.Sub;
 import dk.nikolajbrinch.assembler.compiler.instructions.Xor;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.scanner.Mnemonic;
 import dk.nikolajbrinch.assembler.scanner.Token;
 import java.util.HashMap;

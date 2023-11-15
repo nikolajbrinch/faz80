@@ -1,8 +1,11 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.compiler.NumberValue.Size;
 import dk.nikolajbrinch.assembler.compiler.operands.AddressingDecoder;
 import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
+import dk.nikolajbrinch.assembler.compiler.values.BooleanValue;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
+import dk.nikolajbrinch.assembler.compiler.values.Value;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Environment;
 import dk.nikolajbrinch.assembler.parser.Register;

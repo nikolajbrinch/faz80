@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler;
 
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Environment;
 import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;

@@ -1,5 +1,10 @@
 package dk.nikolajbrinch.assembler.compiler;
 
+import dk.nikolajbrinch.assembler.compiler.values.BinaryMath;
+import dk.nikolajbrinch.assembler.compiler.values.IntegerMath;
+import dk.nikolajbrinch.assembler.compiler.values.Logic;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.parser.Environment;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.AssignExpression;
