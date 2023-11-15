@@ -6,17 +6,17 @@ import dk.nikolajbrinch.assembler.compiler.values.Logic;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.parser.Environment;
-import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.AssignExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.ConditionExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.Expression;
-import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
-import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.RegisterExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.ConditionExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.Expression;
+import dk.nikolajbrinch.assembler.ast.expressions.ExpressionVisitor;
+import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.scanner.TokenType;
 
 public class ExpressionEvaluator implements ExpressionVisitor<Object> {

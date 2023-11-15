@@ -3,7 +3,7 @@ package dk.nikolajbrinch.assembler.parser;
 import dk.nikolajbrinch.assembler.compiler.Compiler;
 import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.MacroResolver;
-import dk.nikolajbrinch.assembler.parser.statements.Statement;
+import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.scanner.Scanner;
 import dk.nikolajbrinch.assembler.util.AstPrinter;
 import java.io.ByteArrayInputStream;
