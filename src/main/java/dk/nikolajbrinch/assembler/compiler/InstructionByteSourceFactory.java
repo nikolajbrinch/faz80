@@ -64,6 +64,7 @@ import dk.nikolajbrinch.assembler.compiler.instructions.Sbc;
 import dk.nikolajbrinch.assembler.compiler.instructions.Scf;
 import dk.nikolajbrinch.assembler.compiler.instructions.Set;
 import dk.nikolajbrinch.assembler.compiler.instructions.Sla;
+import dk.nikolajbrinch.assembler.compiler.instructions.Sll;
 import dk.nikolajbrinch.assembler.compiler.instructions.Sra;
 import dk.nikolajbrinch.assembler.compiler.instructions.Srl;
 import dk.nikolajbrinch.assembler.compiler.instructions.Sub;
@@ -147,6 +148,7 @@ public class InstructionByteSourceFactory {
     generators.put(Mnemonic.SCF, new Scf());
     generators.put(Mnemonic.SET, new Set());
     generators.put(Mnemonic.SLA, new Sla());
+    generators.put(Mnemonic.SLL, new Sll());
     generators.put(Mnemonic.SRA, new Sra());
     generators.put(Mnemonic.SRL, new Srl());
     generators.put(Mnemonic.SUB, new Sub());

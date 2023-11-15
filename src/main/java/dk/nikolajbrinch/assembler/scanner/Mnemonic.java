@@ -66,6 +66,7 @@ public enum Mnemonic {
   SCF,
   SET,
   SLA,
+  SLL,
   SRA,
   SRL,
   SUB,

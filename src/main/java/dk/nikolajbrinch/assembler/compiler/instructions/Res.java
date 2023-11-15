@@ -55,12 +55,18 @@ public class Res implements InstructionGenerator {
     Register sourceRegister = sourceIndex.asRegister();
 
     if (sourceRegister == Register.IX) {
+      /*
+       * RES b, (IX+d)
+       */
       return ByteSource.of(
           0xDD,
           0xCB,
           sourceIndex.displacementD(),
           0b10000110 | ((numberValue.value() & 0b00000111) << 3));
     } else if (sourceRegister == Register.IY) {
+      /*
+       * RES b, (IY+d)
+       */
       return ByteSource.of(
           0xFD,
           0xCB,
