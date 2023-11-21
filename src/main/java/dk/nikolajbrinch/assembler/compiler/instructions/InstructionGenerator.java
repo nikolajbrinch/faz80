@@ -8,15 +8,16 @@ import java.util.Map;
 
 public interface InstructionGenerator {
 
-  default ByteSource generate(NumberValue currentAddress, Operand operand1, Operand operand2) {
+  default ByteSource generate(
+      NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
     ByteSource generated;
 
-    if (operand1 == null && operand2 == null) {
+    if (targetOperand == null && sourceOperand == null) {
       generated = generate(currentAddress);
-    } else if (operand2 == null) {
-      generated = generateSingleOperand(currentAddress, operand1);
+    } else if (sourceOperand == null) {
+      generated = generateSingleOperand(currentAddress, targetOperand);
     } else {
-      generated = generateTwoOperands(currentAddress, operand1, operand2);
+      generated = generateTwoOperands(currentAddress, targetOperand, sourceOperand);
     }
     if (generated == null) {
       throw new IllegalStateException();
@@ -32,7 +33,8 @@ public interface InstructionGenerator {
       case EXTENDED -> generateExtended(currentAddress, operand.asNumberValue());
       case IMMEDIATE -> generateImmediate(currentAddress, operand.asNumberValue());
       case IMMEDIATE_EXTENDED -> generateImmediateExtended(currentAddress, operand.asNumberValue());
-      case INDEXED -> generateIndexed(currentAddress, operand);
+      case INDEXED -> generateIndexed(
+          currentAddress, operand.asRegister(), operand.displacementD());
       default -> null;
     };
   }
@@ -57,89 +59,103 @@ public interface InstructionGenerator {
     return null;
   }
 
-  default ByteSource generateIndexed(NumberValue currentAddress, Operand operand) {
+  default ByteSource generateIndexed(
+      NumberValue currentAddress, Register register, long displacement) {
     return null;
   }
 
   private ByteSource generateTwoOperands(
-      NumberValue currentAddress, Operand operand1, Operand operand2) {
-    return switch (operand2.addressingMode()) {
+      NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
+    return switch (sourceOperand.addressingMode()) {
       case REGISTER -> generateSourceOperandRegister(
-          currentAddress, operand1, operand2.asRegister());
+          currentAddress, targetOperand, sourceOperand.asRegister());
       case REGISTER_INDIRECT -> generateSourceOperandRegisterIndirect(
-          currentAddress, operand1, operand2.asRegister());
+          currentAddress, targetOperand, sourceOperand.asRegister());
       case EXTENDED -> generateSourceOperandExtended(
-          currentAddress, operand1, operand2.asNumberValue());
+          currentAddress, targetOperand, sourceOperand.asNumberValue());
       case IMMEDIATE -> generateSourceOperandImmediate(
-          currentAddress, operand1, operand2.asNumberValue());
+          currentAddress, targetOperand, sourceOperand.asNumberValue());
       case IMMEDIATE_EXTENDED -> generateSourceOperandImmediateExtended(
-          currentAddress, operand1, operand2.asNumberValue());
-      case INDEXED -> generateSourceOperandIndexed(currentAddress, operand1, operand2);
+          currentAddress, targetOperand, sourceOperand.asNumberValue());
+      case INDEXED -> generateSourceOperandIndexed(
+          currentAddress, targetOperand, sourceOperand.asRegister(), sourceOperand.displacementD());
       default -> null;
     };
   }
 
   private ByteSource generateSourceOperandRegister(
-      NumberValue currentAddress, Operand operand1, Register register) {
-    return switch (operand1.addressingMode()) {
-      case REGISTER -> generateRegisterToRegister(currentAddress, operand1.asRegister(), register);
+      NumberValue currentAddress, Operand targetOperand, Register sourceRegister) {
+    return switch (targetOperand.addressingMode()) {
+      case REGISTER -> generateRegisterToRegister(
+          currentAddress, targetOperand.asRegister(), sourceRegister);
       case REGISTER_INDIRECT -> generateRegisterToRegisterIndirect(
-          currentAddress, operand1, register);
+          currentAddress, targetOperand.asRegister(), sourceRegister);
       case EXTENDED -> generateRegisterToExtended(
-          currentAddress, operand1.asNumberValue(), register);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister);
       case IMMEDIATE -> generateRegisterToImmediate(
-          currentAddress, operand1.asNumberValue(), register);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister);
       case IMMEDIATE_EXTENDED -> generateRegisterToImmediateExtended(
-          currentAddress, operand1.asNumberValue(), register);
-      case INDEXED -> generateRegisterToIndexed(currentAddress, operand1, register);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case INDEXED -> generateRegisterToIndexed(
+          currentAddress,
+          targetOperand.asRegister(),
+          targetOperand.displacementD(),
+          sourceRegister);
       default -> null;
     };
   }
 
   default ByteSource generateRegisterToRegister(
-      NumberValue currentAddress, Register register, Register register1) {
+      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
     return null;
   }
 
   default ByteSource generateRegisterToRegisterIndirect(
-      NumberValue currentAddress, Operand operand1, Register register) {
+      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
     return null;
   }
 
   default ByteSource generateRegisterToExtended(
-      NumberValue currentAddress, NumberValue operand1, Register register) {
+      NumberValue currentAddress, NumberValue numberValue, Register sourceRegister) {
     return null;
   }
 
   default ByteSource generateRegisterToImmediate(
-      NumberValue currentAddress, NumberValue operand1, Register register) {
+      NumberValue currentAddress, NumberValue numberValue, Register sourceRegister) {
     return null;
   }
 
   default ByteSource generateRegisterToImmediateExtended(
-      NumberValue currentAddress, NumberValue operand1, Register register) {
+      NumberValue currentAddress, NumberValue numberValue, Register sourceRegister) {
     return null;
   }
 
   default ByteSource generateRegisterToIndexed(
-      NumberValue currentAddress, Operand operand1, Register register) {
+      NumberValue currentAddress,
+      Register targetRegister,
+      long displacement,
+      Register sourceRegister) {
     return null;
   }
 
   private ByteSource generateSourceOperandRegisterIndirect(
-      NumberValue currentAddress, Operand operand1, Register register) {
-    return switch (operand1.addressingMode()) {
+      NumberValue currentAddress, Operand targetOperand, Register sourceRegister) {
+    return switch (targetOperand.addressingMode()) {
       case REGISTER -> generateRegisterIndirectToRegister(
-          currentAddress, operand1.asRegister(), register);
+          currentAddress, targetOperand.asRegister(), sourceRegister);
       case REGISTER_INDIRECT -> generateRegisterIndirectToRegisterIndirect(
-          currentAddress, operand1.asRegister(), register);
+          currentAddress, targetOperand.asRegister(), sourceRegister);
       case EXTENDED -> generateRegisterIndirectToExtended(
-          currentAddress, operand1.asNumberValue(), register);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister);
       case IMMEDIATE -> generateRegisterIndirectToImmediate(
-          currentAddress, operand1.asNumberValue(), register);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister);
       case IMMEDIATE_EXTENDED -> generateRegisterIndirectToImmediateExtended(
-          currentAddress, operand1.asNumberValue(), register);
-      case INDEXED -> generateRegisterIndirectToIndexed(currentAddress, operand1, register);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case INDEXED -> generateRegisterIndirectToIndexed(
+          currentAddress,
+          targetOperand.asRegister(),
+          targetOperand.displacementD(),
+          sourceRegister);
       default -> null;
     };
   }
@@ -170,24 +186,28 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateRegisterIndirectToIndexed(
-      NumberValue currentAddress, Operand operand1, Register register) {
+      NumberValue currentAddress,
+      Register targetRegister,
+      long displacement,
+      Register sourceRegister) {
     return null;
   }
 
   private ByteSource generateSourceOperandExtended(
-      NumberValue currentAddress, Operand operand1, NumberValue numberValue) {
-    return switch (operand1.addressingMode()) {
+      NumberValue currentAddress, Operand sourceOperand, NumberValue numberValue) {
+    return switch (sourceOperand.addressingMode()) {
       case REGISTER -> generateExtendedToRegister(
-          currentAddress, operand1.asRegister(), numberValue);
+          currentAddress, sourceOperand.asRegister(), numberValue);
       case REGISTER_INDIRECT -> generateExtendedToRegisterIndirect(
-          currentAddress, operand1.asRegister(), numberValue);
+          currentAddress, sourceOperand.asRegister(), numberValue);
       case EXTENDED -> generateExtendedToExtended(
-          currentAddress, operand1.asNumberValue(), numberValue);
+          currentAddress, sourceOperand.asNumberValue(), numberValue);
       case IMMEDIATE -> generateExtendedToImmediate(
-          currentAddress, operand1.asNumberValue(), numberValue);
+          currentAddress, sourceOperand.asNumberValue(), numberValue);
       case IMMEDIATE_EXTENDED -> generateExtendedToImmediateExtended(
-          currentAddress, operand1.asNumberValue(), numberValue);
-      case INDEXED -> generateExtendedToIndexed(currentAddress, operand1, numberValue);
+          currentAddress, sourceOperand.asNumberValue(), numberValue);
+      case INDEXED -> generateExtendedToIndexed(
+          currentAddress, sourceOperand.asRegister(), sourceOperand.displacementD(), numberValue);
       default -> null;
     };
   }
@@ -218,24 +238,28 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateExtendedToIndexed(
-      NumberValue currentAddress, Operand operand1, NumberValue numberValue) {
+      NumberValue currentAddress,
+      Register targetRegister,
+      long displacement,
+      NumberValue numberValue) {
     return null;
   }
 
   private ByteSource generateSourceOperandImmediate(
-      NumberValue currentAddress, Operand operand1, NumberValue numberValue) {
-    return switch (operand1.addressingMode()) {
+      NumberValue currentAddress, Operand targetOperand, NumberValue numberValue) {
+    return switch (targetOperand.addressingMode()) {
       case REGISTER -> generateImmediateToRegister(
-          currentAddress, operand1.asRegister(), numberValue);
+          currentAddress, targetOperand.asRegister(), numberValue);
       case REGISTER_INDIRECT -> generateImmediateToRegisterIndirect(
-          currentAddress, operand1.asRegister(), numberValue);
+          currentAddress, targetOperand.asRegister(), numberValue);
       case EXTENDED -> generateImmediateToExtended(
-          currentAddress, operand1.asNumberValue(), numberValue);
+          currentAddress, targetOperand.asNumberValue(), numberValue);
       case IMMEDIATE -> generateImmediateToImmediate(
-          currentAddress, operand1.asNumberValue(), numberValue);
+          currentAddress, targetOperand.asNumberValue(), numberValue);
       case IMMEDIATE_EXTENDED -> generateImmediateToImmediateExtended(
-          currentAddress, operand1.asNumberValue(), numberValue);
-      case INDEXED -> generateImmediateToIndexed(currentAddress, operand1, numberValue);
+          currentAddress, targetOperand.asNumberValue(), numberValue);
+      case INDEXED -> generateImmediateToIndexed(
+          currentAddress, targetOperand.asRegister(), targetOperand.displacementD(), numberValue);
       default -> null;
     };
   }
@@ -266,24 +290,25 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateImmediateToIndexed(
-      NumberValue currentAddress, Operand operand1, NumberValue numberValue) {
+      NumberValue currentAddress, Register operand1, long displacement, NumberValue numberValue) {
     return null;
   }
 
   private ByteSource generateSourceOperandImmediateExtended(
-      NumberValue currentAddress, Operand operand1, NumberValue numberValue) {
-    return switch (operand1.addressingMode()) {
+      NumberValue currentAddress, Operand targetOperand, NumberValue numberValue) {
+    return switch (targetOperand.addressingMode()) {
       case REGISTER -> generateImmediateExtendedToRegister(
-          currentAddress, operand1.asRegister(), numberValue);
+          currentAddress, targetOperand.asRegister(), numberValue);
       case REGISTER_INDIRECT -> generateImmediateExtendedToRegisterIndirect(
-          currentAddress, operand1.asRegister(), numberValue);
+          currentAddress, targetOperand.asRegister(), numberValue);
       case EXTENDED -> generateImmediateExtendedToExtended(
-          currentAddress, operand1.asNumberValue(), numberValue);
+          currentAddress, targetOperand.asNumberValue(), numberValue);
       case IMMEDIATE -> generateImmediateExtendedToImmediate(
-          currentAddress, operand1.asNumberValue(), numberValue);
+          currentAddress, targetOperand.asNumberValue(), numberValue);
       case IMMEDIATE_EXTENDED -> generateImmediateExtendedToImmediateExtended(
-          currentAddress, operand1.asNumberValue(), numberValue);
-      case INDEXED -> generateImmediateExtendedToIndexed(currentAddress, operand1, numberValue);
+          currentAddress, targetOperand.asNumberValue(), numberValue);
+      case INDEXED -> generateImmediateExtendedToIndexed(
+          currentAddress, targetOperand.asRegister(), targetOperand.displacementD(), numberValue);
       default -> null;
     };
   }
@@ -314,58 +339,66 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateImmediateExtendedToIndexed(
-      NumberValue currentAddress, Operand operand1, NumberValue numberValue) {
+      NumberValue currentAddress, Register operand1, long displacement, NumberValue numberValue) {
     return null;
   }
 
   private ByteSource generateSourceOperandIndexed(
-      NumberValue currentAddress, Operand operand1, Operand operand2) {
-    return switch (operand1.addressingMode()) {
-      case REGISTER -> generateIndexedToRegister(currentAddress, operand1.asRegister(), operand2);
+      NumberValue currentAddress,
+      Operand targetOperand,
+      Register sourceRegister,
+      long displacement) {
+    return switch (targetOperand.addressingMode()) {
+      case REGISTER -> generateIndexedToRegister(
+          currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
       case REGISTER_INDIRECT -> generateIndexedToRegisterIndirect(
-          currentAddress, operand1.asRegister(), operand2);
+          currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
       case EXTENDED -> generateIndexedToExtended(
-          currentAddress, operand1.asNumberValue(), operand2);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
       case IMMEDIATE -> generateIndexedToImmediate(
-          currentAddress, operand1.asNumberValue(), operand2);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
       case IMMEDIATE_EXTENDED -> generateIndexedToImmediateExtended(
-          currentAddress, operand1.asNumberValue(), operand2);
-      case INDEXED -> generateIndexedToIndexed(currentAddress, operand1, operand2);
+          currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
+      case INDEXED -> generateIndexedToIndexed(
+          currentAddress, targetOperand, sourceRegister, displacement);
       default -> null;
     };
   }
 
   default ByteSource generateIndexedToRegister(
-      NumberValue currentAddress, Register register, Operand operand2) {
+      NumberValue currentAddress,
+      Register targetRegister,
+      Register sourceRegister,
+      long displacement) {
     return null;
   }
 
   default ByteSource generateIndexedToRegisterIndirect(
-      NumberValue currentAddress, Register register, Operand operand2) {
+      NumberValue currentAddress, Register register, Register operand2, long displacement) {
     return null;
   }
 
   default ByteSource generateIndexedToExtended(
-      NumberValue currentAddress, NumberValue numberValue, Operand operand2) {
+      NumberValue currentAddress, NumberValue numberValue, Register operand2, long displacement) {
     return null;
   }
 
   default ByteSource generateIndexedToImmediate(
-      NumberValue currentAddress, NumberValue numberValue, Operand operand2) {
+      NumberValue currentAddress, NumberValue numberValue, Register operand2, long displacement) {
     return null;
   }
 
   default ByteSource generateIndexedToImmediateExtended(
-      NumberValue currentAddress, NumberValue numberValue, Operand operand2) {
+      NumberValue currentAddress, NumberValue numberValue, Register operand2, long displacement) {
     return null;
   }
 
   default ByteSource generateIndexedToIndexed(
-      NumberValue currentAddress, Operand operand1, Operand operand2) {
+      NumberValue currentAddress, Operand operand1, Register operand2, long displacement) {
     return null;
   }
 
-  default ByteSource generate(NumberValue currentAddres) {
+  default ByteSource generate(NumberValue currentAddress) {
     return null;
   }
 

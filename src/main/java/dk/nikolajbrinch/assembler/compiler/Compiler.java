@@ -7,15 +7,15 @@ public class Compiler {
 
   private final ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
 
-  private MacroResolver macroResolver;
-
-  private Assembler assembler;
+  private final IncludeResolver includeResolver = new IncludeResolver();
 
   public void compile(List<Statement> statements) {
-    macroResolver = new MacroResolver(expressionEvaluator);
-    List<Statement> resolvedStatements = macroResolver.resolve(statements);
+    List<Statement> resolvedStatements = includeResolver.resolve(statements);
 
-    assembler = new Assembler(expressionEvaluator);
+    MacroResolver macroResolver = new MacroResolver(expressionEvaluator);
+    resolvedStatements = macroResolver.resolve(resolvedStatements);
+
+    Assembler assembler = new Assembler(expressionEvaluator);
     assembler.assemble(resolvedStatements);
   }
 }

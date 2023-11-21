@@ -16,9 +16,10 @@ import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EndStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
@@ -94,6 +95,16 @@ public class Parser {
             case MACRO -> macro(identifier);
             case LEFT_PAREN -> macroCall(identifier);
             default -> {
+              Token nextToken = control.peek();
+
+              /*
+               * If next token is an instruction, this must be a label
+               */
+              if (nextToken.type() == TokenType.IDENTIFIER
+                  && Mnemonic.find(nextToken.text()) != null) {
+                yield label(identifier);
+              }
+
               if (mode != Mode.MACRO_CALL) {
                 Statement macroCall = null;
 
@@ -132,7 +143,6 @@ public class Parser {
         case IF -> condition();
         case ASSERT -> assertion();
         case GLOBAL -> global();
-        case END -> end();
         case SET -> instruction(control.nextToken());
         default -> statement();
       };
@@ -215,13 +225,17 @@ public class Parser {
   private Statement include() {
     control.consume(TokenType.INCLUDE, "Expect include");
 
-    return null;
+    Token string = control.consume(TokenType.STRING, "Expect string after include");
+
+    return new IncludeStatement(string);
   }
 
   private Statement insert() {
     control.consume(TokenType.INSERT, "Expect insert");
 
-    return null;
+    Token string = control.consume(TokenType.STRING, "Expect string after insert");
+
+    return new InsertStatement(string);
   }
 
   private Statement dataByte() {
@@ -548,10 +562,6 @@ public class Parser {
     return new ConditionalStatement(expression, thenBranch, elseBranch);
   }
 
-  private Statement end() {
-    return new EndStatement(control.consume(TokenType.END, "Expect end"));
-  }
-
   private BlockStatement block(TokenType endToken) {
     List<Statement> statements = new ArrayList<>();
 
@@ -596,11 +606,10 @@ public class Parser {
         expression = new ConditionExpression(condition);
       }
     } else {
-      boolean isGrouping = false;
+      Grouping grouping = null;
 
-      if (control.checkType(TokenType.LEFT_PAREN)) {
-        control.nextToken();
-        isGrouping = true;
+      if (isGroupingStart()) {
+        grouping = Grouping.findByStartType(control.nextToken().type());
       }
 
       if (control.checkType(TokenType.IDENTIFIER)) {
@@ -609,11 +618,6 @@ public class Parser {
         Register register = Register.find(token.text());
 
         if (register != null) {
-          if (register == Register.AF && control.checkType(TokenType.BANG)) {
-            control.nextToken();
-            register = Register.AF_BANG;
-          }
-
           Expression displacement = null;
 
           if (control.checkType(TokenType.PLUS)) {
@@ -622,14 +626,16 @@ public class Parser {
           }
 
           expression = new RegisterExpression(register, displacement);
-        } else {
-          expression = expression();
         }
+      } else {
+        expression = expression();
+      }
 
-        if (isGrouping) {
-          expression = new GroupingExpression(expression);
-          control.consume(TokenType.RIGHT_PAREN, "Expect ) after indirect or indexed expression");
-        }
+      if (grouping != null) {
+        expression = new GroupingExpression(expression);
+        TokenType endType = grouping.end();
+        control.consume(
+            endType, "Expect " + endType.name() + " after indirect or indexed expression");
       }
     }
 
@@ -830,15 +836,20 @@ public class Parser {
     /*
      * Grouping expressions
      */
-    if (control.match(TokenType.LEFT_PAREN)) {
-      control.nextToken();
+    if (isGroupingStart()) {
+      Grouping grouping = Grouping.findByStartType(control.nextToken().type());
       Expression expression = expression();
-      control.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
+      TokenType endType = grouping.end();
+      control.consume(endType, "Expect " + endType.name() + " after expression");
 
       return new GroupingExpression(expression);
     }
 
     throw control.error(control.peek(), "Expect expression");
+  }
+
+  private boolean isGroupingStart() {
+    return control.match(Grouping.startTypes());
   }
 
   private void synchronize() {

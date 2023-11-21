@@ -1,5 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler;
 
+import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Environment;
 import dk.nikolajbrinch.assembler.parser.Parameter;
@@ -21,7 +23,6 @@ import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EndStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
@@ -55,14 +56,8 @@ public class MacroResolver implements StatementVisitor<Statement>, ExpressionVis
   public List<Statement> resolve(List<Statement> statements) {
     List<Statement> resolvedStatements = new ArrayList<>();
 
-    try {
-      for (Statement statement : statements) {
-        resolvedStatements.add(statement.accept(this));
-      }
-    } catch (EndException e) {
-      /*
-       * End of code reached
-       */
+    for (Statement statement : statements) {
+      resolvedStatements.add(statement.accept(this));
     }
 
     return resolvedStatements;
@@ -253,12 +248,17 @@ public class MacroResolver implements StatementVisitor<Statement>, ExpressionVis
   }
 
   @Override
-  public Statement visitEndStatement(EndStatement statement) {
+  public Statement visitEmptyStatement(EmptyStatement statement) {
     return statement;
   }
 
   @Override
-  public Statement visitEmptyStatement(EmptyStatement statement) {
+  public Statement visitIncludeStatement(IncludeStatement statement) {
+    return statement;
+  }
+
+  @Override
+  public Statement visitInsertStatement(InsertStatement statement) {
     return statement;
   }
 

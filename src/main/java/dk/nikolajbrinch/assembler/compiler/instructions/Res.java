@@ -1,7 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
@@ -13,14 +12,15 @@ public class Res implements InstructionGenerator {
    *
    * @param currentAddress
    * @param numberValue
-   * @param register
+   * @param sourceRegister
    * @return
    */
   @Override
   public ByteSource generateRegisterToImmediate(
-      NumberValue currentAddress, NumberValue numberValue, Register register) {
+      NumberValue currentAddress, NumberValue numberValue, Register sourceRegister) {
     return ByteSource.of(
-        0xCB, 0b10000000 | ((numberValue.value() & 0b00000111) << 3) | Registers.r.get(register));
+        0xCB,
+        0b10000000 | ((numberValue.value() & 0b00000111) << 3) | Registers.r.get(sourceRegister));
   }
 
   /**
@@ -46,34 +46,22 @@ public class Res implements InstructionGenerator {
    *
    * @param currentAddress
    * @param numberValue
-   * @param sourceIndex
+   * @param sourceRegister
+   * @param displacement
    * @return
    */
   @Override
   public ByteSource generateIndexedToImmediate(
-      NumberValue currentAddress, NumberValue numberValue, Operand sourceIndex) {
-    Register sourceRegister = sourceIndex.asRegister();
-
-    if (sourceRegister == Register.IX) {
-      /*
-       * RES b, (IX+d)
-       */
-      return ByteSource.of(
-          0xDD,
-          0xCB,
-          sourceIndex.displacementD(),
-          0b10000110 | ((numberValue.value() & 0b00000111) << 3));
-    } else if (sourceRegister == Register.IY) {
-      /*
-       * RES b, (IY+d)
-       */
-      return ByteSource.of(
-          0xFD,
-          0xCB,
-          sourceIndex.displacementD(),
-          0b10000110 | ((numberValue.value() & 0b00000111) << 3));
-    }
-
-    return null;
+      NumberValue currentAddress,
+      NumberValue numberValue,
+      Register sourceRegister,
+      long displacement) {
+    return switch (sourceRegister) {
+      case IX -> ByteSource.of(
+          0xDD, 0xCB, displacement, 0b10000110 | ((numberValue.value() & 0b00000111) << 3));
+      case IY -> ByteSource.of(
+          0xFD, 0xCB, displacement, 0b10000110 | ((numberValue.value() & 0b00000111) << 3));
+      default -> null;
+    };
   }
 }

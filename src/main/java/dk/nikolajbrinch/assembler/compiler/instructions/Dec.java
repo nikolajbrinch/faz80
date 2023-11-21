@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
+
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
@@ -9,12 +10,12 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class Dec implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand operand1, Operand operand2) {
+  public ByteSource generate(NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
     ByteSource resolved = null;
 
-    if (operand1.operand() instanceof Register register) {
+    if (targetOperand.operand() instanceof Register register) {
       resolved =
-          switch (operand1.addressingMode()) {
+          switch (targetOperand.addressingMode()) {
             case REGISTER -> switch (register) {
               case BC, DE, HL, SP -> ByteSource.of(0b00001011 | (Registers.ss.get(register) << 4));
               default -> ByteSource.of(0b00000101 | (Registers.r.get(register) << 3));

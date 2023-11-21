@@ -1,14 +1,11 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.compiler.operands.AddressingDecoder;
+import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
 import dk.nikolajbrinch.assembler.compiler.values.BooleanValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
-import dk.nikolajbrinch.assembler.compiler.values.Value;
-import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Environment;
-import dk.nikolajbrinch.assembler.parser.Register;
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
@@ -17,7 +14,6 @@ import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EndStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
@@ -41,7 +37,6 @@ public class Assembler implements StatementVisitor<Void> {
 
   private final InstructionByteSourceFactory instructionByteSourceFactory =
       new InstructionByteSourceFactory();
-  private final AddressingDecoder addressingModeDecoder = new AddressingDecoder();
   private final ExpressionEvaluator expressionEvaluator;
   private final List<ByteSource> bytes = new ArrayList<>();
 
@@ -56,14 +51,8 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   public void assemble(List<Statement> statements) {
-    try {
-      for (Statement statement : statements) {
-        execute(statement);
-      }
-    } catch (EndException e) {
-      /*
-       * End of code reached
-       */
+    for (Statement statement : statements) {
+      execute(statement);
     }
   }
 
@@ -91,26 +80,6 @@ public class Assembler implements StatementVisitor<Void> {
     currentAddress = currentAddress.add(NumberValue.create(byteSource.length()));
 
     return null;
-  }
-
-  private Object validateOperand(Object operand) {
-    if (operand instanceof Register) {
-      return operand;
-    }
-
-    if (operand instanceof Condition) {
-      return operand;
-    }
-
-    if (operand instanceof NumberValue n && (n.size() == Size.BYTE || n.size() == Size.WORD)) {
-      return operand;
-    }
-
-    if (operand instanceof Value v) {
-      return v.asNumberValue();
-    }
-
-    throw new IllegalStateException("Invalid operand");
   }
 
   @Override
@@ -277,12 +246,17 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitEndStatement(EndStatement statement) {
-    throw new EndException(statement.end().text());
+  public Void visitEmptyStatement(EmptyStatement statement) {
+    return null;
   }
 
   @Override
-  public Void visitEmptyStatement(EmptyStatement emptyStatement) {
+  public Void visitIncludeStatement(IncludeStatement statement) {
+    return null;
+  }
+
+  @Override
+  public Void visitInsertStatement(InsertStatement statement) {
     return null;
   }
 

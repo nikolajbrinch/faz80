@@ -1,9 +1,15 @@
 package dk.nikolajbrinch.assembler.parser;
 
+import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
+import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
+import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.compiler.Compiler;
 import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.MacroResolver;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.scanner.Mnemonic;
 import dk.nikolajbrinch.assembler.scanner.Scanner;
 import dk.nikolajbrinch.assembler.util.AstPrinter;
 import java.io.ByteArrayInputStream;
@@ -22,14 +28,14 @@ class ParserTests {
     try (ByteArrayInputStream inputStream =
             new ByteArrayInputStream(
                 """
-            0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * a + +b:: ^ $4f << %1111111 >>> 3 & 7 | 9"""
+            0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9"""
                     .getBytes(StandardCharsets.UTF_8));
         Scanner scanner = new Scanner(inputStream)) {
 
       List<Statement> statements = new Parser(scanner).parse();
 
       Assertions.assertEquals(
-          "(expression (| (^ (== (+ 10011001 (/ (* (* (- 8) 207) (group (+ 304 4))) 5a)) (+ (* 6 (identifier: IDENTIFIER[@1:52-52(a)])) (+ (identifier: IDENTIFIER[@1:57-59(b::)])))) (& (>>> (<< 4f 1111111) 3) 7)) 9))",
+          "(expression (| (^ (== (+ 10011001 (/ (* (* (- 8) 207) (group (+ 304 4))) 5a)) (* 6 (group (+ (identifier: IDENTIFIER[@1:53-53(a)]) (+ (identifier: IDENTIFIER[@1:58-60(b::)])))))) (& (>>> (group (<< 4f 1111111)) 3) 7)) 9))",
           new AstPrinter().print(statements.get(0)));
 
       for (Statement statement : statements) {
@@ -109,11 +115,11 @@ class ParserTests {
             .phase $1000
             ; do this code in phase
             xor a, a ; zero a
+
+            .dephase
             ; end
 
                         #end
-
-            .dephase
             #if 1 == 1
             #endif
             ld a, 1 & 2
@@ -350,6 +356,119 @@ class ParserTests {
       }
 
       new Compiler().compile(statements);
+    }
+  }
+
+  @Test
+  void testParseRegisters() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+        ex af, af'
+        """.getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      InstructionStatement instruction = (InstructionStatement) statements.get(0);
+      Assertions.assertEquals(Mnemonic.EX, Mnemonic.find(instruction.mnemonic().text()));
+      Assertions.assertEquals(
+          Register.AF, ((RegisterExpression) instruction.operand1()).register());
+      Assertions.assertEquals(
+          Register.AF_QUOTE, ((RegisterExpression) instruction.operand2()).register());
+    }
+  }
+
+  @Test
+  void testParseEnd() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+        ex af, af'
+        ; comment
+        #end
+        ; another comment
+        ld a, b
+        """
+                    .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      Assertions.assertEquals(1, statements.size());
+
+      InstructionStatement instruction = (InstructionStatement) statements.get(0);
+      Assertions.assertEquals(Mnemonic.EX, Mnemonic.find(instruction.mnemonic().text()));
+      Assertions.assertEquals(
+          Register.AF, ((RegisterExpression) instruction.operand1()).register());
+      Assertions.assertEquals(
+          Register.AF_QUOTE, ((RegisterExpression) instruction.operand2()).register());
+    }
+  }
+
+  @Test
+  void testParseIdentifiers() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+          @id___:
+          .id
+          id:
+          id::
+          _id_1::
+          exx:
+          end:
+          """
+                    .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      Assertions.assertEquals(7, statements.size());
+      Assertions.assertEquals("@id___:", ((LabelStatement) statements.get(0)).identifier().text());
+      Assertions.assertEquals(".id", ((LabelStatement) statements.get(1)).identifier().text());
+      Assertions.assertEquals("id:", ((LabelStatement) statements.get(2)).identifier().text());
+      Assertions.assertEquals("id::", ((LabelStatement) statements.get(3)).identifier().text());
+      Assertions.assertEquals("_id_1::", ((LabelStatement) statements.get(4)).identifier().text());
+      Assertions.assertEquals("exx:", ((LabelStatement) statements.get(5)).identifier().text());
+      Assertions.assertEquals("end:", ((LabelStatement) statements.get(6)).identifier().text());
+    }
+  }
+
+  @Test
+  void testParseInclude() throws IOException {
+    try (ByteArrayInputStream inputStream =
+            new ByteArrayInputStream(
+                """
+    .include "/Users/neko/somefile.z80"
+    """
+                    .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      Assertions.assertEquals(1, statements.size());
+
+      IncludeStatement include = (IncludeStatement) statements.get(0);
+      Assertions.assertEquals("\"/Users/neko/somefile.z80\"", include.string().text());
+    }
+  }
+  @Test
+  void testParseInsert() throws IOException {
+    try (ByteArrayInputStream inputStream =
+        new ByteArrayInputStream(
+            """
+incbin "/Users/neko/somefile.z80"
+"""
+                .getBytes(StandardCharsets.UTF_8));
+        Scanner scanner = new Scanner(inputStream)) {
+
+      List<Statement> statements = new Parser(scanner).parse();
+
+      Assertions.assertEquals(1, statements.size());
+
+      InsertStatement insert = (InsertStatement) statements.get(0);
+      Assertions.assertEquals("\"/Users/neko/somefile.z80\"", insert.string().text());
     }
   }
 }

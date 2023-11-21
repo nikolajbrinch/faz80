@@ -1,74 +1,55 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Add implements InstructionGenerator {
 
+  public ByteSource generateRegisterToRegister(
+      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+    return switch (targetRegister) {
+      case A -> 
+          ByteSource.of(InstructionGenerator.implied1(0b10000000, Registers.r, sourceRegister));
+      default -> null;
+    };
+  }
+
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand operand1, Operand operand2) {
-    ByteSource resolved = null;
+  public ByteSource generateImmediateToRegister(
+      NumberValue currentAddress, Register targetRegister, NumberValue numberValue) {
+    return switch (targetRegister) {
+      case A -> ByteSource.of(0xC6, numberValue.value());
+      default -> null;
+    };
+  }
 
-    if (operand1.operand() instanceof Register register) {
-      resolved =
-          switch (register) {
-            case Register.A -> switch (operand2.addressingMode()) {
-              case REGISTER -> ByteSource.of(
-                  InstructionGenerator.implied1(0b10000000, Registers.r, operand2.asRegister()));
-              case REGISTER_INDIRECT -> {
-                if (operand2.asRegister() == Register.HL) {
-                  yield ByteSource.of(0x86);
-                }
+  @Override
+  public ByteSource generateRegisterIndirectToRegister(
+      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+    return switch (targetRegister) {
+      case A -> switch (sourceRegister) {
+        case HL -> ByteSource.of(0x86);
+        default -> null;
+      };
+      default -> null;
+    };
+  }
 
-                yield null;
-              }
-              case IMMEDIATE -> ByteSource.of(0xC6, operand2.asNumberValue().value());
-              case INDEXED -> {
-                if (operand2.asRegister() == Register.IX) {
-                  yield ByteSource.of(0xDD, 0x86, operand2.displacementD());
-                } else if (operand2.asRegister() == Register.IY) {
-                  yield ByteSource.of(0xFD, 0x86, operand2.displacementD());
-                }
-
-                yield null;
-              }
-              default -> null;
-            };
-            case Register.HL -> {
-              if (operand2.operand() instanceof Register register2) {
-                yield ByteSource.of(
-                    InstructionGenerator.implied5(0b00001001, Registers.ss, register2));
-              }
-
-              yield null;
-            }
-            case Register.IX -> {
-              if (operand2.operand() instanceof Register register2) {
-                yield ByteSource.of(
-                    0xDD, InstructionGenerator.implied5(0b00001001, Registers.pp, register2));
-              }
-
-              yield null;
-            }
-            case Register.IY -> {
-              if (operand2.operand() instanceof Register register2) {
-                yield ByteSource.of(
-                    0xFD, InstructionGenerator.implied5(0b00001001, Registers.rr, register2));
-              }
-
-              yield null;
-            }
-            default -> null;
-          };
-    }
-
-    if (resolved == null) {
-      throw new IllegalStateException();
-    }
-
-    return resolved;
+  @Override
+  public ByteSource generateIndexedToRegister(
+      NumberValue currentAddress,
+      Register targetRegister,
+      Register sourceRegister,
+      long displacement) {
+    return switch (targetRegister) {
+      case A -> switch (sourceRegister) {
+        case IX -> ByteSource.of(0xDD, 0x86, displacement);
+        case IY -> ByteSource.of(0xFD, 0x86, displacement);
+        default -> null;
+      };
+      default -> null;
+    };
   }
 }

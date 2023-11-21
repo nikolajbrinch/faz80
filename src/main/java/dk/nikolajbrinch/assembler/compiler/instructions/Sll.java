@@ -1,8 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.instructions.InstructionGenerator;
-import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
@@ -24,37 +22,34 @@ public class Sll implements InstructionGenerator {
   }
 
   @Override
-  public ByteSource generateIndexed(NumberValue currentAddress, Operand targetIndex) {
-    Register targetRegister = targetIndex.asRegister();
-
-    if (targetRegister == Register.IX) {
-      return ByteSource.of(0xDD, 0xCB, targetIndex.displacementD(), 0x36);
-    } else if (targetRegister == Register.IY) {
-      return ByteSource.of(0xFD, 0xCB, targetIndex.displacementD(), 0x36);
-    }
-
-    return null;
+  public ByteSource generateIndexed(
+      NumberValue currentAddress, Register targetRegister, long displacement) {
+    return switch (targetRegister) {
+      case IX -> ByteSource.of(0xDD, 0xCB, displacement, 0x36);
+      case IY -> ByteSource.of(0xFD, 0xCB, displacement, 0x36);
+      default -> null;
+    };
   }
 
   @Override
   public ByteSource generateRegisterToIndexed(
-      NumberValue currentAddress, Operand targetIndex, Register register) {
-    Register targetRegister = targetIndex.asRegister();
+      NumberValue currentAddress,
+      Register targetRegister,
+      long displacement,
+      Register sourceRegister) {
 
-    if (targetRegister == Register.IX) {
-      return ByteSource.of(
+    return switch (targetRegister) {
+      case IX -> ByteSource.of(
           0xDD,
           0xCB,
-          targetIndex.displacementD(),
-          InstructionGenerator.implied1(0b00110000, Registers.r, register));
-    } else if (targetRegister == Register.IY) {
-      return ByteSource.of(
+          displacement,
+          InstructionGenerator.implied1(0b00110000, Registers.r, sourceRegister));
+      case IY -> ByteSource.of(
           0xFD,
           0xCB,
-          targetIndex.displacementD(),
-          InstructionGenerator.implied1(0b00110000, Registers.r, register));
-    }
-
-    return null;
+          displacement,
+          InstructionGenerator.implied1(0b00110000, Registers.r, sourceRegister));
+      default -> null;
+    };
   }
 }

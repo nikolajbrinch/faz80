@@ -9,20 +9,21 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class And implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand operand1, Operand operand2) {
+  public ByteSource generate(
+      NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
     ByteSource resolved =
-        switch (operand1.addressingMode()) {
-          case REGISTER -> ByteSource.of(0b10100000 | Registers.r.get(operand1.asRegister()));
+        switch (targetOperand.addressingMode()) {
+          case REGISTER -> ByteSource.of(0b10100000 | Registers.r.get(targetOperand.asRegister()));
           case REGISTER_INDIRECT -> {
-            if (operand1.asRegister() == Register.HL) {
+            if (targetOperand.asRegister() == Register.HL) {
               yield ByteSource.of(0xA6);
             }
             yield null;
           }
-          case IMMEDIATE -> ByteSource.of(0xE6, operand1.asNumberValue().value());
-          case INDEXED -> switch (operand1.asRegister()) {
-            case IX -> ByteSource.of(0xDD, 0xA6, operand1.displacementD());
-            case IY -> ByteSource.of(0xFD, 0xA6, operand1.displacementD());
+          case IMMEDIATE -> ByteSource.of(0xE6, targetOperand.asNumberValue().value());
+          case INDEXED -> switch (targetOperand.asRegister()) {
+            case IX -> ByteSource.of(0xDD, 0xA6, targetOperand.displacementD());
+            case IY -> ByteSource.of(0xFD, 0xA6, targetOperand.displacementD());
             default -> null;
           };
           default -> null;

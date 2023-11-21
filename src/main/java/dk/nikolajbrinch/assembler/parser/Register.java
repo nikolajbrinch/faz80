@@ -1,46 +1,54 @@
 package dk.nikolajbrinch.assembler.parser;
 
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 
 public enum Register {
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  H,
-  L,
-  I,
-  R,
-  IXH,
-  IXL,
-  IYH,
-  IYL,
+  A("A", Size.BYTE),
+  B("B", Size.BYTE),
+  C("C", Size.BYTE),
+  D("D", Size.BYTE),
+  E("E", Size.BYTE),
+  F("F", Size.BYTE),
+  H("H", Size.BYTE),
+  L("L", Size.BYTE),
+  I("I", Size.BYTE),
+  R("R", Size.BYTE),
+  IXH("IXH", Size.BYTE),
+  IXL("IXL", Size.BYTE),
+  IYH("IYH", Size.BYTE),
+  IYL("IYL", Size.BYTE),
 
-  AF,
-  BC,
-  DE,
-  HL,
-  PC,
-  SP,
-  IX,
-  IY,
-  AF_BANG;
+  AF("AF", Size.WORD),
+  BC("BC", Size.WORD),
+  DE("DE", Size.WORD),
+  HL("HL", Size.WORD),
+  PC("PC", Size.WORD),
+  SP("SP", Size.WORD),
+  IX("IX", Size.WORD),
+  IY("IY", Size.WORD),
+  AF_QUOTE("AF'", Size.WORD);
 
-  private static final Set<Register> WORD_REGISTER =
-      Set.of(AF, BC, DE, HL, PC, SP, IX, IY, AF_BANG);
+  private final String text;
 
-  public static Register find(String text) {
+  private final Size size;
+
+  private Register(String text, Size size) {
+    this.text = text;
+    this.size = size;
+  }
+
+  public static Register find(final String text) {
     return Arrays.stream(values())
-        .filter(register -> register.name().equalsIgnoreCase(text))
+        .filter(register -> register.text.equalsIgnoreCase(text))
         .findAny()
         .orElse(null);
   }
 
   public Size size() {
-    return WORD_REGISTER.contains(this) ? Size.WORD : Size.BYTE;
+    return size;
   }
 }

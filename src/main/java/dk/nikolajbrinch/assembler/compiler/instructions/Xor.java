@@ -9,20 +9,21 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class Xor implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand operand1, Operand operand2) {
-    return switch (operand1.addressingMode()) {
-      case REGISTER -> ByteSource.of(0b10101000 | Registers.r.get(operand1.asRegister()));
+  public ByteSource generate(
+      NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
+    return switch (targetOperand.addressingMode()) {
+      case REGISTER -> ByteSource.of(0b10101000 | Registers.r.get(targetOperand.asRegister()));
       case REGISTER_INDIRECT -> {
-        if (operand1.asRegister() == Register.HL) {
+        if (targetOperand.asRegister() == Register.HL) {
           yield ByteSource.of(0xAE);
         }
 
         yield null;
       }
-      case IMMEDIATE -> ByteSource.of(0xEE, operand1.asNumberValue().value());
-      case INDEXED -> switch (operand1.asRegister()) {
-        case IX -> ByteSource.of(0xDD, 0xAE, operand1.displacementD());
-        case IY -> ByteSource.of(0xFD, 0xAE, operand1.displacementD());
+      case IMMEDIATE -> ByteSource.of(0xEE, targetOperand.asNumberValue().value());
+      case INDEXED -> switch (targetOperand.asRegister()) {
+        case IX -> ByteSource.of(0xDD, 0xAE, targetOperand.displacementD());
+        case IY -> ByteSource.of(0xFD, 0xAE, targetOperand.displacementD());
         default -> null;
       };
       default -> null;

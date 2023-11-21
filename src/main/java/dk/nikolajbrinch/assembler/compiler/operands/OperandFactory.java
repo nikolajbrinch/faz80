@@ -31,7 +31,7 @@ public class OperandFactory {
     }
 
     Object evaluatedOperand = validateOperand(evaluator.apply(operand));
-    Object evaluatedDisplacement = validateDisplacement(evaluator.apply(displacment));
+    Object evaluatedDisplacement = displacment == null ? null : validateDisplacement(evaluator.apply(displacment));
 
     AddressingMode addressingMode =
         new AddressingDecoder().decode(evaluatedOperand, isIndirect, displacment != null);

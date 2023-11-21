@@ -1,5 +1,7 @@
 package dk.nikolajbrinch.assembler.util;
 
+import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
@@ -19,7 +21,6 @@ import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EndStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
@@ -194,13 +195,18 @@ public class AstPrinter implements ExpressionVisitor<String>, StatementVisitor<S
   }
 
   @Override
-  public String visitEndStatement(EndStatement endStatement) {
-    return parenthesize("end");
+  public String visitEmptyStatement(EmptyStatement statement) {
+    return parenthesize("empty");
   }
 
   @Override
-  public String visitEmptyStatement(EmptyStatement emptyStatement) {
-    return parenthesize("empty");
+  public String visitIncludeStatement(IncludeStatement statement) {
+    return parenthesize("include: " + statement.string());
+  }
+
+  @Override
+  public String visitInsertStatement(InsertStatement statement) {
+    return parenthesize("insert: " + statement.string());
   }
 
   @Override
