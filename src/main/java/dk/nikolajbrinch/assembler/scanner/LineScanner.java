@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.scanner;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class LineScanner implements Iterable<Line> {
+public class LineScanner implements Iterable<Line>, AutoCloseable, Closeable {
 
   private final Scanner scanner;
 
@@ -125,5 +126,10 @@ public class LineScanner implements Iterable<Line> {
 
   public Stream<Line> stream() {
     return StreamSupport.stream(this.spliterator(), false);
+  }
+
+  @Override
+  public void close() throws IOException {
+    scanner.close();
   }
 }
