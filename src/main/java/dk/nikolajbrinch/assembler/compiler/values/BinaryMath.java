@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
-
 public final class BinaryMath {
 
   public static Object and(Object left, Object right) {

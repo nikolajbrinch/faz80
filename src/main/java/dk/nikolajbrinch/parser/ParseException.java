@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.parser;
+package dk.nikolajbrinch.parser;
 
 public class ParseException extends RuntimeException {
 

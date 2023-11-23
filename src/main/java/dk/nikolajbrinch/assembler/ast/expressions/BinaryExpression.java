@@ -1,8 +1,8 @@
 package dk.nikolajbrinch.assembler.ast.expressions;
 
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
-public record BinaryExpression(Expression left, Token operator, Expression right)
+public record BinaryExpression(Expression left, AssemblerToken operator, Expression right)
     implements Expression {
 
   @Override

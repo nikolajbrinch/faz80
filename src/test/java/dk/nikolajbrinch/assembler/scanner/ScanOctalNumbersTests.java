@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 class ScanOctalNumbersTests {
 
-
   @Test
   void testScan() throws IOException {
     try (ByteArrayInputStream inputStream =
@@ -19,17 +18,16 @@ class ScanOctalNumbersTests {
                 var set 0O377
         """
                     .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      Assertions.assertEquals(TokenType.OCTAL_NUMBER, scanner.peek(3).type());
+      Assertions.assertEquals(AssemblerTokenType.OCTAL_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("377", scanner.peek(3).text());
-      Assertions.assertEquals(TokenType.OCTAL_NUMBER, scanner.peek(7).type());
+      Assertions.assertEquals(AssemblerTokenType.OCTAL_NUMBER, scanner.peek(7).type());
       Assertions.assertEquals("377", scanner.peek(7).text());
-      Assertions.assertEquals(TokenType.OCTAL_NUMBER, scanner.peek(11).type());
+      Assertions.assertEquals(AssemblerTokenType.OCTAL_NUMBER, scanner.peek(11).type());
       Assertions.assertEquals("377", scanner.peek(11).text());
 
       scanner.forEach(System.out::println);
     }
   }
-
 }

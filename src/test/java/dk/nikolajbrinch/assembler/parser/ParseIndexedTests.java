@@ -2,7 +2,7 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.compiler.Compiler;
-import dk.nikolajbrinch.assembler.scanner.Scanner;
+import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
 import dk.nikolajbrinch.assembler.util.AstPrinter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -21,9 +21,9 @@ class ParseIndexedTests {
         xor (ix+d)
         """
                     .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      List<Statement> statements = new Parser(scanner).parse();
+      List<Statement> statements = new AssemblerParser(scanner).parse();
 
       for (Statement statement : statements) {
         System.out.println(new AstPrinter().print(statement));

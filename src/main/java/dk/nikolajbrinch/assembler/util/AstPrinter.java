@@ -1,8 +1,5 @@
 package dk.nikolajbrinch.assembler.util;
 
-import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
-import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
@@ -23,6 +20,8 @@ import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
@@ -36,6 +35,7 @@ import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
+import dk.nikolajbrinch.assembler.parser.Parameter;
 import java.util.List;
 import java.util.stream.Collectors;
 

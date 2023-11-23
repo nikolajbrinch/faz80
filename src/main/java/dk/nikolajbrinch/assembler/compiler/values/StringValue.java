@@ -1,15 +1,10 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
 public record StringValue(String value, Type type) implements Value<StringValue> {
 
-  enum Type {
-    STRING,
-    CHAR
-  }
-
-  public static StringValue create(Token token) {
+  public static StringValue create(AssemblerToken token) {
     return new StringValue(
         unquote(token.text()),
         switch (token.type()) {
@@ -17,6 +12,22 @@ public record StringValue(String value, Type type) implements Value<StringValue>
           case CHAR -> Type.CHAR;
           default -> null;
         });
+  }
+
+  private static String unquote(String value) {
+    if (value.startsWith("\"") && value.endsWith("\"")) {
+      return removeQuotes(value);
+    }
+
+    if (value.startsWith("'") && value.endsWith("'")) {
+      return removeQuotes(value);
+    }
+
+    return value;
+  }
+
+  private static String removeQuotes(String value) {
+    return value.substring(1, value.length() - 1);
   }
 
   public StringValue add(StringValue other) {
@@ -47,19 +58,8 @@ public record StringValue(String value, Type type) implements Value<StringValue>
     return new BooleanValue(value().equals(other.value()));
   }
 
-  private static String unquote(String value) {
-    if (value.startsWith("\"") && value.endsWith("\"")) {
-      return removeQuotes(value);
-    }
-
-    if (value.startsWith("'") && value.endsWith("'")) {
-      return removeQuotes(value);
-    }
-
-    return value;
-  }
-
-  private static String removeQuotes(String value) {
-    return value.substring(1, value.length() - 1);
+  enum Type {
+    STRING,
+    CHAR
   }
 }

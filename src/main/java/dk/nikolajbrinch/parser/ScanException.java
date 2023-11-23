@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.scanner;
+package dk.nikolajbrinch.parser;
 
 public class ScanException extends RuntimeException {
 

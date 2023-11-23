@@ -10,7 +10,7 @@ class LineScanHelloWorldTests {
   void testScan() throws IOException {
     try (InputStream inputStream =
             ScanHelloWorldTests.class.getResourceAsStream("/hello-world.z80");
-        LineScanner scanner = new LineScanner(new Scanner(inputStream))) {
+        LineScanner scanner = new LineScanner(new AssemblerScanner(inputStream))) {
 
       for (Line line : scanner) {
         System.out.println(line);

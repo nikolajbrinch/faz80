@@ -2,9 +2,7 @@ package dk.nikolajbrinch.assembler.scanner;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ScanMiscTests {
@@ -12,8 +10,8 @@ class ScanMiscTests {
   @Test
   void testScan() throws IOException {
     try (ByteArrayInputStream inputStream =
-        new ByteArrayInputStream(
-            """
+            new ByteArrayInputStream(
+                """
         org 0
         const equ 0x00
         var1:: set %00000001
@@ -52,8 +50,9 @@ class ScanMiscTests {
         ld c, ~3
         ld c, '\\n'
         howdy: .byte 0x00, $12, %11111111
-        """                .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        """
+                    .getBytes(StandardCharsets.UTF_8));
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
       scanner.forEach(System.out::println);
     }

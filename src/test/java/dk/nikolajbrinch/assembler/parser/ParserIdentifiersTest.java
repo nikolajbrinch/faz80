@@ -2,7 +2,7 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.scanner.Scanner;
+import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,9 +26,9 @@ class ParserIdentifiersTest {
           end:
           """
                     .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      List<Statement> statements = new Parser(scanner).parse();
+      List<Statement> statements = new AssemblerParser(scanner).parse();
 
       Assertions.assertEquals(7, statements.size());
       Assertions.assertEquals("@id___:", ((LabelStatement) statements.get(0)).identifier().text());
@@ -40,5 +40,4 @@ class ParserIdentifiersTest {
       Assertions.assertEquals("end:", ((LabelStatement) statements.get(6)).identifier().text());
     }
   }
-
 }

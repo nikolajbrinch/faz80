@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 class ScanHexNumbersTests {
 
-
   @Test
   void testScan() throws IOException {
     try (ByteArrayInputStream inputStream =
@@ -19,13 +18,13 @@ class ScanHexNumbersTests {
                 var set 0Xffff
         """
                     .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      Assertions.assertEquals(TokenType.HEX_NUMBER, scanner.peek(3).type());
+      Assertions.assertEquals(AssemblerTokenType.HEX_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("ffff", scanner.peek(3).text());
-      Assertions.assertEquals(TokenType.HEX_NUMBER, scanner.peek(7).type());
+      Assertions.assertEquals(AssemblerTokenType.HEX_NUMBER, scanner.peek(7).type());
       Assertions.assertEquals("ffff", scanner.peek(7).text());
-      Assertions.assertEquals(TokenType.HEX_NUMBER, scanner.peek(11).type());
+      Assertions.assertEquals(AssemblerTokenType.HEX_NUMBER, scanner.peek(11).type());
       Assertions.assertEquals("ffff", scanner.peek(11).text());
 
       scanner.forEach(System.out::println);

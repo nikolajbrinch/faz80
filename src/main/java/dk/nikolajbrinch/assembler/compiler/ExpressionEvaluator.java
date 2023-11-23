@@ -1,11 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.compiler.values.BinaryMath;
-import dk.nikolajbrinch.assembler.compiler.values.IntegerMath;
-import dk.nikolajbrinch.assembler.compiler.values.Logic;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
-import dk.nikolajbrinch.assembler.compiler.values.StringValue;
-import dk.nikolajbrinch.assembler.parser.Environment;
 import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
@@ -17,7 +11,13 @@ import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
-import dk.nikolajbrinch.assembler.scanner.TokenType;
+import dk.nikolajbrinch.assembler.compiler.values.BinaryMath;
+import dk.nikolajbrinch.assembler.compiler.values.IntegerMath;
+import dk.nikolajbrinch.assembler.compiler.values.Logic;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.values.StringValue;
+import dk.nikolajbrinch.assembler.parser.Environment;
+import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
 
 public class ExpressionEvaluator implements ExpressionVisitor<Object> {
 
@@ -98,11 +98,11 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
 
   @Override
   public Object visitAddressExpression(AddressExpression expression) {
-    if (expression.token().type() == TokenType.DOLLAR) {
+    if (expression.token().type() == AssemblerTokenType.DOLLAR) {
       return currentAddress;
     }
 
-    if (expression.token().type() == TokenType.DOLLAR_DOLLAR) {
+    if (expression.token().type() == AssemblerTokenType.DOLLAR_DOLLAR) {
       return currentAddress;
     }
 

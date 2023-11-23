@@ -1,7 +1,6 @@
-package dk.nikolajbrinch.assembler.scanner;
+package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.assembler.reader.CharReader;
-import dk.nikolajbrinch.assembler.reader.CharReader.Char;
+import dk.nikolajbrinch.parser.CharReader.Char;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,17 +14,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Closeable {
+public abstract class BaseScanner<E extends TokenType, T extends Token>
+    implements Scanner<T>, Iterable<T>, AutoCloseable, Closeable {
 
   final CharReader charReader;
 
-  private final List<Token> buffer = new LinkedList<>();
+  private final List<T> buffer = new LinkedList<>();
 
   public BaseScanner(InputStream inputStream) {
     this.charReader = new CharReader(inputStream);
   }
 
-  public Token next() {
+  protected CharReader getCharReader() {
+    return charReader;
+  }
+
+  public T next() {
     if (ensureBuffer(1)) {
       return buffer.removeFirst();
     }
@@ -33,11 +37,11 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
     return null;
   }
 
-  public Token peek() {
+  public T peek() {
     return peek(1);
   }
 
-  public Token peek(int position) {
+  public T peek(int position) {
     if (ensureBuffer(position)) {
       return buffer.get(position - 1);
     }
@@ -45,7 +49,7 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
     return null;
   }
 
-  public boolean hasNext() {
+  private boolean hasNext() {
     if (ensureBuffer(1)) {
       return !buffer.isEmpty();
     }
@@ -53,11 +57,19 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
     return false;
   }
 
-  protected abstract Token createToken() throws IOException;
+  protected abstract T createToken() throws IOException;
 
-  protected abstract Token createEofToken(int line, int position) throws IOException;
+  protected abstract T createEofToken(int line, int position) throws IOException;
 
-  protected abstract Token createToken(TokenType tokenType, int lineNumber, int start, int end, String text);
+  protected abstract T createToken(E tokenType, int lineNumber, int start, int end, String text);
+
+  protected Char nextChar() throws IOException {
+    return charReader.next();
+  }
+
+  protected Char peekChar() throws IOException {
+    return charReader.peek();
+  }
 
   protected Char appendChar(StringBuilder buffer) throws IOException {
     return appendChar(buffer, charReader.next());
@@ -69,7 +81,7 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
     return ch;
   }
 
-  protected Token createCharsToken(TokenType tokenType, Char... chars) {
+  protected T createCharsToken(E tokenType, Char... chars) {
     Char first = chars[0];
     Char last = chars[chars.length - 1];
 
@@ -80,7 +92,6 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
         last.position(),
         String.valueOf(Arrays.stream(chars).map(Char::toString).collect(Collectors.joining())));
   }
-
 
   protected boolean checkNextChar(char ch) throws IOException {
     return checkNextChar(nextChar -> nextChar == ch);
@@ -93,9 +104,9 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
   }
 
   @Override
-  public Iterator<Token> iterator() {
+  public Iterator<T> iterator() {
 
-    return new Iterator<Token>() {
+    return new Iterator<T>() {
 
       private boolean hasNext = true;
 
@@ -105,14 +116,14 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
       }
 
       @Override
-      public Token next() {
+      public T next() {
         if (!hasNext) {
           throw new NoSuchElementException("No more elements!");
         }
 
-        Token token = BaseScanner.this.next();
+        T token = BaseScanner.this.next();
 
-        if (token.type() == TokenType.EOF) {
+        if (isEofToken(token)) {
           hasNext = false;
         }
 
@@ -121,7 +132,9 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
     };
   }
 
-  public Stream<Token> stream() {
+  protected abstract boolean isEofToken(T token);
+
+  public Stream<T> stream() {
     return StreamSupport.stream(spliterator(), false);
   }
 
@@ -132,7 +145,7 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
 
   private boolean ensureBuffer(int size) {
     while (buffer.size() < size) {
-      Token read = readToken();
+      T read = read();
 
       if (read != null) {
         buffer.add(read);
@@ -144,8 +157,8 @@ public abstract class BaseScanner implements Iterable<Token>, AutoCloseable, Clo
     return buffer.size() >= size;
   }
 
-  private Token readToken() {
-    Token token = null;
+  private T read() {
+    T token = null;
 
     try {
       while (token == null) {

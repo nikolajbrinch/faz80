@@ -1,9 +1,10 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
-public record VariableStatement(Token identifier, Expression intializer) implements Statement {
+public record VariableStatement(AssemblerToken identifier, Expression intializer)
+    implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

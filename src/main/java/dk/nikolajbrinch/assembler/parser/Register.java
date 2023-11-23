@@ -1,10 +1,7 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import java.util.Arrays;
-import java.util.Locale;
-import java.util.Set;
 
 public enum Register {
   A("A", Size.BYTE),
@@ -36,7 +33,7 @@ public enum Register {
 
   private final Size size;
 
-  private Register(String text, Size size) {
+  Register(String text, Size size) {
     this.text = text;
     this.size = size;
   }

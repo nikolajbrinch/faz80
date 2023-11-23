@@ -1,21 +1,15 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
 import dk.nikolajbrinch.assembler.compiler.values.StringValue.Type;
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
 public record NumberValue(long value, Size size) implements Value<NumberValue> {
-
-  public enum Size {
-    BYTE,
-    WORD,
-    LONG
-  }
 
   public static NumberValue create(long value) {
     return fromDecimal(value);
   }
 
-  public static NumberValue create(Token token) {
+  public static NumberValue create(AssemblerToken token) {
     return switch (token.type()) {
       case DECIMAL_NUMBER -> fromDecimal(token);
       case HEX_NUMBER -> fromHex(token);
@@ -25,7 +19,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     };
   }
 
-  private static NumberValue fromDecimal(Token token) {
+  private static NumberValue fromDecimal(AssemblerToken token) {
     return fromDecimal(Long.parseLong(token.text()));
   }
 
@@ -45,7 +39,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     throw new IllegalStateException("Decimal number too large");
   }
 
-  private static NumberValue fromHex(Token token) {
+  private static NumberValue fromHex(AssemblerToken token) {
     Size size =
         switch (token.text().length()) {
           case 1, 2 -> Size.BYTE;
@@ -61,7 +55,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     throw new IllegalStateException("Hexadecimal number too large");
   }
 
-  private static NumberValue fromOctal(Token token) {
+  private static NumberValue fromOctal(AssemblerToken token) {
     int length = token.text().length();
     long value = Long.parseLong(token.text());
 
@@ -88,7 +82,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     throw new IllegalStateException("Octal number too large");
   }
 
-  private static NumberValue fromBinary(Token token) {
+  private static NumberValue fromBinary(AssemblerToken token) {
     int length = token.text().length();
     long value = Long.parseLong(token.text());
 
@@ -105,6 +99,14 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     }
 
     throw new IllegalStateException("Binary number too large");
+  }
+
+  public static NumberValue twosComplement(NumberValue normal) {
+    return new NumberValue(twosComplement(normal.value()), normal.size());
+  }
+
+  public static long twosComplement(long normal) {
+    return normal < 0L ? (Math.abs(normal) ^ 0b11111111) + 1 : normal;
   }
 
   public NumberValue subtract(NumberValue other) {
@@ -209,15 +211,13 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     return new BooleanValue(value() == other.value());
   }
 
-  public static NumberValue twosComplement(NumberValue normal) {
-    return new NumberValue(twosComplement(normal.value()), normal.size());
-  }
-
-  public static long twosComplement(long normal) {
-    return normal < 0L ? (Math.abs(normal) ^ 0b11111111) + 1 : normal;
-  }
-
   private Size size(NumberValue other) {
     return Size.values()[Math.max(size().ordinal(), other.size().ordinal())];
+  }
+
+  public enum Size {
+    BYTE,
+    WORD,
+    LONG
   }
 }

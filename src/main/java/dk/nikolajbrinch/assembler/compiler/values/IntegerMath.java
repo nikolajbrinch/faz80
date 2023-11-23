@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
-
 public final class IntegerMath {
 
   public static Object divide(Object left, Object right) {

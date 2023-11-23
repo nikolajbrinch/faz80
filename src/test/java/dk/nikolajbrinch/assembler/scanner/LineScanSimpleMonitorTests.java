@@ -10,12 +10,11 @@ class LineScanSimpleMonitorTests {
   void testScan() throws IOException {
     try (InputStream inputStream =
             ScanSimpleMonitorTests.class.getResourceAsStream("/simple-monitor.z80");
-        LineScanner scanner = new LineScanner(new Scanner(inputStream))) {
+        LineScanner scanner = new LineScanner(new AssemblerScanner(inputStream))) {
 
       for (Line line : scanner) {
         System.out.println(line);
       }
     }
   }
-
 }

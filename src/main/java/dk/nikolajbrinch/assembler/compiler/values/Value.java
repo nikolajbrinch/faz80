@@ -2,13 +2,13 @@ package dk.nikolajbrinch.assembler.compiler.values;
 
 public interface Value<T extends Value<T>> {
 
-  public T add(T other);
+  T add(T other);
 
-  public StringValue asStringValue();
+  StringValue asStringValue();
 
-  public NumberValue asNumberValue();
+  NumberValue asNumberValue();
 
-  public BooleanValue asBooleanValue();
+  BooleanValue asBooleanValue();
 
   BooleanValue compare(T other);
 }

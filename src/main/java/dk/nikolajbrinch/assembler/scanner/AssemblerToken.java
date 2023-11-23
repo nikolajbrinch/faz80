@@ -1,6 +1,9 @@
 package dk.nikolajbrinch.assembler.scanner;
 
-public record Token(TokenType type, int line, int start, int end, String text) {
+import dk.nikolajbrinch.parser.Token;
+
+public record AssemblerToken(AssemblerTokenType type, int line, int start, int end, String text)
+    implements Token {
 
   @Override
   public String toString() {

@@ -10,8 +10,8 @@ public class Add implements InstructionGenerator {
   public ByteSource generateRegisterToRegister(
       NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
     return switch (targetRegister) {
-      case A -> 
-          ByteSource.of(InstructionGenerator.implied1(0b10000000, Registers.r, sourceRegister));
+      case A -> ByteSource.of(
+          InstructionGenerator.implied1(0b10000000, Registers.r, sourceRegister));
       default -> null;
     };
   }

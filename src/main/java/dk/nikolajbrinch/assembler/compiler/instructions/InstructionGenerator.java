@@ -8,6 +8,14 @@ import java.util.Map;
 
 public interface InstructionGenerator {
 
+  static long implied1(int mask, Map<Register, Integer> registerSet, Register register) {
+    return mask | registerSet.get(register);
+  }
+
+  static long implied5(int mask, Map<Register, Integer> registerSet, Register register) {
+    return mask | (registerSet.get(register) << 4);
+  }
+
   default ByteSource generate(
       NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
     ByteSource generated;
@@ -400,13 +408,5 @@ public interface InstructionGenerator {
 
   default ByteSource generate(NumberValue currentAddress) {
     return null;
-  }
-
-  public static long implied1(int mask, Map<Register, Integer> registerSet, Register register) {
-    return mask | registerSet.get(register);
-  }
-
-  public static long implied5(int mask, Map<Register, Integer> registerSet, Register register) {
-    return mask | (registerSet.get(register) << 4);
   }
 }

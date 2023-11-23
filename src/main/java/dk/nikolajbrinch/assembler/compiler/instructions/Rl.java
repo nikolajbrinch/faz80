@@ -49,18 +49,16 @@ public class Rl implements InstructionGenerator {
       long displacement,
       Register sourceRegister) {
     return switch (targetRegister) {
-      case IX -> 
-          ByteSource.of(
-              0xDD,
-              0xCB,
-              displacement,
-              InstructionGenerator.implied1(0b00010000, Registers.r, sourceRegister));
-      case IY -> 
-          ByteSource.of(
-              0xFD,
-              0xCB,
-              displacement,
-              InstructionGenerator.implied1(0b00010000, Registers.r, sourceRegister));
+      case IX -> ByteSource.of(
+          0xDD,
+          0xCB,
+          displacement,
+          InstructionGenerator.implied1(0b00010000, Registers.r, sourceRegister));
+      case IY -> ByteSource.of(
+          0xFD,
+          0xCB,
+          displacement,
+          InstructionGenerator.implied1(0b00010000, Registers.r, sourceRegister));
       default -> null;
     };
   }

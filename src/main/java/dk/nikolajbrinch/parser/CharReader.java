@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.reader;
+package dk.nikolajbrinch.parser;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -19,21 +19,10 @@ import java.util.stream.StreamSupport;
 /** A simple Char Scanner that implements look ahead */
 public class CharReader implements Closeable, AutoCloseable, Iterable<CharReader.Char> {
 
-  public record Char(int line, int position, Character character) {
-
-    @Override
-    public String toString() {
-      return character.toString();
-    }
-  }
-
   private final BufferedReader reader;
-
   private final List<Char> buffer = new LinkedList<>();
-
   private int line = 1;
   private int position = 1;
-
   public CharReader(InputStream inputStream) {
     this(inputStream, UTF_8);
   }
@@ -174,5 +163,13 @@ public class CharReader implements Closeable, AutoCloseable, Iterable<CharReader
 
   public Stream<Char> stream() {
     return StreamSupport.stream(this.spliterator(), false);
+  }
+
+  public record Char(int line, int position, Character character) {
+
+    @Override
+    public String toString() {
+      return character.toString();
+    }
   }
 }

@@ -36,7 +36,7 @@ public enum Directive {
 
   private final String[] keywords;
 
-  private Directive(String... keywords) {
+  Directive(String... keywords) {
     this.keywords = keywords;
   }
 

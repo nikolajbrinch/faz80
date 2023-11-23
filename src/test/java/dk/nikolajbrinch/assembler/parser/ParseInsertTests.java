@@ -2,7 +2,7 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.scanner.Scanner;
+import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,9 +19,9 @@ class ParseInsertTests {
                 """
 incbin "/Users/neko/somefile.z80"
 """.getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      List<Statement> statements = new Parser(scanner).parse();
+      List<Statement> statements = new AssemblerParser(scanner).parse();
 
       Assertions.assertEquals(1, statements.size());
 

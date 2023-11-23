@@ -1,13 +1,13 @@
 package dk.nikolajbrinch.assembler.compiler.operands;
 
+import dk.nikolajbrinch.assembler.ast.expressions.Expression;
+import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import dk.nikolajbrinch.assembler.compiler.values.Value;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Register;
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
 import java.util.function.Function;
 
 public class OperandFactory {

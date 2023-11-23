@@ -18,17 +18,16 @@ class ScanDecimalNumbersTests {
                 var set 91
         """
                     .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      Assertions.assertEquals(TokenType.DECIMAL_NUMBER, scanner.peek(3).type());
+      Assertions.assertEquals(AssemblerTokenType.DECIMAL_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("0", scanner.peek(3).text());
-      Assertions.assertEquals(TokenType.DECIMAL_NUMBER, scanner.peek(7).type());
+      Assertions.assertEquals(AssemblerTokenType.DECIMAL_NUMBER, scanner.peek(7).type());
       Assertions.assertEquals("1234567890", scanner.peek(7).text());
-      Assertions.assertEquals(TokenType.DECIMAL_NUMBER, scanner.peek(11).type());
+      Assertions.assertEquals(AssemblerTokenType.DECIMAL_NUMBER, scanner.peek(11).type());
       Assertions.assertEquals("91", scanner.peek(11).text());
 
       scanner.forEach(System.out::println);
     }
   }
-
 }

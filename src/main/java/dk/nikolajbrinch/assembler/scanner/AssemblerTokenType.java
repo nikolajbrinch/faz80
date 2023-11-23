@@ -1,6 +1,8 @@
 package dk.nikolajbrinch.assembler.scanner;
 
-public enum TokenType {
+import dk.nikolajbrinch.parser.TokenType;
+
+public enum AssemblerTokenType implements TokenType {
   /*
    * Single character tokens
    */
@@ -91,5 +93,5 @@ public enum TokenType {
   DATA_BLOCK,
   DATA,
   END,
-  EOF;
+  EOF
 }

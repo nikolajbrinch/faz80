@@ -9,7 +9,8 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class Cp implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
+  public ByteSource generate(
+      NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
     return switch (targetOperand.addressingMode()) {
       case REGISTER -> ByteSource.of(0b10111000 | Registers.r.get(targetOperand.asRegister()));
       case REGISTER_INDIRECT -> {

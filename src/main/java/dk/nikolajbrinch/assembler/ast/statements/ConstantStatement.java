@@ -1,9 +1,9 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
-public record ConstantStatement(Token identifier, Expression value) implements Statement {
+public record ConstantStatement(AssemblerToken identifier, Expression value) implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

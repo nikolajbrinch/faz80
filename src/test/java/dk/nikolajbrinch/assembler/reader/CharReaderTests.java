@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.reader;
 
-import dk.nikolajbrinch.assembler.reader.CharReader.Char;
+import dk.nikolajbrinch.parser.CharReader;
+import dk.nikolajbrinch.parser.CharReader.Char;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;

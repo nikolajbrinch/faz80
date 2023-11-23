@@ -12,25 +12,25 @@ import java.util.stream.StreamSupport;
 
 public class LineScanner implements Iterable<Line>, AutoCloseable, Closeable {
 
-  private final Scanner scanner;
+  private final AssemblerScanner scanner;
 
   private boolean hasLines = true;
 
   private Line line = null;
 
-  private boolean filterComments = true;
+  private final boolean filterComments = true;
 
-  private boolean filterNewlines = true;
+  private final boolean filterNewlines = true;
 
-  public LineScanner(Scanner scanner) {
+  public LineScanner(AssemblerScanner scanner) {
     this.scanner = scanner;
   }
 
-  public Line nextLine() throws IOException {
+  public Line next() throws IOException {
     Line line = this.line;
 
     if (line == null) {
-      line = doRead();
+      line = read();
     }
 
     this.line = null;
@@ -42,29 +42,29 @@ public class LineScanner implements Iterable<Line>, AutoCloseable, Closeable {
     Line line = this.line;
 
     if (line == null) {
-      this.line = doRead();
+      this.line = read();
     }
 
     return hasLines;
   }
 
-  private Line doRead() throws IOException {
+  private Line read() throws IOException {
     Line line = null;
 
     while (line == null) {
       int lineNumber = 0;
 
-      List<Token> tokens = new ArrayList<>();
+      List<AssemblerToken> tokens = new ArrayList<>();
 
       do {
-        Token token = scanner.next();
+        AssemblerToken token = scanner.next();
         lineNumber = token.line();
         tokens.add(token);
 
-        TokenType type = token.type();
+        AssemblerTokenType type = token.type();
 
-        if (type == TokenType.NEWLINE || type == TokenType.EOF) {
-          if (type == TokenType.EOF) {
+        if (type == AssemblerTokenType.NEWLINE || type == AssemblerTokenType.EOF) {
+          if (type == AssemblerTokenType.EOF) {
             hasLines = false;
           }
 
@@ -76,17 +76,17 @@ public class LineScanner implements Iterable<Line>, AutoCloseable, Closeable {
         break;
       }
 
-      Stream<Token> filterStream = tokens.stream();
+      Stream<AssemblerToken> filterStream = tokens.stream();
 
       if (filterComments) {
-        filterStream = filterStream.filter(token -> token.type() != TokenType.COMMENT);
+        filterStream = filterStream.filter(token -> token.type() != AssemblerTokenType.COMMENT);
       }
 
       if (filterNewlines) {
-        filterStream = filterStream.filter(token -> token.type() != TokenType.NEWLINE);
+        filterStream = filterStream.filter(token -> token.type() != AssemblerTokenType.NEWLINE);
       }
 
-      List<Token> filteredTokens = filterStream.toList();
+      List<AssemblerToken> filteredTokens = filterStream.toList();
 
       if (!filteredTokens.isEmpty()) {
         line = new Line(lineNumber, filteredTokens);
@@ -116,7 +116,7 @@ public class LineScanner implements Iterable<Line>, AutoCloseable, Closeable {
             throw new NoSuchElementException("No more elements!");
           }
 
-          return LineScanner.this.nextLine();
+          return LineScanner.this.next();
         } catch (IOException e) {
           throw new UncheckedIOException(e);
         }

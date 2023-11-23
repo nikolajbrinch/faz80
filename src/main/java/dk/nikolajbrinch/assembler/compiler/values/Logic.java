@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
-
 public final class Logic {
 
   public static Object not(Object value) {

@@ -3,8 +3,8 @@ package dk.nikolajbrinch.assembler.parser;
 import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
 import dk.nikolajbrinch.assembler.scanner.Mnemonic;
-import dk.nikolajbrinch.assembler.scanner.Scanner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,9 +26,9 @@ class ParseEndTests {
         ld a, b
         """
                     .getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream)) {
+        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      List<Statement> statements = new Parser(scanner).parse();
+      List<Statement> statements = new AssemblerParser(scanner).parse();
 
       Assertions.assertEquals(1, statements.size());
 
@@ -40,5 +40,4 @@ class ParseEndTests {
           Register.AF_QUOTE, ((RegisterExpression) instruction.operand2()).register());
     }
   }
-
 }

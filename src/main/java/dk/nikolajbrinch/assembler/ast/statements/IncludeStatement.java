@@ -1,10 +1,8 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
-public record IncludeStatement(Token string) implements Statement {
+public record IncludeStatement(AssemblerToken string) implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

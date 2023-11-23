@@ -9,7 +9,7 @@ class LineScanRomTests {
   @Test
   void testScan() throws IOException {
     try (InputStream inputStream = ScanRomTests.class.getResourceAsStream("/rom.z80");
-        LineScanner scanner = new LineScanner(new Scanner(inputStream))) {
+        LineScanner scanner = new LineScanner(new AssemblerScanner(inputStream))) {
 
       for (Line line : scanner) {
         System.out.println(line);

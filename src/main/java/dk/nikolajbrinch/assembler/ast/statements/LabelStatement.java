@@ -1,8 +1,8 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
-import dk.nikolajbrinch.assembler.scanner.Token;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 
-public record LabelStatement(Token identifier) implements Statement {
+public record LabelStatement(AssemblerToken identifier) implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

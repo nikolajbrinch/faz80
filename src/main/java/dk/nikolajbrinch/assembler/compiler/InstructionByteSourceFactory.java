@@ -71,8 +71,8 @@ import dk.nikolajbrinch.assembler.compiler.instructions.Sub;
 import dk.nikolajbrinch.assembler.compiler.instructions.Xor;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.scanner.Mnemonic;
-import dk.nikolajbrinch.assembler.scanner.Token;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -156,7 +156,7 @@ public class InstructionByteSourceFactory {
   }
 
   public ByteSource generateByteSource(
-      Token mnemonic, NumberValue currentAddress, Operand operand1, Operand operand2) {
+      AssemblerToken mnemonic, NumberValue currentAddress, Operand operand1, Operand operand2) {
     InstructionGenerator generator = findGenerator(Mnemonic.find(mnemonic.text()));
 
     return generator.generate(currentAddress, operand1, operand2);

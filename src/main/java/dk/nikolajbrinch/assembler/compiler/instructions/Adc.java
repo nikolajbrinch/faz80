@@ -11,11 +11,10 @@ public class Adc implements InstructionGenerator {
   public ByteSource generateRegisterToRegister(
       NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
     return switch (targetRegister) {
-      case A -> 
-          ByteSource.of(InstructionGenerator.implied1(0b10001000, Registers.r, sourceRegister));
-      case HL -> 
-          ByteSource.of(
-              0xED, InstructionGenerator.implied5(0b01001010, Registers.ss, sourceRegister));
+      case A -> ByteSource.of(
+          InstructionGenerator.implied1(0b10001000, Registers.r, sourceRegister));
+      case HL -> ByteSource.of(
+          0xED, InstructionGenerator.implied5(0b01001010, Registers.ss, sourceRegister));
       default -> null;
     };
   }
