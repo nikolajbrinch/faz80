@@ -22,7 +22,7 @@ import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
 public class ExpressionEvaluator implements ExpressionVisitor<Object> {
 
   private Environment environment;
-  private NumberValue currentAddress;
+  private Address currentAddress;
 
   public Object visitBinaryExpression(BinaryExpression expression) {
     Object left = evaluate(expression.left());
@@ -99,11 +99,11 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
   @Override
   public Object visitAddressExpression(AddressExpression expression) {
     if (expression.token().type() == AssemblerTokenType.DOLLAR) {
-      return currentAddress;
+      return currentAddress.logicalAddress();
     }
 
     if (expression.token().type() == AssemblerTokenType.DOLLAR_DOLLAR) {
-      return currentAddress;
+      return currentAddress.physicalAddress();
     }
 
     throw new IllegalStateException("Unknown address expression");
@@ -114,7 +114,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
   }
 
   public Object evaluate(
-      Expression expression, Environment environment, NumberValue currentAddress) {
+      Expression expression, Environment environment, Address currentAddress) {
     this.environment = environment;
     this.currentAddress = currentAddress;
 

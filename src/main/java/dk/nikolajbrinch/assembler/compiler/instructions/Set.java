@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
@@ -17,7 +18,7 @@ public class Set implements InstructionGenerator {
    */
   @Override
   public ByteSource generateRegisterToImmediate(
-      NumberValue currentAddress, NumberValue numberValue, Register sourceRegister) {
+      Address currentAddress, NumberValue numberValue, Register sourceRegister) {
     return ByteSource.of(
         0xCB,
         0b11000000 | ((numberValue.value() & 0b00000111) << 3) | Registers.r.get(sourceRegister));
@@ -33,7 +34,7 @@ public class Set implements InstructionGenerator {
    */
   @Override
   public ByteSource generateRegisterIndirectToImmediate(
-      NumberValue currentAddress, NumberValue numberValue, Register register) {
+      Address currentAddress, NumberValue numberValue, Register register) {
     if (register == Register.HL) {
       return ByteSource.of(0xCB, 0b11000110 | ((numberValue.value() & 0b00000111) << 3));
     }
@@ -52,7 +53,7 @@ public class Set implements InstructionGenerator {
    */
   @Override
   public ByteSource generateIndexedToImmediate(
-      NumberValue currentAddress,
+      Address currentAddress,
       NumberValue numberValue,
       Register sourceRegister,
       long displacement) {

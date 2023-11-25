@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
+import dk.nikolajbrinch.assembler.compiler.UndefinedVariableException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class Environment {
       return parent.get(name);
     }
 
-    throw new IllegalStateException("Undefined variable: " + name);
+    throw new UndefinedVariableException("Undefined variable: " + name);
   }
 
   public Object assign(String name, Object value) {
@@ -40,7 +41,7 @@ public class Environment {
       return parent.assign(name, value);
     }
 
-    throw new IllegalStateException("Undefined variable: " + name);
+    throw new UndefinedVariableException("Undefined variable: " + name);
   }
 
   public void define(String name, Object value) {

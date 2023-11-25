@@ -1,5 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
+import dk.nikolajbrinch.assembler.compiler.IllegalMathOperationException;
+
 public final class IntegerMath {
 
   public static Object divide(Object left, Object right) {
@@ -7,7 +9,7 @@ public final class IntegerMath {
       return l.divide(r);
     }
 
-    throw new IllegalStateException("Operands for division are not integers");
+    throw new IllegalMathOperationException("Operands for division are not integers");
   }
 
   public static Object multiply(Object left, Object right) {
@@ -15,7 +17,7 @@ public final class IntegerMath {
       return l.multiply(r);
     }
 
-    throw new IllegalStateException("Operands for multiplication are not integers");
+    throw new IllegalMathOperationException("Operands for multiplication are not integers");
   }
 
   public static Object subtract(Object left, Object right) {
@@ -23,7 +25,7 @@ public final class IntegerMath {
       return l.subtract(r);
     }
 
-    throw new IllegalStateException("Operands for subtraction are not integers");
+    throw new IllegalMathOperationException("Operands for subtraction are not integers");
   }
 
   public static Object add(Object left, Object right) {
@@ -35,7 +37,7 @@ public final class IntegerMath {
       return l.asStringValue().add(r.asStringValue());
     }
 
-    throw new IllegalStateException("Operand for addition is not integer, nor string");
+    throw new IllegalMathOperationException("Operand for addition is not integer, nor string");
   }
 
   public static Object negate(Object value) {
@@ -43,6 +45,6 @@ public final class IntegerMath {
       return v.negate();
     }
 
-    throw new IllegalStateException("Operand for negation is not integer");
+    throw new IllegalMathOperationException("Operand for negation is not integer");
   }
 }

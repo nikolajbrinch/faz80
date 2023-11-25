@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.operands;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import dk.nikolajbrinch.assembler.parser.Condition;
@@ -20,8 +21,8 @@ public record Operand(
     return (Condition) operand;
   }
 
-  public NumberValue displacementE(NumberValue address) {
-    NumberValue relative = asNumberValue().subtract(address);
+  public NumberValue displacementE(Address address) {
+    NumberValue relative = asNumberValue().subtract(address.logicalAddress());
 
     if (relative.value() < -126) {
       throw new IllegalStateException("Displacement e too low: " + relative);

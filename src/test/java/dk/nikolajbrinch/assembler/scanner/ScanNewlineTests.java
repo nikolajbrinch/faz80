@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class ScanNewlinsTests {
+class ScanNewlineTests {
 
   @Test
   void testScan() throws IOException {

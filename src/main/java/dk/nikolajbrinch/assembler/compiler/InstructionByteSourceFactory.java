@@ -156,7 +156,7 @@ public class InstructionByteSourceFactory {
   }
 
   public ByteSource generateByteSource(
-      AssemblerToken mnemonic, NumberValue currentAddress, Operand operand1, Operand operand2) {
+      AssemblerToken mnemonic, Address currentAddress, Operand operand1, Operand operand2) {
     InstructionGenerator generator = findGenerator(Mnemonic.find(mnemonic.text()));
 
     return generator.generate(currentAddress, operand1, operand2);

@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.operands.Conditions;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
@@ -9,7 +10,7 @@ import dk.nikolajbrinch.assembler.parser.Condition;
 public class Call implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
+  public ByteSource generate(Address currentAddress, Operand targetOperand, Operand sourceOperand) {
 
     ByteSource resolved = null;
 

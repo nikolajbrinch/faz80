@@ -631,12 +631,13 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
         grouping = Grouping.findByStartType(nextToken().type());
       }
 
-      if (checkType(AssemblerTokenType.IDENTIFIER)) {
-        AssemblerToken token = consume(AssemblerTokenType.IDENTIFIER, "Expect identifier");
+      AssemblerToken token = peek();
+      if (token.type() == AssemblerTokenType.IDENTIFIER) {
 
         Register register = Register.find(token.text());
 
         if (register != null) {
+          nextToken();
           Expression displacement = null;
 
           if (checkType(AssemblerTokenType.PLUS)) {
@@ -646,7 +647,9 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
 
           expression = new RegisterExpression(register, displacement);
         }
-      } else {
+      }
+
+      if (expression == null) {
         expression = expression();
       }
 

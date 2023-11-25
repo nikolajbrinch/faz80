@@ -9,13 +9,26 @@ public class Compiler {
 
   private final IncludeResolver includeResolver = new IncludeResolver();
 
+  private boolean hasErrors = false;
+
   public void compile(List<Statement> statements) {
     List<Statement> resolvedStatements = includeResolver.resolve(statements);
+    hasErrors = includeResolver.hasErrors();
 
-    MacroResolver macroResolver = new MacroResolver(expressionEvaluator);
-    resolvedStatements = macroResolver.resolve(resolvedStatements);
+    if (!hasErrors) {
+      MacroResolver macroResolver = new MacroResolver(expressionEvaluator);
+      resolvedStatements = macroResolver.resolve(resolvedStatements);
+      hasErrors = macroResolver.hasErrors();
+    }
 
-    Assembler assembler = new Assembler(expressionEvaluator);
-    assembler.assemble(resolvedStatements);
+    if (!hasErrors) {
+      Assembler assembler = new Assembler(expressionEvaluator);
+      assembler.assemble(resolvedStatements);
+      hasErrors = assembler.hasErrors();
+    }
+  }
+
+  public boolean hasErrors() {
+    return hasErrors;
   }
 }

@@ -1,15 +1,15 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Or implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(NumberValue currentAddress, Operand targetOperand, Operand sourceOperand) {
+  public ByteSource generate(Address currentAddress, Operand targetOperand, Operand sourceOperand) {
     return switch (targetOperand.addressingMode()) {
       case REGISTER -> ByteSource.of(0b10110000 | Registers.r.get(targetOperand.asRegister()));
       case REGISTER_INDIRECT -> {

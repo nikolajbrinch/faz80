@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
@@ -8,7 +9,7 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class Add implements InstructionGenerator {
 
   public ByteSource generateRegisterToRegister(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     return switch (targetRegister) {
       case A -> ByteSource.of(
           InstructionGenerator.implied1(0b10000000, Registers.r, sourceRegister));
@@ -18,7 +19,7 @@ public class Add implements InstructionGenerator {
 
   @Override
   public ByteSource generateImmediateToRegister(
-      NumberValue currentAddress, Register targetRegister, NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, NumberValue numberValue) {
     return switch (targetRegister) {
       case A -> ByteSource.of(0xC6, numberValue.value());
       default -> null;
@@ -27,7 +28,7 @@ public class Add implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterIndirectToRegister(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     return switch (targetRegister) {
       case A -> switch (sourceRegister) {
         case HL -> ByteSource.of(0x86);
@@ -39,7 +40,7 @@ public class Add implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexedToRegister(
-      NumberValue currentAddress,
+      Address currentAddress,
       Register targetRegister,
       Register sourceRegister,
       long displacement) {

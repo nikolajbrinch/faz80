@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.parser.CharReader.Char;
+import dk.nikolajbrinch.parser.impl.CharReaderImpl;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,15 +17,15 @@ import java.util.stream.StreamSupport;
 public abstract class BaseScanner<E extends TokenType, T extends Token>
     implements Scanner<T>, Iterable<T>, AutoCloseable, Closeable {
 
-  final CharReader charReader;
+  final CharReaderImpl charReader;
 
   private final List<T> buffer = new LinkedList<>();
 
   public BaseScanner(InputStream inputStream) {
-    this.charReader = new CharReader(inputStream);
+    this.charReader = new CharReaderImpl(inputStream);
   }
 
-  protected CharReader getCharReader() {
+  protected CharReaderImpl getCharReader() {
     return charReader;
   }
 

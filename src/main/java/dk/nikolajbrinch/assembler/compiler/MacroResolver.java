@@ -48,6 +48,7 @@ public class MacroResolver implements StatementVisitor<Statement>, ExpressionVis
   private final Environment globals = new Environment();
 
   private Environment environment = globals;
+  private boolean hasErrors = false;
 
   public MacroResolver(ExpressionEvaluator expressionEvaluator) {
     this.expressionEvaluator = expressionEvaluator;
@@ -61,6 +62,10 @@ public class MacroResolver implements StatementVisitor<Statement>, ExpressionVis
     }
 
     return resolvedStatements;
+  }
+
+  public boolean hasErrors() {
+    return hasErrors;
   }
 
   @Override
@@ -198,7 +203,8 @@ public class MacroResolver implements StatementVisitor<Statement>, ExpressionVis
     Object count = statement.count();
 
     while (count instanceof Expression expression) {
-      Object value = expressionEvaluator.evaluate(expression, environment, NumberValue.create(0));
+      Object value = expressionEvaluator.evaluate(expression, environment,
+          new Address(NumberValue.create(0), NumberValue.create(0)));
 
       if (count == value) {
         throw new IllegalStateException("Expression refers itself!");
@@ -308,4 +314,5 @@ public class MacroResolver implements StatementVisitor<Statement>, ExpressionVis
       this.environment = previous;
     }
   }
+
 }

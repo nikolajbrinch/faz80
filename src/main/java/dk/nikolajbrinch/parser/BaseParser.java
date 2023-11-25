@@ -38,6 +38,24 @@ public abstract class BaseParser<E extends TokenType, T extends Token> implement
   }
 
   /**
+   * Consumes and returns the next token
+   *
+   * @return
+   */
+  protected T nextToken() {
+    ignoreComments();
+
+    T token = scanner.next();
+
+    if (debug) {
+      System.out.println("nextToken(" + token + ")");
+    }
+
+    return token;
+  }
+
+
+  /**
    * Looks at the next token without consuming it
    *
    * @return
@@ -81,23 +99,6 @@ public abstract class BaseParser<E extends TokenType, T extends Token> implement
     }
 
     return null;
-  }
-
-  /**
-   * Consumes and returns the next token
-   *
-   * @return
-   */
-  protected T nextToken() {
-    ignoreComments();
-
-    T token = scanner.next();
-
-    if (debug) {
-      System.out.println("nextToken(" + token + ")");
-    }
-
-    return token;
   }
 
   /**

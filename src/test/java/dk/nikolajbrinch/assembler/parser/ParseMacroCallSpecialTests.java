@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 class ParseMacroCallSpecialTests {
 
-  @Disabled
   @Test
   void testParse() throws IOException {
     try (ByteArrayInputStream inputStream =
@@ -34,10 +33,6 @@ class ParseMacroCallSpecialTests {
         AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
       List<Statement> statements = new AssemblerParser(scanner).parse();
-
-      for (Statement statement : statements) {
-        System.out.println(new AstPrinter().print(statement));
-      }
 
       System.out.println("-----");
 

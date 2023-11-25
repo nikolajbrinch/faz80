@@ -29,6 +29,8 @@ import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
 import dk.nikolajbrinch.assembler.compiler.values.BooleanValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Environment;
+import dk.nikolajbrinch.assembler.util.LineConstructor;
+import dk.nikolajbrinch.assembler.util.LineConstructor.ConstructedLine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -44,7 +46,9 @@ public class Assembler implements StatementVisitor<Void> {
 
   private Environment environment = globals;
 
-  private NumberValue currentAddress = NumberValue.create(0);
+  private Address currentAddress = new Address(NumberValue.create(0), NumberValue.create(0));
+
+  private List<ConstructedLine> errors = new ArrayList<>();
 
   public Assembler(ExpressionEvaluator expressionEvaluator) {
     this.expressionEvaluator = expressionEvaluator;
@@ -53,6 +57,25 @@ public class Assembler implements StatementVisitor<Void> {
   public void assemble(List<Statement> statements) {
     for (Statement statement : statements) {
       execute(statement);
+    }
+  }
+
+  public boolean hasErrors() {
+    return !errors.isEmpty();
+  }
+
+  private void reportStatementError(Statement statement, Exception e) {
+    ConstructedLine line = new LineConstructor().constructLine(statement);
+
+    errors.add(line);
+
+    switch (e) {
+      case AssembleException exception -> {
+        System.out.println(String.format("Error in line: %d", line.number()));
+        System.out.println(line.content());
+        System.out.println(e.getMessage());
+      }
+      default -> throw new IllegalStateException(e);
     }
   }
 
@@ -65,19 +88,23 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitInstructionStatement(InstructionStatement statement) {
-    Expression operand1 = statement.operand1();
-    Expression operand2 = statement.operand2();
+    try {
+      Expression operand1 = statement.operand1();
+      Expression operand2 = statement.operand2();
 
-    ByteSource byteSource =
-        instructionByteSourceFactory.generateByteSource(
-            statement.mnemonic(),
-            currentAddress,
-            new OperandFactory().createOperand(operand1, this::evaluate),
-            new OperandFactory().createOperand(operand2, this::evaluate));
+      ByteSource byteSource =
+          instructionByteSourceFactory.generateByteSource(
+              statement.mnemonic(),
+              currentAddress,
+              new OperandFactory().createOperand(operand1, this::evaluate),
+              new OperandFactory().createOperand(operand2, this::evaluate));
 
-    bytes.add(byteSource);
+      bytes.add(byteSource);
 
-    currentAddress = currentAddress.add(NumberValue.create(byteSource.length()));
+      currentAddress = currentAddress.add(NumberValue.create(byteSource.length()));
+    } catch (Exception e) {
+      reportStatementError(statement, e);
+    }
 
     return null;
   }
@@ -91,9 +118,22 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitVariableStatement(VariableStatement statement) {
-    environment.define(statement.identifier().text(), evaluate(statement.intializer()));
+    environment.define(
+        sanitizeName(statement.identifier().text()), evaluate(statement.intializer()));
 
     return null;
+  }
+
+  private String sanitizeName(String text) {
+    while (text.startsWith(".")) {
+      text = text.substring(1);
+    }
+
+    while (text.endsWith(":")) {
+      text = text.substring(0, text.length() - 1);
+    }
+
+    return text;
   }
 
   @Override
@@ -148,7 +188,7 @@ public class Assembler implements StatementVisitor<Void> {
     Object location = evaluate(statement.location());
 
     if (location instanceof NumberValue value) {
-      currentAddress = value.asWord();
+      currentAddress = new Address(value.asWord(), value.asWord());
     } else {
       throw new IllegalStateException("Origin is not a number");
     }
@@ -182,7 +222,19 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitPhaseStatement(PhaseStatement statement) {
-    statement.block().accept(this);
+    try {
+      Object address = evaluate(statement.expression());
+      if (address instanceof NumberValue numberValue) {
+        currentAddress = new Address(numberValue, currentAddress.physicalAddress());
+      } else {
+        throw new IllegalValueException(
+            String.valueOf(address) + " is not a valid value for phase address");
+      }
+      statement.block().accept(this);
+    } finally {
+      currentAddress =
+          new Address(currentAddress.physicalAddress(), currentAddress.physicalAddress());
+    }
 
     return null;
   }

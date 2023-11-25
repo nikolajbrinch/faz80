@@ -8,12 +8,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ParseMiscTests {
 
-  @Disabled
+//  @Disabled
   @Test
   void testParse() throws IOException {
     try (ByteArrayInputStream inputStream =
@@ -67,7 +68,10 @@ class ParseMiscTests {
         System.out.println(new AstPrinter().print(statement));
       }
 
-      new Compiler().compile(statements);
+      Compiler compiler = new Compiler();
+      compiler.compile(statements);
+
+      Assertions.assertTrue(compiler.hasErrors());
     }
   }
 }

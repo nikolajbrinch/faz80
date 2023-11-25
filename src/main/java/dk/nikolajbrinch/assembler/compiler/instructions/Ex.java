@@ -1,14 +1,14 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Ex implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToRegister(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     return switch (targetRegister) {
       case DE -> switch (sourceRegister) {
         case HL -> ByteSource.of(0xEB);
@@ -24,7 +24,7 @@ public class Ex implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToRegisterIndirect(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     return switch (targetRegister) {
       case SP -> switch (sourceRegister) {
         case HL -> ByteSource.of(0xE3);

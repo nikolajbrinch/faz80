@@ -1,15 +1,18 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
+import dk.nikolajbrinch.assembler.compiler.IllegalSizeException;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToRegister(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     if (sourceRegister == Register.I && targetRegister == Register.A) {
       return ByteSource.of(0xED, 0x57);
     }
@@ -41,13 +44,20 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateImmediateToRegister(
-      NumberValue currentAddress, Register targetRegister, NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, NumberValue numberValue) {
     return ByteSource.of(0b00000110 | (Registers.r.get(targetRegister) << 3), numberValue.value());
   }
 
   @Override
   public ByteSource generateImmediateExtendedToRegister(
-      NumberValue currentAddress, Register targetRegister, NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, NumberValue numberValue) {
+
+    if (targetRegister.size() == Size.BYTE) {
+      throw new IllegalSizeException(
+          "Register "
+              + targetRegister.name()
+              + " is an 8 bit register, and can not hold a 16 bit value");
+    }
 
     return switch (targetRegister) {
       case IX -> ByteSource.of(0xDD, 0x21, numberValue.lsb().value(), numberValue.msb().value());
@@ -61,7 +71,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterIndirectToRegister(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     if (sourceRegister == Register.HL) {
       return ByteSource.of(0b01000110 | (Registers.r.get(targetRegister) << 3));
     }
@@ -79,7 +89,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexedToRegister(
-      NumberValue currentAddress,
+      Address currentAddress,
       Register targetRegister,
       Register sourceRegister,
       long displacement) {
@@ -94,7 +104,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToRegisterIndirect(
-      NumberValue currentAddress, Register targetRegister, Register sourceRegister) {
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
     if (targetRegister == Register.HL) {
       return ByteSource.of(0b1110000 | Registers.r.get(sourceRegister));
     }
@@ -112,7 +122,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToIndexed(
-      NumberValue currentAddress,
+      Address currentAddress,
       Register targetRegister,
       long displacement,
       Register sourceRegister) {
@@ -125,7 +135,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateImmediateToRegisterIndirect(
-      NumberValue currentAddress, Register register, NumberValue numberValue) {
+      Address currentAddress, Register register, NumberValue numberValue) {
     if (register == Register.HL) {
       return ByteSource.of(0x36, numberValue.value());
     }
@@ -135,7 +145,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateImmediateToIndexed(
-      NumberValue currentAddress,
+      Address currentAddress,
       Register targetRegister,
       long displacement,
       NumberValue numberValue) {
@@ -148,7 +158,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateExtendedToRegister(
-      NumberValue currentAddress, Register targetRegister, NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, NumberValue numberValue) {
     return switch (targetRegister) {
       case A -> ByteSource.of(0x3A, numberValue.lsb().value(), numberValue.msb().value());
       case HL -> ByteSource.of(0x2A, numberValue.lsb().value(), numberValue.msb().value());
@@ -162,7 +172,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToExtended(
-      NumberValue currentAddress, NumberValue numberValue, Register sourceRegister) {
+      Address currentAddress, NumberValue numberValue, Register sourceRegister) {
     return switch (sourceRegister) {
       case A -> ByteSource.of(0x32, numberValue.lsb().value(), numberValue.msb().value());
       case HL -> ByteSource.of(0x22, numberValue.lsb().value(), numberValue.msb().value());
@@ -178,7 +188,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateExtendedToIndexed(
-      NumberValue currentAddress,
+      Address currentAddress,
       Register targetRegister,
       long displacement,
       NumberValue numberValue) {

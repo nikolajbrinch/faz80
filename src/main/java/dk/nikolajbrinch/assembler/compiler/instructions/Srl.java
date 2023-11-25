@@ -1,19 +1,19 @@
 package dk.nikolajbrinch.assembler.compiler.instructions;
 
+import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Srl implements InstructionGenerator {
 
   @Override
-  public ByteSource generateRegister(NumberValue currentAddress, Register register) {
+  public ByteSource generateRegister(Address currentAddress, Register register) {
     return ByteSource.of(0xCB, InstructionGenerator.implied1(0b00111000, Registers.r, register));
   }
 
   @Override
-  public ByteSource generateRegisterIndirect(NumberValue currentAddress, Register register) {
+  public ByteSource generateRegisterIndirect(Address currentAddress, Register register) {
     if (register == Register.HL) {
       return ByteSource.of(0xCB, 0x3E);
     }
@@ -23,7 +23,7 @@ public class Srl implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexed(
-      NumberValue currentAddress, Register targetRegister, long displacement) {
+      Address currentAddress, Register targetRegister, long displacement) {
     return switch (targetRegister) {
       case IX -> ByteSource.of(0xDD, 0xCB, displacement, 0x3E);
       case IY -> ByteSource.of(0xFD, 0xCB, displacement, 0x3E);
@@ -42,7 +42,7 @@ public class Srl implements InstructionGenerator {
    */
   @Override
   public ByteSource generateRegisterToIndexed(
-      NumberValue currentAddress,
+      Address currentAddress,
       Register targetRegister,
       long displacement,
       Register sourceRegister) {

@@ -1,7 +1,8 @@
-package dk.nikolajbrinch.assembler.reader;
+package dk.nikolajbrinch.reader;
 
+import dk.nikolajbrinch.parser.Char;
 import dk.nikolajbrinch.parser.CharReader;
-import dk.nikolajbrinch.parser.CharReader.Char;
+import dk.nikolajbrinch.parser.impl.CharReaderImpl;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -12,14 +13,14 @@ import org.junit.jupiter.api.Test;
 class CharReaderTests {
 
   @Test
-  void testScanner() throws Exception {
+  void testRead() throws Exception {
     String textToScan = """
   textToScan
   second line
   """;
 
     try (CharReader charReader =
-        new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+        new CharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       Assertions.assertTrue(charReader.hasNext());
 
       Assertions.assertEquals('t', charReader.peek().character());
@@ -49,14 +50,14 @@ class CharReaderTests {
   }
 
   @Test
-  void testScannerIterator() throws Exception {
+  void testIterator() throws Exception {
     String textToScan = """
   textToScan
   second line
   """;
 
     try (CharReader charReader =
-        new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+        new CharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       Iterator<Char> iterator = charReader.iterator();
 
       Char last = null;
@@ -73,14 +74,14 @@ class CharReaderTests {
   }
 
   @Test
-  void testScannerStream() throws Exception {
+  void testStream() throws Exception {
     String textToScan = """
   textToScan
   second line
   """;
 
-    try (CharReader charReader =
-        new CharReader(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+    try (CharReaderImpl charReader =
+        new CharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       StringBuilder builder = new StringBuilder();
 
       charReader.stream().map(read -> read.character()).forEach(read -> builder.append(read));

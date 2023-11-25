@@ -13,14 +13,13 @@ import org.junit.jupiter.api.Test;
 
 class ParseSetTests {
 
-  @Disabled
   @Test
   void testParse() throws IOException {
     try (ByteArrayInputStream inputStream =
             new ByteArrayInputStream(
                 """
             var1:: set %00000001
-            label1: set a, $1
+            label1: set 4, a
             """
                     .getBytes(StandardCharsets.UTF_8));
         AssemblerScanner scanner = new AssemblerScanner(inputStream)) {

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 class ParseMacroTests {
 
-  @Disabled
+//  @Disabled
   @Test
   void testParse() throws IOException {
     try (ByteArrayInputStream inputStream =
@@ -33,7 +33,7 @@ class ParseMacroTests {
             .endm
             mx = mx + 1
 
-            macro1(1, 2)
+            macro1(1, 2, 4+3)
             """
                     .getBytes(StandardCharsets.UTF_8));
         AssemblerScanner scanner = new AssemblerScanner(inputStream)) {

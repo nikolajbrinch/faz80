@@ -1,8 +1,8 @@
 package dk.nikolajbrinch.assembler.scanner;
 
 import dk.nikolajbrinch.parser.BaseScanner;
-import dk.nikolajbrinch.parser.CharReader;
-import dk.nikolajbrinch.parser.CharReader.Char;
+import dk.nikolajbrinch.parser.Char;
+import dk.nikolajbrinch.parser.impl.CharReaderImpl;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -263,7 +263,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     StringBuilder builder = new StringBuilder();
     builder.append(ch.toString());
 
-    CharReader.Char last = ch;
+    Char last = ch;
 
     while (checkNextChar(nextChar -> nextChar != '\n')) {
       last = appendChar(builder);

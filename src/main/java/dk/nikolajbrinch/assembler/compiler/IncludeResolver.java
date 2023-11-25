@@ -12,6 +12,8 @@ import java.util.List;
 
 public class IncludeResolver {
 
+  private boolean hasErrors = false;
+
   public List<Statement> resolve(List<Statement> statements) {
     List<Statement> resolvedStatements = new ArrayList<>();
 
@@ -26,6 +28,10 @@ public class IncludeResolver {
     return resolvedStatements;
   }
 
+  public boolean hasErrors() {
+    return hasErrors;
+  }
+
   private List<Statement> include(String filename) {
     try (AssemblerScanner scanner = new AssemblerScanner(new FileInputStream(filename))) {
       return new AssemblerParser(scanner).parse();
@@ -33,4 +39,5 @@ public class IncludeResolver {
       throw new ParseException("Exception including " + filename, e);
     }
   }
+
 }
