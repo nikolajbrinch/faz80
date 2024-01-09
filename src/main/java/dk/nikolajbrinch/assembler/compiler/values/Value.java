@@ -2,7 +2,9 @@ package dk.nikolajbrinch.assembler.compiler.values;
 
 public interface Value<T extends Value<T>> {
 
-  T add(T other);
+  default T add(T other) {
+    return null;
+  }
 
   StringValue asStringValue();
 
@@ -10,5 +12,7 @@ public interface Value<T extends Value<T>> {
 
   BooleanValue asBooleanValue();
 
-  BooleanValue compare(T other);
+  default BooleanValue compare(T other) {
+    return new BooleanValue(false);
+  }
 }

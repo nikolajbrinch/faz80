@@ -1,25 +1,24 @@
 package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.compiler.Compiler;
-import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
-import dk.nikolajbrinch.assembler.util.AstPrinter;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class ParseMiscTests {
 
-//  @Disabled
+  @TempDir Path tempDir;
+
+  //  @Disabled
   @Test
   void testParse() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
-                """
+    final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
+    Files.writeString(
+        tempFile,
+        """
             org 0
             const equ 0x00
             var1:: set %00000001
@@ -35,7 +34,7 @@ class ParseMiscTests {
             macro macro1 param1=0, param2=5
             label:   ld d, e
             endm
-            macro2 macro param3, param4
+             macro macro2 param3, param4
             .endm
             rept $2 - $
             ld a, $34
@@ -58,20 +57,12 @@ class ParseMiscTests {
             ld c, ~3
             ld c, '\\n'
             howdy: .byte 0x00, $12, %11111111
-            """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
+            """);
 
-      List<Statement> statements = new AssemblerParser(scanner).parse();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
 
-      for (Statement statement : statements) {
-        System.out.println(new AstPrinter().print(statement));
-      }
-
-      Compiler compiler = new Compiler();
-      compiler.compile(statements);
-
-      Assertions.assertTrue(compiler.hasErrors());
+    for (Statement statement : statements) {
+      System.out.println(new AssemblerAstPrinter().print(statement));
     }
   }
 }

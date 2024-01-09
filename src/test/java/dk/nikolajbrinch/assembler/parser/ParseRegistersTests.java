@@ -1,36 +1,34 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
+import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
 import dk.nikolajbrinch.assembler.scanner.Mnemonic;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class ParseRegistersTests {
 
+  @TempDir Path tempDir;
+
   @Test
   void testParse() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
-                """
+    final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
+    Files.writeString(tempFile, """
         ex af, af'
-        """.getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
+        """);
 
-      List<Statement> statements = new AssemblerParser(scanner).parse();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
 
-      InstructionStatement instruction = (InstructionStatement) statements.get(0);
-      Assertions.assertEquals(Mnemonic.EX, Mnemonic.find(instruction.mnemonic().text()));
-      Assertions.assertEquals(
-          Register.AF, ((RegisterExpression) instruction.operand1()).register());
-      Assertions.assertEquals(
-          Register.AF_QUOTE, ((RegisterExpression) instruction.operand2()).register());
-    }
+    InstructionStatement instruction = (InstructionStatement) statements.get(0);
+    Assertions.assertEquals(Mnemonic.EX, Mnemonic.find(instruction.mnemonic().text()));
+    Assertions.assertEquals(Register.AF, ((RegisterOperand) instruction.operand1()).register());
+    Assertions.assertEquals(
+        Register.AF_QUOTE, ((RegisterOperand) instruction.operand2()).register());
   }
 }

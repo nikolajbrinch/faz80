@@ -2,7 +2,7 @@ package dk.nikolajbrinch.assembler.compiler.values;
 
 public final class BinaryMath {
 
-  public static Object and(Object left, Object right) {
+  public static Value<?> and(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.bitwiseAnd(r);
     }
@@ -10,7 +10,7 @@ public final class BinaryMath {
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
-  public static Object or(Object left, Object right) {
+  public static Value<?> or(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.bitwiseOr(r);
     }
@@ -18,7 +18,7 @@ public final class BinaryMath {
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
-  public static Object xor(Object left, Object right) {
+  public static Value<?> xor(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.bitwiseXor(r);
     }
@@ -26,7 +26,7 @@ public final class BinaryMath {
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
-  public static Object shiftRight(Object left, Object right) {
+  public static Value<?> shiftRight(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.bitwiseShiftRigth(r);
     }
@@ -34,7 +34,7 @@ public final class BinaryMath {
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
-  public static Object shiftLeft(Object left, Object right) {
+  public static Value<?> shiftLeft(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.bitwiseShiftLeft(r);
     }
@@ -42,7 +42,7 @@ public final class BinaryMath {
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
-  public static Object not(Object value) {
+  public static Value<?> not(Value<?> value) {
     if (value instanceof NumberValue v) {
       return v.bitwiseNot();
     }

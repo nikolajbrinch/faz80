@@ -2,25 +2,31 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.compiler.Compiler;
-import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
-import dk.nikolajbrinch.assembler.compiler.MacroResolver;
 import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
-import dk.nikolajbrinch.assembler.util.AstPrinter;
+import dk.nikolajbrinch.macro.parser.MacroParser;
+import dk.nikolajbrinch.macro.preprocessor.MacroResolver;
+import dk.nikolajbrinch.macro.scanner.MacroScanner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class ParseMacroTests {
 
-//  @Disabled
+  @TempDir Path tempDir;
+
+  //  @Disabled
   @Test
   void testParse() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
-                """
+    final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
+    Files.writeString(
+        tempFile,
+        """
             mx = 0
             .macro macro1 param1=0, param2=4, param3='\\0'
 
@@ -34,26 +40,11 @@ class ParseMacroTests {
             mx = mx + 1
 
             macro1(1, 2, 4+3)
-            """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
+            """);
 
-      List<Statement> statements = new AssemblerParser(scanner).parse();
-
-      for (Statement statement : statements) {
-        System.out.println(new AstPrinter().print(statement));
-      }
-
-      System.out.println("-----");
-
-      List<Statement> resolved = new MacroResolver(new ExpressionEvaluator()).resolve(statements);
-      for (Statement statement : resolved) {
-        System.out.println(new AstPrinter().print(statement));
-      }
-
-      System.out.println("-----");
-
-      new Compiler().compile(statements);
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    for (Statement statement : statements) {
+      System.out.println(new AssemblerAstPrinter().print(statement));
     }
   }
 }

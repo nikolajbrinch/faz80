@@ -1,37 +1,43 @@
 package dk.nikolajbrinch.assembler.compiler.operands;
 
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
+import dk.nikolajbrinch.assembler.ast.operands.ConditionOperand;
+import dk.nikolajbrinch.assembler.ast.operands.ExpressionOperand;
+import dk.nikolajbrinch.assembler.ast.operands.GroupingOperand;
+import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
+import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import dk.nikolajbrinch.assembler.compiler.values.Value;
-import dk.nikolajbrinch.assembler.parser.Condition;
-import dk.nikolajbrinch.assembler.parser.Register;
-import java.util.function.Function;
 
 public class OperandFactory {
 
-  public Operand createOperand(Expression operand, Function<Expression, Object> evaluator) {
+  public Operand createOperand(dk.nikolajbrinch.assembler.ast.operands.Operand operand, SymbolTable symbols, ExpressionEvaluator evaluator) {
     if (operand == null) {
       return null;
     }
 
     boolean isIndirect = false;
 
-    if (operand instanceof GroupingExpression expression) {
+    if (operand instanceof GroupingOperand grouping) {
       isIndirect = true;
-      operand = expression.expression();
+      operand = grouping.operand();
     }
 
     Expression displacment = null;
 
-    if (operand instanceof RegisterExpression registerExpression) {
-      displacment = registerExpression.displacement();
-    }
+    Object evaluatedOperand = null;
 
-    Object evaluatedOperand = validateOperand(evaluator.apply(operand));
-    Object evaluatedDisplacement = displacment == null ? null : validateDisplacement(evaluator.apply(displacment));
+    if (operand instanceof RegisterOperand registerOperand) {
+      displacment = registerOperand.displacement();
+      evaluatedOperand = registerOperand.register();
+    } else if (operand instanceof ConditionOperand conditionOperand) {
+      evaluatedOperand = conditionOperand.condition();
+    } else if (operand instanceof ExpressionOperand expressionOperand){
+      evaluatedOperand = validateOperand(evaluator.evaluate(expressionOperand.expression(), symbols));
+    }
+    Object evaluatedDisplacement = displacment == null ? null : validateDisplacement(evaluator.evaluate(displacment, symbols));
 
     AddressingMode addressingMode =
         new AddressingDecoder().decode(evaluatedOperand, isIndirect, displacment != null);
@@ -39,15 +45,7 @@ public class OperandFactory {
     return new Operand(evaluatedOperand, evaluatedDisplacement, isIndirect, addressingMode);
   }
 
-  private Object validateOperand(Object operand) {
-    if (operand instanceof Register) {
-      return operand;
-    }
-
-    if (operand instanceof Condition) {
-      return operand;
-    }
-
+  private Object validateOperand(Value<?> operand) {
     if (operand instanceof NumberValue n && (n.size() == Size.BYTE || n.size() == Size.WORD)) {
       return operand;
     }

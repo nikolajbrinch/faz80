@@ -4,7 +4,7 @@ import dk.nikolajbrinch.assembler.compiler.IllegalMathOperationException;
 
 public final class IntegerMath {
 
-  public static Object divide(Object left, Object right) {
+  public static Value<?> divide(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.divide(r);
     }
@@ -12,7 +12,7 @@ public final class IntegerMath {
     throw new IllegalMathOperationException("Operands for division are not integers");
   }
 
-  public static Object multiply(Object left, Object right) {
+  public static Value<?> multiply(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.multiply(r);
     }
@@ -20,7 +20,7 @@ public final class IntegerMath {
     throw new IllegalMathOperationException("Operands for multiplication are not integers");
   }
 
-  public static Object subtract(Object left, Object right) {
+  public static Value<?> subtract(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.subtract(r);
     }
@@ -28,7 +28,7 @@ public final class IntegerMath {
     throw new IllegalMathOperationException("Operands for subtraction are not integers");
   }
 
-  public static Object add(Object left, Object right) {
+  public static Value<?> add(Value<?> left, Value<?> right) {
     if (left instanceof Value l && right instanceof Value r) {
       if (l instanceof NumberValue ln && r instanceof NumberValue rn) {
         return ln.add(rn);
@@ -40,7 +40,7 @@ public final class IntegerMath {
     throw new IllegalMathOperationException("Operand for addition is not integer, nor string");
   }
 
-  public static Object negate(Object value) {
+  public static Value<?> negate(Value<?> value) {
     if (value instanceof NumberValue v) {
       return v.negate();
     }

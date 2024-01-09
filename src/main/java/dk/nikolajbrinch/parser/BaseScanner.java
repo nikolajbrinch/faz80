@@ -4,20 +4,18 @@ import dk.nikolajbrinch.parser.impl.CharReaderImpl;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public abstract class BaseScanner<E extends TokenType, T extends Token>
     implements Scanner<T>, Iterable<T>, AutoCloseable, Closeable {
 
-  final CharReaderImpl charReader;
+  final CharReader charReader;
 
   private final List<T> buffer = new LinkedList<>();
 
@@ -25,7 +23,7 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     this.charReader = new CharReaderImpl(inputStream);
   }
 
-  protected CharReaderImpl getCharReader() {
+  protected CharReader getCharReader() {
     return charReader;
   }
 
@@ -59,9 +57,9 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
   protected abstract T createToken() throws IOException;
 
-  protected abstract T createEofToken(int line, int position) throws IOException;
+  protected abstract T createEofToken(Line line, int position) throws IOException;
 
-  protected abstract T createToken(E tokenType, int lineNumber, int start, int end, String text);
+  protected abstract T createToken(E tokenType, Line line, int start, int end, String text);
 
   protected Char nextChar() throws IOException {
     return charReader.next();
@@ -69,6 +67,10 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
   protected Char peekChar() throws IOException {
     return charReader.peek();
+  }
+
+  protected Char peekChar(int position) throws IOException {
+    return charReader.peek(position);
   }
 
   protected Char appendChar(StringBuilder buffer) throws IOException {
@@ -85,12 +87,17 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     Char first = chars[0];
     Char last = chars[chars.length - 1];
 
+    char[] charArray = new char[chars.length];
+    for (int i = 0; i < chars.length; i++) {
+      charArray[i] = chars[i].character();
+    }
+
     return createToken(
         tokenType,
         first.line(),
         first.position(),
         last.position(),
-        String.valueOf(Arrays.stream(chars).map(Char::toString).collect(Collectors.joining())));
+        new String(charArray));
   }
 
   protected boolean checkNextChar(char ch) throws IOException {

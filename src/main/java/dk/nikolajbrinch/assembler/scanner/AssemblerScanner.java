@@ -2,9 +2,10 @@ package dk.nikolajbrinch.assembler.scanner;
 
 import dk.nikolajbrinch.parser.BaseScanner;
 import dk.nikolajbrinch.parser.Char;
-import dk.nikolajbrinch.parser.impl.CharReaderImpl;
+import dk.nikolajbrinch.parser.Line;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerToken> {
   public AssemblerScanner(InputStream inputStream) {
@@ -12,7 +13,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   @Override
-  protected AssemblerToken createEofToken(int line, int position) {
+  protected AssemblerToken createEofToken(Line line, int position) {
     return new AssemblerToken(AssemblerTokenType.EOF, line, position, position, "");
   }
 
@@ -62,8 +63,8 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   @Override
   protected AssemblerToken createToken(
-      AssemblerTokenType tokenType, int lineNumber, int start, int end, String text) {
-    return new AssemblerToken(tokenType, lineNumber, start, end, text);
+      AssemblerTokenType tokenType, Line line, int start, int end, String text) {
+    return new AssemblerToken(tokenType, line, start, end, text);
   }
 
   @Override
@@ -80,7 +81,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createPercentBasedToken(Char ch) throws IOException {
-    if (checkNextChar(this::isBinaryDigit)) {
+    if (checkNextChar(AssemblerScanner::isBinaryDigit)) {
       return createBinaryNumberToken(ch);
     }
 
@@ -133,7 +134,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createDollarBasedToken(Char ch) throws IOException {
-    if (checkNextChar(this::isHexDigit)) {
+    if (checkNextChar(AssemblerScanner::isHexDigit)) {
       return createHexHumberToken(ch);
     }
 
@@ -146,7 +147,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   private AssemblerToken createBangBasedToken(Char ch) throws IOException {
     if (checkNextChar('=')) {
-      return createCharsToken(AssemblerTokenType.EQUAL_EQUAL, ch, nextChar());
+      return createCharsToken(AssemblerTokenType.BANG_EQUAL, ch, nextChar());
     }
 
     return createCharsToken(AssemblerTokenType.BANG, ch);
@@ -187,9 +188,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createTextToken(Char ch) throws IOException {
-    StringBuilder builder = new StringBuilder();
-    builder.append(ch.toString());
-
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last;
 
     while (true) {
@@ -198,7 +197,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       if (nextChar != null) {
         if (nextChar.character() == '\\') {
           last = appendStringChar(builder);
-        } else if (nextChar.character().equals(ch.character())) {
+        } else if (Objects.equals(nextChar.character(), ch.character())) {
           last = appendChar(builder);
           break;
         } else {
@@ -217,9 +216,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createIdentifierToken(Char ch) throws IOException {
-    StringBuilder builder = new StringBuilder();
-    builder.append(ch.toString());
-
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
     while (checkNextChar(
@@ -260,9 +257,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createCommentToken(Char ch) throws IOException {
-    StringBuilder builder = new StringBuilder();
-    builder.append(ch.toString());
-
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
     while (checkNextChar(nextChar -> nextChar != '\n')) {
@@ -275,10 +270,9 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   private AssemblerToken createHexHumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
-
     Char last = ch;
 
-    while (checkNextChar(this::isHexDigit)) {
+    while (checkNextChar(AssemblerScanner::isHexDigit)) {
       last = appendChar(builder);
     }
 
@@ -294,10 +288,9 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   private AssemblerToken createBinaryNumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
-
     Char last = ch;
 
-    while (checkNextChar(this::isBinaryDigit)) {
+    while (checkNextChar(AssemblerScanner::isBinaryDigit)) {
       last = appendChar(builder);
     }
 
@@ -313,7 +306,6 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   private AssemblerToken createOctalHumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder();
-
     Char last = ch;
 
     while (checkNextChar(this::isOctalDigit)) {
@@ -414,52 +406,6 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
         builder.toString());
   }
 
-  private boolean isDecimalDigit(Character character) {
-    return Character.isDigit(character);
-  }
-
-  private boolean isHexDigit(Character character) {
-    return Character.isDigit(character)
-        || character == 'a'
-        || character == 'A'
-        || character == 'b'
-        || character == 'B'
-        || character == 'c'
-        || character == 'C'
-        || character == 'd'
-        || character == 'D'
-        || character == 'e'
-        || character == 'E'
-        || character == 'f'
-        || character == 'F';
-  }
-
-  private boolean isOctalDigit(Character character) {
-    return character == '0'
-        || character == '1'
-        || character == '2'
-        || character == '3'
-        || character == '4'
-        || character == '5'
-        || character == '6'
-        || character == '7';
-  }
-
-  private boolean isBinaryDigit(Character character) {
-    return character == '0' || character == '1';
-  }
-
-  private boolean isNumberStart(Character character) {
-    return isDecimalDigit(character);
-  }
-
-  private boolean isIdentifierStart(Character character) {
-    return Character.isAlphabetic(character)
-        || character == '_'
-        || character == '.'
-        || character == '@';
-  }
-
   private Char appendStringChar(StringBuilder builder) throws IOException {
     nextChar();
 
@@ -491,5 +437,36 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     }
 
     return last;
+  }
+
+  private static boolean isDecimalDigit(char character) {
+    return isDigit(character, 10);
+  }
+
+  private static boolean isHexDigit(char character) {
+    return isDigit(character, 16) ;
+  }
+
+  private boolean isOctalDigit(char character) {
+    return isDigit(character, 8);
+  }
+
+  private static boolean isBinaryDigit(char character) {
+    return isDigit(character, 2);
+  }
+
+  private static boolean isDigit(char character, int radix) {
+    return Character.digit(character, radix) != -1;
+  }
+
+  private static boolean isNumberStart(char character) {
+    return isDecimalDigit(character);
+  }
+
+  private static boolean isIdentifierStart(char character) {
+    return Character.isAlphabetic(character)
+        || character == '_'
+        || character == '.'
+        || character == '@';
   }
 }

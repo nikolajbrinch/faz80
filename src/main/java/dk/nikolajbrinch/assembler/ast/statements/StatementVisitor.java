@@ -42,7 +42,7 @@ public interface StatementVisitor<R> {
 
   R visitEmptyStatement(EmptyStatement emptyStatement);
 
-  R visitIncludeStatement(IncludeStatement includeStatement);
-
   R visitInsertStatement(InsertStatement insertStatement);
+
+  R visitDataTextStatement(DataTextStatement statement);
 }

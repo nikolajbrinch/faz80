@@ -5,6 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import dk.nikolajbrinch.parser.BaseReader;
 import dk.nikolajbrinch.parser.Char;
 import dk.nikolajbrinch.parser.CharReader;
+import dk.nikolajbrinch.parser.Line;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +16,9 @@ import java.nio.charset.Charset;
 public class CharReaderImpl extends BaseReader<Char> implements CharReader {
 
   private final BufferedReader reader;
-  private int line = 1;
+  private int lineCount = 1;
+
+  private Line currentLine;
   private int position = 1;
 
   public CharReaderImpl(InputStream inputStream) {
@@ -26,10 +29,7 @@ public class CharReaderImpl extends BaseReader<Char> implements CharReader {
     this.reader = new BufferedReader(new InputStreamReader(inputStream, charset));
   }
 
-  @Override
-  public int getLine() {
-    return line;
-  }
+  public Line getLine() { return currentLine; }
 
   @Override
   public int getPosition() {
@@ -46,18 +46,26 @@ public class CharReaderImpl extends BaseReader<Char> implements CharReader {
   protected Char read() throws IOException {
     Char value = null;
 
-    int read = reader.read();
+    if (currentLine == null) {
+      String string = reader.readLine();
+      if (string != null) {
+        currentLine = new Line(lineCount, string  + "\n");
+      } else {
+        currentLine = null;
+      }
+    }
 
-    if (read != -1) {
-      value = new Char(line, position, (char) read);
+    if (currentLine != null) {
+      value = currentLine.read(position);
 
       if (value.character() == '\n') {
-        line++;
+        lineCount++;
         position = 1;
+        currentLine = null;
       } else {
         position++;
       }
-    }
+  }
 
     return value;
   }

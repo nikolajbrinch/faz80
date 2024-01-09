@@ -3,6 +3,9 @@ package dk.nikolajbrinch.assembler.scanner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ScanMiscTests {
@@ -54,7 +57,9 @@ class ScanMiscTests {
                     .getBytes(StandardCharsets.UTF_8));
         AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
 
-      scanner.forEach(System.out::println);
+      List<AssemblerToken> tokens = new ArrayList<>();
+      scanner.forEach(tokens::add);
+      Assertions.assertEquals(101, tokens.size());
     }
   }
 }

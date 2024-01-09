@@ -2,6 +2,8 @@ package dk.nikolajbrinch.assembler.scanner;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +25,9 @@ class ScanStringsTests {
       Assertions.assertEquals(AssemblerTokenType.CHAR, scanner.peek(12).type());
       Assertions.assertEquals("'''", scanner.peek(12).text());
 
-      scanner.forEach(System.out::println);
+      List<AssemblerToken> tokens = new ArrayList<>();
+      scanner.forEach(tokens::add);
+      Assertions.assertEquals(15, tokens.size());
     }
   }
 }

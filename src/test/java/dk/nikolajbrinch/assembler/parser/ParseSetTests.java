@@ -1,36 +1,31 @@
 package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.compiler.Compiler;
-import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
-import dk.nikolajbrinch.assembler.util.AstPrinter;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class ParseSetTests {
 
+  @TempDir Path tempDir;
+
   @Test
   void testParse() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
-                """
+    final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
+    Files.writeString(
+        tempFile,
+        """
             var1:: set %00000001
             label1: set 4, a
-            """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(inputStream)) {
+            """);
 
-      List<Statement> statements = new AssemblerParser(scanner).parse();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
 
-      for (Statement statement : statements) {
-        System.out.println(new AstPrinter().print(statement));
-      }
-
-      new Compiler().compile(statements);
+    for (Statement statement : statements) {
+      System.out.println(new AssemblerAstPrinter().print(statement));
     }
   }
 }

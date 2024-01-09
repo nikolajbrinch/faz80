@@ -1,12 +1,28 @@
 package dk.nikolajbrinch.parser;
 
-public abstract class BaseParser<E extends TokenType, T extends Token> implements Parser {
+import dk.nikolajbrinch.parser.impl.LoggerFactory;
+import java.io.File;
+import java.io.IOException;
 
-  private final Scanner<T> scanner;
+public abstract class BaseParser<S, E extends TokenType, T extends Token> implements Parser<S> {
+
+  private Logger logger = LoggerFactory.getLogger();
+
+  private final TokenProducer<T> tokenProducer;
   private final boolean debug = false;
+  private final boolean isIgnoreComments;
 
-  protected BaseParser(Scanner<T> scanner) {
-    this.scanner = scanner;
+  protected BaseParser(TokenProducer<T> tokenProducer, boolean ignoreComments) {
+    this.tokenProducer = tokenProducer;
+    this.isIgnoreComments = ignoreComments;
+  }
+
+  protected void newFile(File file) throws IOException {
+    tokenProducer.newFile(file);
+  }
+
+  protected void newFile(String filename) throws IOException {
+    tokenProducer.newFile(filename);
   }
 
   /**
@@ -43,17 +59,16 @@ public abstract class BaseParser<E extends TokenType, T extends Token> implement
    * @return
    */
   protected T nextToken() {
-    ignoreComments();
-
-    T token = scanner.next();
-
-    if (debug) {
-      System.out.println("nextToken(" + token + ")");
+    if (isIgnoreComments) {
+      ignoreComments();
     }
+
+    T token = tokenProducer.next();
+
+    logger.debug("nextToken(%s)", token);
 
     return token;
   }
-
 
   /**
    * Looks at the next token without consuming it
@@ -61,9 +76,11 @@ public abstract class BaseParser<E extends TokenType, T extends Token> implement
    * @return
    */
   protected T peek() {
-    ignoreComments();
+    if (isIgnoreComments) {
+      ignoreComments();
+    }
 
-    return scanner.peek();
+    return tokenProducer.peek();
   }
 
   /**
@@ -72,13 +89,16 @@ public abstract class BaseParser<E extends TokenType, T extends Token> implement
    * @return
    */
   protected T peek(int position) {
-    ignoreComments();
-
-    return scanner.peek(position);
+    if (isIgnoreComments) {
+      ignoreComments();
+    }
+    return tokenProducer.peek(position);
   }
 
   protected T search(E... types) {
-    ignoreComments();
+    if (isIgnoreComments) {
+      ignoreComments();
+    }
 
     int position = 1;
 
@@ -119,8 +139,8 @@ public abstract class BaseParser<E extends TokenType, T extends Token> implement
   }
 
   private void ignoreComments() {
-    while (isNotType(scanner.peek(), getEofType()) && isType(scanner.peek(), getCommentType())) {
-      scanner.next();
+    while (isNotType(tokenProducer.peek(), getEofType()) && isType(tokenProducer.peek(), getCommentType())) {
+      tokenProducer.next();
     }
   }
 

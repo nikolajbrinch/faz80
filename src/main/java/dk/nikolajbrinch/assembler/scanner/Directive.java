@@ -16,8 +16,8 @@ public enum Directive {
   ENDREPEAT(".endr", "endr"),
   DUPLICATE(".dup", "dup"),
   ENDDUPLICATE(".edup", "edup"),
-  LOCAL(".local"),
-  ENDLOCAL(".endlocal"),
+  LOCAL("#local", ".local"),
+  ENDLOCAL("#endlocal", ".endlocal"),
   PHASE(".phase"),
   DEPHASE(".dephase"),
   IF(".if", "if", "#if"),
@@ -25,6 +25,7 @@ public enum Directive {
   ELSE_IF("#elif"),
   ENDIF(".endif", "endif", "#endif"),
   ASSERT(".assert", "#assert"),
+  DEFINE("#define"),
   GLOBAL(".globl"),
   DATA_BYTE(".byte", "defb", "db", ".db"),
   DATA_WORD(".word", "defw", "dw", ".dw"),
@@ -32,6 +33,10 @@ public enum Directive {
   DATA_TEXT(".text", "defm", "dm", ".dm", ".ascii"),
   DATA_BLOCK("defs", "ds", ".block", ".blkb"),
   DATA("data"),
+  AREA(".area"),
+  TARGET("#target"),
+  CODE_SEGMENT("#code"),
+  DATA_SEGMENT("#data"),
   END(".end", "end", "#end");
 
   private final String[] keywords;
@@ -49,7 +54,7 @@ public enum Directive {
 
   private static boolean matchKeyword(String text, Directive directive) {
     for (String keyword : directive.keywords) {
-      if (keyword.equals(text)) {
+      if (keyword.equals(text.toLowerCase())) {
         return true;
       }
     }

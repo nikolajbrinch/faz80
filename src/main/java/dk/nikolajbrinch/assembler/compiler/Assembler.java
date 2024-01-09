@@ -1,16 +1,18 @@
 package dk.nikolajbrinch.assembler.compiler;
 
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
+import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
+import dk.nikolajbrinch.assembler.ast.operands.Operand;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
@@ -26,29 +28,41 @@ import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
 import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
+import dk.nikolajbrinch.assembler.compiler.symbols.AddressSymbol;
+import dk.nikolajbrinch.assembler.compiler.symbols.MacroSymbol;
+import dk.nikolajbrinch.assembler.compiler.symbols.StatementSymbol;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
+import dk.nikolajbrinch.assembler.compiler.symbols.UndefinedSymbolException;
+import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
 import dk.nikolajbrinch.assembler.compiler.values.BooleanValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
-import dk.nikolajbrinch.assembler.parser.Environment;
-import dk.nikolajbrinch.assembler.util.LineConstructor;
-import dk.nikolajbrinch.assembler.util.LineConstructor.ConstructedLine;
+import dk.nikolajbrinch.assembler.compiler.values.StringValue;
+import dk.nikolajbrinch.assembler.compiler.values.Value;
+import dk.nikolajbrinch.assembler.parser.Parameter;
+import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.parser.Line;
+import dk.nikolajbrinch.parser.Logger;
+import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class Assembler implements StatementVisitor<Void> {
 
+  private final Logger logger = LoggerFactory.getLogger();
   private final InstructionByteSourceFactory instructionByteSourceFactory =
       new InstructionByteSourceFactory();
   private final ExpressionEvaluator expressionEvaluator;
   private final List<ByteSource> bytes = new ArrayList<>();
 
-  private final Environment globals = new Environment();
+  private final SymbolTable globals = new SymbolTable();
 
-  private Environment environment = globals;
+  private SymbolTable symbols = globals;
 
   private Address currentAddress = new Address(NumberValue.create(0), NumberValue.create(0));
 
-  private List<ConstructedLine> errors = new ArrayList<>();
+  private final List<Statement> errors = new ArrayList<>();
 
   public Assembler(ExpressionEvaluator expressionEvaluator) {
     this.expressionEvaluator = expressionEvaluator;
@@ -64,21 +78,6 @@ public class Assembler implements StatementVisitor<Void> {
     return !errors.isEmpty();
   }
 
-  private void reportStatementError(Statement statement, Exception e) {
-    ConstructedLine line = new LineConstructor().constructLine(statement);
-
-    errors.add(line);
-
-    switch (e) {
-      case AssembleException exception -> {
-        System.out.println(String.format("Error in line: %d", line.number()));
-        System.out.println(line.content());
-        System.out.println(e.getMessage());
-      }
-      default -> throw new IllegalStateException(e);
-    }
-  }
-
   @Override
   public Void visitExpressionStatement(ExpressionStatement statement) {
     evaluate(statement.expression());
@@ -89,15 +88,15 @@ public class Assembler implements StatementVisitor<Void> {
   @Override
   public Void visitInstructionStatement(InstructionStatement statement) {
     try {
-      Expression operand1 = statement.operand1();
-      Expression operand2 = statement.operand2();
+      Operand operand1 = statement.operand1();
+      Operand operand2 = statement.operand2();
 
       ByteSource byteSource =
           instructionByteSourceFactory.generateByteSource(
               statement.mnemonic(),
               currentAddress,
-              new OperandFactory().createOperand(operand1, this::evaluate),
-              new OperandFactory().createOperand(operand2, this::evaluate));
+              new OperandFactory().createOperand(operand1, symbols, expressionEvaluator),
+              new OperandFactory().createOperand(operand2, symbols, expressionEvaluator));
 
       bytes.add(byteSource);
 
@@ -111,15 +110,20 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitConstantStatement(ConstantStatement statement) {
-    environment.define(statement.identifier().text(), evaluate(statement.value()));
+    symbols.define(
+        statement.identifier().text(),
+        SymbolType.CONSTANT,
+        new ValueSymbol(evaluate(statement.value())));
 
     return null;
   }
 
   @Override
   public Void visitVariableStatement(VariableStatement statement) {
-    environment.define(
-        sanitizeName(statement.identifier().text()), evaluate(statement.intializer()));
+    symbols.define(
+        sanitizeName(statement.identifier().text()),
+        SymbolType.VARIABLE,
+        new ValueSymbol(evaluate(statement.intializer())));
 
     return null;
   }
@@ -142,9 +146,17 @@ public class Assembler implements StatementVisitor<Void> {
         .values()
         .forEach(
             expression -> {
-              NumberValue value = (NumberValue) evaluate(expression);
+              Value<?> value = evaluate(expression);
 
-              bytes.add(ByteSource.of(value.value()));
+              long byteValue;
+
+              if (value instanceof StringValue stringValue) {
+                byteValue = stringValue.value().getBytes()[0];
+              } else {
+                byteValue = ((NumberValue) value).value();
+              }
+
+              bytes.add(ByteSource.of(byteValue));
             });
 
     return null;
@@ -166,6 +178,11 @@ public class Assembler implements StatementVisitor<Void> {
                       value.msw().msb().value()));
             });
 
+    return null;
+  }
+
+  @Override
+  public Void visitDataTextStatement(DataTextStatement statement) {
     return null;
   }
 
@@ -210,14 +227,20 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitLocalStatement(LocalStatement statement) {
-    withEnvironment(new Environment(environment), () -> statement.block().accept(this));
+    withSymbols(new SymbolTable(symbols), () -> statement.block().accept(this));
 
     return null;
   }
 
   @Override
   public Void visitMacroStatement(MacroStatement statement) {
-    throw new IllegalStateException("Macros should have been resolved!");
+    String name = statement.name().text();
+    List<Parameter> parameters = statement.parameters();
+    Statement block = statement.block();
+
+    symbols.define(name, SymbolType.MACRO, new MacroSymbol(new Macro(name, parameters, block)));
+
+    return null;
   }
 
   @Override
@@ -227,8 +250,7 @@ public class Assembler implements StatementVisitor<Void> {
       if (address instanceof NumberValue numberValue) {
         currentAddress = new Address(numberValue, currentAddress.physicalAddress());
       } else {
-        throw new IllegalValueException(
-            String.valueOf(address) + " is not a valid value for phase address");
+        throw new IllegalValueException(address + " is not a valid value for phase address");
       }
       statement.block().accept(this);
     } finally {
@@ -280,30 +302,28 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitGlobalStatement(GlobalStatement statement) {
-    globals.define(statement.identifier().text(), null);
+    globals.define(statement.identifier().text(), SymbolType.UNKNOWN, null);
 
     return null;
   }
 
   @Override
   public Void visitLabelStatement(LabelStatement statement) {
-    globals.define(statement.identifier().text(), currentAddress);
+    globals.define(
+        statement.identifier().text(), SymbolType.LABEL, new AddressSymbol(currentAddress));
 
     return null;
   }
 
   @Override
   public Void visitMacroCallStatement(MacroCallStatement statement) {
-    throw new IllegalStateException("Macro calls should have been resolved!");
-  }
+    expandMacro(statement);
 
-  @Override
-  public Void visitEmptyStatement(EmptyStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitIncludeStatement(IncludeStatement statement) {
+  public Void visitEmptyStatement(EmptyStatement statement) {
     return null;
   }
 
@@ -316,18 +336,78 @@ public class Assembler implements StatementVisitor<Void> {
     statement.accept(this);
   }
 
-  private Object evaluate(Expression expression) {
-    return expressionEvaluator.evaluate(expression, environment, currentAddress);
-  }
-
-  private void withEnvironment(Environment environment, Supplier<Void> supplier) {
-    Environment previous = this.environment;
+  private void expandMacro(MacroCallStatement statement) {
+    MacroSymbol symbol = null;
 
     try {
-      this.environment = environment;
+      String macroName = statement.name().text();
+      symbol = symbols.get(macroName);
+    } catch (UndefinedSymbolException e) {
+      reportStatementError(statement, e);
+    }
+
+    List<Statement> arguments = statement.arguments();
+    Macro macro = symbol.value();
+
+    SymbolTable macroEnvironment = new SymbolTable(symbols);
+
+    for (int i = 0; i < Math.max(arguments.size(), macro.parameters().size()); i++) {
+      Statement argument = i < arguments.size() ? arguments.get(i) : null;
+      Parameter parameter = i < macro.parameters().size() ? macro.parameters().get(i) : null;
+
+      if (parameter != null) {
+        String name = parameter.name().text();
+
+        Value<?> value;
+
+        Expression defaultValue = parameter.defaultValue();
+
+        if (defaultValue != null) {
+          macroEnvironment.define(
+              name, SymbolType.MACRO_ARGUMENT, new ValueSymbol(evaluate(defaultValue)));
+        }
+
+        if (!(defaultValue != null && argument == null)) {
+          if (argument instanceof ExpressionStatement expressionStatement) {
+            macroEnvironment.define(
+                name,
+                SymbolType.MACRO_ARGUMENT,
+                new ValueSymbol(evaluate(expressionStatement.expression())));
+          } else {
+            macroEnvironment.define(name, SymbolType.MACRO_ARGUMENT, new StatementSymbol(argument));
+          }
+        }
+      }
+    }
+
+    withSymbols(macroEnvironment, () -> macro.block().accept(this));
+  }
+
+  private Value<?> evaluate(Expression expression) {
+    return expressionEvaluator.evaluate(expression, symbols, currentAddress);
+  }
+
+  private void withSymbols(SymbolTable symbolTable, Supplier<Void> supplier) {
+    SymbolTable previous = this.symbols;
+
+    try {
+      this.symbols = symbolTable;
       supplier.get();
     } finally {
-      this.environment = previous;
+      this.symbols = previous;
+    }
+  }
+
+  private void reportStatementError(Statement statement, Exception e) {
+    errors.add(statement);
+
+    switch (e) {
+      case AssembleException exception -> {
+        Line line = statement.line();
+        logger.error(line.content().strip());
+        logger.error("Compilation Error in line %d: %s", line.number(), e.getMessage());
+      }
+      default -> throw new IllegalStateException(e);
     }
   }
 }

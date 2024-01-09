@@ -3,30 +3,31 @@ package dk.nikolajbrinch.assembler.compiler;
 import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.ConditionExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
 import dk.nikolajbrinch.assembler.ast.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
+import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
 import dk.nikolajbrinch.assembler.compiler.values.BinaryMath;
 import dk.nikolajbrinch.assembler.compiler.values.IntegerMath;
 import dk.nikolajbrinch.assembler.compiler.values.Logic;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue;
-import dk.nikolajbrinch.assembler.parser.Environment;
+import dk.nikolajbrinch.assembler.compiler.values.Value;
 import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
 
-public class ExpressionEvaluator implements ExpressionVisitor<Object> {
+public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
 
-  private Environment environment;
+  private SymbolTable symbolTable;
   private Address currentAddress;
 
-  public Object visitBinaryExpression(BinaryExpression expression) {
-    Object left = evaluate(expression.left());
-    Object right = evaluate(expression.right());
+  public Value<?> visitBinaryExpression(BinaryExpression expression) {
+    Value<?> left = evaluate(expression.left());
+    Value<?> right = evaluate(expression.right());
 
     return switch (expression.operator().type()) {
       case PLUS -> IntegerMath.add(left, right);
@@ -47,8 +48,8 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
   }
 
   @Override
-  public Object visitUnaryExpression(UnaryExpression expression) {
-    Object value = evaluate(expression.expression());
+  public Value<?> visitUnaryExpression(UnaryExpression expression) {
+    Value<?> value = evaluate(expression.expression());
 
     return switch (expression.operator().type()) {
       case MINUS -> IntegerMath.negate(value);
@@ -60,12 +61,12 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
   }
 
   @Override
-  public Object visitGroupingExpression(GroupingExpression expression) {
+  public Value<?> visitGroupingExpression(GroupingExpression expression) {
     return expression.expression().accept(this);
   }
 
   @Override
-  public Object visitLiteralExpression(LiteralExpression expression) {
+  public Value<?> visitLiteralExpression(LiteralExpression expression) {
     return switch (expression.token().type()) {
       case DECIMAL_NUMBER, HEX_NUMBER, OCTAL_NUMBER, BINARY_NUMBER -> NumberValue.create(
           expression.token());
@@ -75,29 +76,23 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
   }
 
   @Override
-  public Object visitIdentifierExpression(IdentifierExpression expression) {
-    return environment.get(expression.token().text());
+  public Value<?> visitIdentifierExpression(IdentifierExpression expression) {
+    ValueSymbol symbol = symbolTable.get(expression.token().text());
+
+    return symbol.value();
   }
 
   @Override
-  public Void visitAssignExpression(AssignExpression expression) {
-    environment.assign(expression.identifier().text(), evaluate(expression.expression()));
+  public Value<?> visitAssignExpression(AssignExpression expression) {
+    String name = expression.identifier().text();
+    SymbolType type = symbolTable.getSymbolType(name);
+    symbolTable.assign(name, type, new ValueSymbol(evaluate(expression.expression())));
 
     throw new IllegalStateException("Unknown assign expression");
   }
 
   @Override
-  public Object visitRegisterExpression(RegisterExpression expression) {
-    return expression.register();
-  }
-
-  @Override
-  public Object visitConditionExpression(ConditionExpression conditionExpression) {
-    return conditionExpression.condition();
-  }
-
-  @Override
-  public Object visitAddressExpression(AddressExpression expression) {
+  public Value<?> visitAddressExpression(AddressExpression expression) {
     if (expression.token().type() == AssemblerTokenType.DOLLAR) {
       return currentAddress.logicalAddress();
     }
@@ -109,15 +104,20 @@ public class ExpressionEvaluator implements ExpressionVisitor<Object> {
     throw new IllegalStateException("Unknown address expression");
   }
 
-  private Object evaluate(Expression expression) {
-    return expression.accept(this);
+  public <T extends Value<T>> T evaluate(Expression expression) {
+    return (T) expression.accept(this);
   }
 
-  public Object evaluate(
-      Expression expression, Environment environment, Address currentAddress) {
-    this.environment = environment;
+  public <T extends Value<T>> T evaluate(Expression expression, SymbolTable symbolTable) {
+    this.symbolTable = symbolTable;
+
+    return (T) expression.accept(this);
+  }
+
+  public <T extends Value<T>> T evaluate(Expression expression, SymbolTable symbolTable, Address currentAddress) {
+    this.symbolTable = symbolTable;
     this.currentAddress = currentAddress;
 
-    return expression.accept(this);
+    return (T) expression.accept(this);
   }
 }

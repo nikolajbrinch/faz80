@@ -1,9 +1,16 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
-public record LocalStatement(Statement block) implements Statement {
+import dk.nikolajbrinch.parser.Line;
+
+public record LocalStatement(BlockStatement block) implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {
     return visitor.visitLocalStatement(this);
+  }
+
+  @Override
+  public Line line() {
+    return block.line();
   }
 }

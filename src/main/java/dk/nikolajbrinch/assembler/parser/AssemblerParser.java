@@ -2,23 +2,26 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.ConditionExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
 import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.RegisterExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.ast.operands.ConditionOperand;
+import dk.nikolajbrinch.assembler.ast.operands.ExpressionOperand;
+import dk.nikolajbrinch.assembler.ast.operands.GroupingOperand;
+import dk.nikolajbrinch.assembler.ast.operands.Operand;
+import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
@@ -35,14 +38,20 @@ import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
 import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.assembler.scanner.Mnemonic;
+import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.parser.BaseParser;
+import dk.nikolajbrinch.parser.Logger;
 import dk.nikolajbrinch.parser.ParseException;
-import dk.nikolajbrinch.parser.Scanner;
+import dk.nikolajbrinch.parser.impl.LoggerFactory;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerToken> {
+public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken> {
+
+  private static final Logger logger = LoggerFactory.getLogger();
 
   private final Set<Mnemonic> conditionalInstructions =
       Set.of(Mnemonic.JR, Mnemonic.JP, Mnemonic.CALL, Mnemonic.RET);
@@ -50,24 +59,39 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
 
   private Mode mode = Mode.NORMAL;
 
-  public AssemblerParser(Scanner<AssemblerToken> scanner) {
-    super(scanner);
+  public AssemblerParser() {
+    super(new AssemblerTokenProducer(), true);
   }
 
+  /*
+   * TODO: Error reporting needs to be much better
+   */
   protected static void reportError(AssemblerToken token, String message) {
     if (token.type() == AssemblerTokenType.EOF) {
-      report(token.line() + ", " + token.start() + ": at end", message);
+      report("Error in line " + token.line().number() + ", " + token.start() + ": at end", message);
     } else {
-      report(token.line() + ", " + token.start() + ": at '" + token.text() + "'", message);
+      report(
+          "Error in line "
+              + token.line().number()
+              + ", "
+              + token.start()
+              + ": at '"
+              + token.text()
+              + "'",
+          message);
     }
   }
 
+  /*
+   * TODO: Error reporting needs to be much better
+   */
   protected static void report(String location, String message) {
-    System.out.println(message);
-    System.out.println(location);
+    logger.error("Parser %s: %s", location, message);
   }
 
-  public List<Statement> parse() {
+  public List<Statement> parse(File file) throws IOException {
+    newFile(file);
+
     List<Statement> statements = new ArrayList<>();
 
     while (!isEof()) {
@@ -154,7 +178,7 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
         default -> statement();
       };
 
-    } catch (ParseException e) {
+    } catch (ParseException | IOException e) {
       synchronize();
 
       return null;
@@ -229,12 +253,14 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
     return new AlignStatement(alignment, fillByte);
   }
 
-  private Statement include() {
+  private Statement include() throws IOException {
     consume(AssemblerTokenType.INCLUDE, "Expect include");
 
     AssemblerToken string = consume(AssemblerTokenType.STRING, "Expect string after include");
 
-    return new IncludeStatement(string);
+    newFile(StringUtil.unquote(string.text()));
+
+    return null;
   }
 
   private Statement insert() {
@@ -296,7 +322,17 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
   private Statement dataText() {
     consume(AssemblerTokenType.DATA_TEXT, "Expect text");
 
-    return null;
+    List<Expression> values = new ArrayList<>();
+    values.add(expression());
+
+    while (match(AssemblerTokenType.COMMA)) {
+      nextToken();
+      values.add(expression());
+    }
+
+    expectEol("Expect newline or eof after long declaration.");
+
+    return new DataTextStatement(values);
   }
 
   private Statement dataBlock() {
@@ -345,7 +381,7 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
 
     consume(AssemblerTokenType.NEWLINE, "Expect newline after macro.");
 
-    Statement block = block(AssemblerTokenType.ENDMACRO);
+    BlockStatement block = block(AssemblerTokenType.ENDMACRO);
 
     consume(AssemblerTokenType.ENDMACRO, "Expect endmarco after body!");
     expectEol("Expect newline or eof after endmarco.");
@@ -353,6 +389,9 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
     return new MacroStatement(name, parameters, block);
   }
 
+  /*
+   * TODO: Parse this using semantic mode
+   */
   private List<Parameter> parseParams() {
     List<Parameter> parameters = new ArrayList<>();
 
@@ -379,6 +418,9 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
       expression = expression();
     }
 
+    /*
+     * TODO: default value can be a Statement
+     */
     return new Parameter(name, expression);
   }
 
@@ -426,10 +468,11 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
     while (!checkType(stop)) {
       if (checkType(AssemblerTokenType.LESS)) {
         try {
-          consume(AssemblerTokenType.LESS, "Expect < before macro call argument");
+          AssemblerToken start =
+              consume(AssemblerTokenType.LESS, "Expect < before macro call argument");
           eos = AssemblerTokenType.GREATER;
           if (checkType(eos)) {
-            arguments.add(new EmptyStatement());
+            arguments.add(new EmptyStatement(start.line()));
             expectEol("Expect > after macro call argument");
           } else if (checkType(AssemblerTokenType.GREATER_GREATER)) {
             AssemblerToken token =
@@ -523,7 +566,7 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
     consume(AssemblerTokenType.LOCAL, "Expect local");
     consume(AssemblerTokenType.NEWLINE, "Expect newline after local.");
 
-    Statement block = block(AssemblerTokenType.ENDLOCAL);
+    BlockStatement block = block(AssemblerTokenType.ENDLOCAL);
 
     consume(AssemblerTokenType.ENDLOCAL, "Expect endlocal after body!");
     expectEol("Expect newline or eof after endlocal.");
@@ -598,9 +641,9 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
   }
 
   private Statement instruction(AssemblerToken mnemonic) {
-    Expression left = operand(mnemonic);
+    Operand left = operand(mnemonic);
 
-    Expression right = null;
+    Operand right = null;
     if (match(AssemblerTokenType.COMMA)) {
       nextToken();
 
@@ -612,17 +655,30 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
     return new InstructionStatement(mnemonic, left, right);
   }
 
-  private Expression operand(AssemblerToken mnemonic) {
-    Expression expression = null;
+  private Operand operand(AssemblerToken mnemonic) {
+    if (isEol()) {
+      return null;
+    }
+
+    Operand operand = null;
 
     if (conditionalInstructions.contains(Mnemonic.find(mnemonic.text()))) {
-      AssemblerToken token = consume(AssemblerTokenType.IDENTIFIER, "Expect condition!");
+      Expression expression = expression();
 
-      Condition condition = Condition.find(token.text());
+      Condition condition = null;
+      AssemblerToken token = null;
 
-      if (condition != null) {
-        nextToken();
-        expression = new ConditionExpression(condition);
+      if (expression instanceof IdentifierExpression identifierExpression) {
+        token = identifierExpression.token();
+        condition = Condition.find(token.text());
+
+        if (condition != null) {
+          operand = new ConditionOperand(token.line(), condition);
+        }
+      }
+
+      if (operand == null) {
+        operand = new ExpressionOperand(expression);
       }
     } else {
       Grouping grouping = null;
@@ -633,11 +689,10 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
 
       AssemblerToken token = peek();
       if (token.type() == AssemblerTokenType.IDENTIFIER) {
-
         Register register = Register.find(token.text());
 
         if (register != null) {
-          nextToken();
+          AssemblerToken registerToken = nextToken();
           Expression displacement = null;
 
           if (checkType(AssemblerTokenType.PLUS)) {
@@ -645,22 +700,22 @@ public class AssemblerParser extends BaseParser<AssemblerTokenType, AssemblerTok
             displacement = expression();
           }
 
-          expression = new RegisterExpression(register, displacement);
+          operand = new RegisterOperand(registerToken.line(), register, displacement);
         }
       }
 
-      if (expression == null) {
-        expression = expression();
+      if (operand == null) {
+        operand = new ExpressionOperand(expression());
       }
 
       if (grouping != null) {
-        expression = new GroupingExpression(expression);
+        operand = new GroupingOperand(operand);
         AssemblerTokenType endType = grouping.end();
         consume(endType, "Expect " + endType.name() + " after indirect or indexed expression");
       }
     }
 
-    return expression;
+    return operand;
   }
 
   private Statement statement() {

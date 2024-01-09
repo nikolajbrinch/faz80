@@ -1,9 +1,9 @@
 package dk.nikolajbrinch.parser;
 
-public record Char(int line, int position, Character character) {
+public record Char(Line line, int position, char character) {
 
   @Override
   public String toString() {
-    return character.toString();
+    return String.valueOf(character);
   }
 }

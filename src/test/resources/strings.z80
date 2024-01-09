@@ -1,4 +1,4 @@
-text "string\n\""
- text 'string\'\n'
+.text "string\n\""
+ .ascii 'string\'\n'
  db 'a', '\n', '\''
 

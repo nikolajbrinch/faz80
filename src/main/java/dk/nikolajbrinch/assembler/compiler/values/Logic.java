@@ -2,9 +2,9 @@ package dk.nikolajbrinch.assembler.compiler.values;
 
 public final class Logic {
 
-  public static Object not(Object value) {
-    if (value instanceof Boolean v) {
-      return !v;
+  public static Value<?> not(Value<?> value) {
+    if (value instanceof BooleanValue v) {
+      return v.not();
     }
 
     if (value instanceof Value v) {
@@ -14,7 +14,7 @@ public final class Logic {
     throw new IllegalStateException("Operands for subtraction are not integers");
   }
 
-  public static Object and(Object left, Object right) {
+  public static Value<?> and(Value<?> left, Value<?> right) {
     if (left instanceof BooleanValue l && right instanceof BooleanValue r) {
       return l.and(r);
     }
@@ -34,7 +34,7 @@ public final class Logic {
     throw new IllegalStateException("Operands for subtraction are not booleans");
   }
 
-  public static Object or(Object left, Object right) {
+  public static Value<?> or(Value<?> left, Value<?> right) {
     if (left instanceof BooleanValue l && right instanceof BooleanValue r) {
       return l.or(r);
     }
@@ -54,7 +54,7 @@ public final class Logic {
     throw new IllegalStateException("Operands for subtraction are not booleans");
   }
 
-  public static Object compare(Object left, Object right) {
+  public static Value<?> compare(Value<?> left, Value<?> right) {
     if (left instanceof Value l && right instanceof Value r) {
       if (l instanceof NumberValue ln && r instanceof NumberValue rn) {
         return ln.compare(rn);
@@ -78,7 +78,7 @@ public final class Logic {
     throw new IllegalStateException("Operands for division are not integers");
   }
 
-  public static Object shiftRight(Object left, Object right) {
+  public static Value<?> shiftRight(Value<?> left, Value<?> right) {
     if (left instanceof NumberValue l && right instanceof NumberValue r) {
       return l.logicalShiftRight(r);
     }
