@@ -404,8 +404,8 @@ public class Assembler implements StatementVisitor<Void> {
     switch (e) {
       case AssembleException exception -> {
         Line line = statement.line();
-        logger.error(line.content().strip());
-        logger.error("Compilation Error in line %d: %s", line.number(), e.getMessage());
+        logger.error("Compilation error in line %d: %s", line.number(), e.getMessage());
+        logger.error("    %s%n", line.content().strip());
       }
       default -> throw new IllegalStateException(e);
     }

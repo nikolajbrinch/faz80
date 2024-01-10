@@ -63,32 +63,6 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     super(new AssemblerTokenProducer(), true);
   }
 
-  /*
-   * TODO: Error reporting needs to be much better
-   */
-  protected static void reportError(AssemblerToken token, String message) {
-    if (token.type() == AssemblerTokenType.EOF) {
-      report("Error in line " + token.line().number() + ", " + token.start() + ": at end", message);
-    } else {
-      report(
-          "Error in line "
-              + token.line().number()
-              + ", "
-              + token.start()
-              + ": at '"
-              + token.text()
-              + "'",
-          message);
-    }
-  }
-
-  /*
-   * TODO: Error reporting needs to be much better
-   */
-  protected static void report(String location, String message) {
-    logger.error("Parser %s: %s", location, message);
-  }
-
   public List<Statement> parse(File file) throws IOException {
     newFile(file);
 
@@ -1030,4 +1004,29 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     NORMAL,
     MACRO_CALL
   }
-}
+
+  /*
+   * TODO: Error reporting needs to be much better
+   */
+  protected static void reportError(AssemblerToken token, String message) {
+    if (token.type() == AssemblerTokenType.EOF) {
+      report("Parsing error in line " + token.line().number() + ", " + token.start() + ": at end", message);
+    } else {
+      report(
+          "Parsing error in line "
+              + token.line().number()
+              + ", "
+              + token.start()
+              + ": at '"
+              + token.text()
+              + "'",
+          message);
+    }
+  }
+
+  /*
+   * TODO: Error reporting needs to be much better
+   */
+  protected static void report(String location, String message) {
+    logger.error("%s: %s%n", location, message);
+  }}

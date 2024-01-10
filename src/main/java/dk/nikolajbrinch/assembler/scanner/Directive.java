@@ -54,7 +54,7 @@ public enum Directive {
 
   private static boolean matchKeyword(String text, Directive directive) {
     for (String keyword : directive.keywords) {
-      if (keyword.equals(text.toLowerCase())) {
+      if (keyword.equalsIgnoreCase(text)) {
         return true;
       }
     }
