@@ -16,7 +16,7 @@ class ScanRomTests {
 
       List<AssemblerToken> tokens = new ArrayList<>();
       scanner.forEach(tokens::add);
-      Assertions.assertEquals(283, tokens.size());
+      Assertions.assertEquals(282, tokens.size());
     }
   }
 }

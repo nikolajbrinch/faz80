@@ -15,7 +15,7 @@ PRINT       EQU 8252          ; This means the label PRINT equates to 8252.
 
 
 MAINLP      CALL PRTPLAY      ; print player sprite
-           s
+
             HALT              ; Slow it down three times
             HALT
             HALT

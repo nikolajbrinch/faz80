@@ -37,6 +37,7 @@ import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
 import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.assembler.scanner.Directive;
 import dk.nikolajbrinch.assembler.scanner.Mnemonic;
 import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.parser.BaseParser;
@@ -86,50 +87,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   private Statement declaration() {
     try {
       return switch (peek().type()) {
-        case IDENTIFIER -> {
-          AssemblerToken identifier = consume(AssemblerTokenType.IDENTIFIER, "Expect identifier");
-
-          if (Mnemonic.find(identifier.text()) != null) {
-            yield instruction(identifier);
-          }
-
-          yield switch (peek().type()) {
-            case CONSTANT -> constant(identifier);
-            case ASSIGN, EQUAL -> variable(identifier);
-            case SET -> set(identifier);
-            case MACRO -> macro(identifier);
-            case LEFT_PAREN -> macroCall(identifier);
-            default -> {
-              AssemblerToken nextToken = peek();
-
-              /*
-               * If next token is an instruction, this must be a label
-               */
-              if (nextToken.type() == AssemblerTokenType.IDENTIFIER
-                  && Mnemonic.find(nextToken.text()) != null) {
-                yield label(identifier);
-              }
-
-              if (mode != Mode.MACRO_CALL) {
-                Statement macroCall = null;
-
-                try {
-                  macroCall = macroCall(identifier);
-                } catch (ParseException e) {
-                  /*
-                   * Not a macroCall
-                   */
-                }
-
-                if (macroCall != null) {
-                  yield macroCall;
-                }
-              }
-
-              yield label(identifier);
-            }
-          };
-        }
+        case IDENTIFIER -> identifier();
         case ORIGIN -> origin();
         case ALIGN -> align();
         case INCLUDE -> include();
@@ -157,6 +115,51 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
       return null;
     }
+  }
+
+  private Statement identifier() {
+    AssemblerToken identifier = consume(AssemblerTokenType.IDENTIFIER, "Expect identifier");
+
+    if (Mnemonic.find(identifier.text()) != null) {
+      return instruction(identifier);
+    }
+
+    return switch (peek().type()) {
+      case CONSTANT -> constant(identifier);
+      case ASSIGN, EQUAL -> variable(identifier);
+      case SET -> set(identifier);
+      case MACRO -> macro(identifier);
+      case LEFT_PAREN -> macroCall(identifier);
+      default -> {
+        AssemblerToken nextToken = peek();
+
+        /*
+         * If next token is an instruction, this must be a label
+         */
+        if (nextToken.type() == AssemblerTokenType.IDENTIFIER
+            && Mnemonic.find(nextToken.text()) != null) {
+          yield label(identifier);
+        }
+
+        if (mode != Mode.MACRO_CALL && Directive.find(nextToken.text()) == null) {
+          Statement macroCall = null;
+
+          try {
+            macroCall = macroCall(identifier);
+          } catch (ParseException e) {
+            /*
+             * Not a macroCall
+             */
+          }
+
+          if (macroCall != null) {
+            yield macroCall;
+          }
+        }
+
+        yield label(identifier);
+      }
+    };
   }
 
   private Statement set(AssemblerToken identifier) {
@@ -1010,7 +1013,9 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
    */
   protected static void reportError(AssemblerToken token, String message) {
     if (token.type() == AssemblerTokenType.EOF) {
-      report("Parsing error in line " + token.line().number() + ", " + token.start() + ": at end", message);
+      report(
+          "Parsing error in line " + token.line().number() + ", " + token.start() + ": at end",
+          message);
     } else {
       report(
           "Parsing error in line "
@@ -1029,4 +1034,5 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
    */
   protected static void report(String location, String message) {
     logger.error("%s: %s%n", location, message);
-  }}
+  }
+}
