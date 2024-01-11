@@ -10,11 +10,13 @@ public interface StatementVisitor<R> {
 
   R visitVariableStatement(VariableStatement variableStatement);
 
-  R visitByteStatement(ByteStatement byteStatement);
+  R visitDataByteStatement(DataByteStatement byteStatement);
 
-  R visitLongStatement(LongStatement longStatement);
+  R visitDataWordStatement(DataWordStatement wordStatement);
 
-  R visitWordStatement(WordStatement wordStatement);
+  R visitDataLongStatement(DataLongStatement longStatement);
+
+  R visitDataTextStatement(DataTextStatement statement);
 
   R visitOriginStatement(OriginStatement originStatement);
 
@@ -43,6 +45,4 @@ public interface StatementVisitor<R> {
   R visitEmptyStatement(EmptyStatement emptyStatement);
 
   R visitInsertStatement(InsertStatement insertStatement);
-
-  R visitDataTextStatement(DataTextStatement statement);
 }

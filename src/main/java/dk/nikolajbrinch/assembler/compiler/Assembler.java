@@ -1,12 +1,11 @@
 package dk.nikolajbrinch.assembler.compiler;
 
 import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
 import dk.nikolajbrinch.assembler.ast.operands.Operand;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
@@ -17,7 +16,7 @@ import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LongStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
 import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
@@ -26,7 +25,7 @@ import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
-import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
 import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
 import dk.nikolajbrinch.assembler.compiler.symbols.AddressSymbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.MacroSymbol;
@@ -40,7 +39,6 @@ import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.compiler.values.Value;
 import dk.nikolajbrinch.assembler.parser.Parameter;
-import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.parser.Line;
 import dk.nikolajbrinch.parser.Logger;
 import dk.nikolajbrinch.parser.impl.LoggerFactory;
@@ -141,7 +139,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitByteStatement(ByteStatement statement) {
+  public Void visitDataByteStatement(DataByteStatement statement) {
     statement
         .values()
         .forEach(
@@ -163,7 +161,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitLongStatement(LongStatement statement) {
+  public Void visitDataLongStatement(DataLongStatement statement) {
     statement
         .values()
         .forEach(
@@ -187,7 +185,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitWordStatement(WordStatement statement) {
+  public Void visitDataWordStatement(DataWordStatement statement) {
     statement
         .values()
         .forEach(

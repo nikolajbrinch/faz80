@@ -4,11 +4,11 @@ import dk.nikolajbrinch.assembler.ast.expressions.Expression;
 import dk.nikolajbrinch.parser.Line;
 import java.util.List;
 
-public record ByteStatement(List<Expression> values) implements Statement {
+public record DataByteStatement(List<Expression> values) implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitByteStatement(this);
+    return visitor.visitDataByteStatement(this);
   }
 
   @Override

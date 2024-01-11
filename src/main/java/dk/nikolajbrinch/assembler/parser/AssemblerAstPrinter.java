@@ -18,7 +18,7 @@ import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
@@ -29,7 +29,7 @@ import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LongStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
 import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
@@ -38,7 +38,7 @@ import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
-import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -105,12 +105,17 @@ public class AssemblerAstPrinter
   }
 
   @Override
-  public String visitByteStatement(ByteStatement statement) {
+  public String visitDataByteStatement(DataByteStatement statement) {
     return parenthesize("byte: ", statement.values().toArray(new Expression[0]));
   }
 
   @Override
-  public String visitLongStatement(LongStatement statement) {
+  public String visitDataWordStatement(DataWordStatement statement) {
+    return parenthesize("word: ", statement.values().toArray(new Expression[0]));
+  }
+
+  @Override
+  public String visitDataLongStatement(DataLongStatement statement) {
     return parenthesize("long: ", statement.values().toArray(new Expression[0]));
   }
 
@@ -119,10 +124,6 @@ public class AssemblerAstPrinter
     return parenthesize("text: ", statement.values().toArray(new Expression[0]));
   }
 
-  @Override
-  public String visitWordStatement(WordStatement statement) {
-    return parenthesize("word: ", statement.values().toArray(new Expression[0]));
-  }
 
   @Override
   public String visitOriginStatement(OriginStatement statement) {

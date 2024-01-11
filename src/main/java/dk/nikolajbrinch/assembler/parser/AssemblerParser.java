@@ -15,7 +15,7 @@ import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ByteStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
@@ -26,7 +26,7 @@ import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LongStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
 import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
@@ -34,7 +34,7 @@ import dk.nikolajbrinch.assembler.ast.statements.PhaseStatement;
 import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
-import dk.nikolajbrinch.assembler.ast.statements.WordStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
 import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.assembler.scanner.Directive;
@@ -261,7 +261,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after byte declaration.");
 
-    return new ByteStatement(values);
+    return new DataByteStatement(values);
   }
 
   private Statement dataWord() {
@@ -277,7 +277,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after word declaration.");
 
-    return new WordStatement(values);
+    return new DataWordStatement(values);
   }
 
   private Statement dataLong() {
@@ -293,7 +293,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after long declaration.");
 
-    return new LongStatement(values);
+    return new DataLongStatement(values);
   }
 
   private Statement dataText() {
