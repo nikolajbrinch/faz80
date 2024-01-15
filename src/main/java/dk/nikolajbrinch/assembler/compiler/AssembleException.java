@@ -1,12 +1,22 @@
 package dk.nikolajbrinch.assembler.compiler;
 
+import dk.nikolajbrinch.assembler.ast.statements.Statement;
+
 public class AssembleException extends RuntimeException {
 
-  public AssembleException(String message) {
+  private final Statement statement;
+
+  public AssembleException(Statement statement, String message) {
     super(message);
+    this.statement = statement;
   }
 
-  public AssembleException(String message, Throwable cause) {
+  public AssembleException(Statement statement, String message, Throwable cause) {
     super(message, cause);
+    this.statement = statement;
+  }
+
+  public Statement getStatement() {
+    return statement;
   }
 }

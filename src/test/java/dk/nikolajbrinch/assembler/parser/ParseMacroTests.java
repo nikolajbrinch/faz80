@@ -1,18 +1,10 @@
 package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.compiler.Compiler;
-import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
-import dk.nikolajbrinch.macro.parser.MacroParser;
-import dk.nikolajbrinch.macro.preprocessor.MacroResolver;
-import dk.nikolajbrinch.macro.scanner.MacroScanner;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

@@ -11,13 +11,14 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ParseExpressionTests {
 
-  @TempDir
-  Path tempDir;
+  @TempDir Path tempDir;
 
   @Test
   void testParse() throws IOException {
     final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
-    Files.writeString(tempFile, """
+    Files.writeString(
+        tempFile,
+        """
             0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9""");
 
     List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());

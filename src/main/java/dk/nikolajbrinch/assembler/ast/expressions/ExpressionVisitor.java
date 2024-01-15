@@ -15,5 +15,4 @@ public interface ExpressionVisitor<R> {
   R visitAddressExpression(AddressExpression addressExpression);
 
   R visitAssignExpression(AssignExpression assignExpression);
-
 }

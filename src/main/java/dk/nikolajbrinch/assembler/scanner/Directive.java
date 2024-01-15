@@ -6,7 +6,7 @@ public enum Directive {
   ORIGIN(".org", "org", ".loc"),
   CONSTANT("equ"),
   ASSIGN("defl", "="),
-  SET("set"),
+  SET(".set", "set"),
   INCLUDE(".include", "include", "#include"),
   INSERT(".incbin", "incbin", "#insert"),
   ALIGN(".align", "align"),

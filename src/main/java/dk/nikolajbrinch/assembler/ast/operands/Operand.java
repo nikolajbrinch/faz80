@@ -7,5 +7,4 @@ public interface Operand {
   <R> R accept(OperandVisitor<R> visitor);
 
   Line line();
-
 }

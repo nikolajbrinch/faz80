@@ -27,10 +27,7 @@ public class Bit implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexedToImmediate(
-      Address currentAddress,
-      NumberValue numberValue,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, NumberValue numberValue, Register sourceRegister, long displacement) {
     if (sourceRegister == Register.IX) {
       return ByteSource.of(
           0xDD, 0xCB, displacement, 0b01000110 | ((numberValue.value() & 0b00000111) << 3));

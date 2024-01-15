@@ -40,10 +40,7 @@ public class Add implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexedToRegister(
-      Address currentAddress,
-      Register targetRegister,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, Register targetRegister, Register sourceRegister, long displacement) {
     return switch (targetRegister) {
       case A -> switch (sourceRegister) {
         case IX -> ByteSource.of(0xDD, 0x86, displacement);

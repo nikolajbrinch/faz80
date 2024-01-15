@@ -9,8 +9,7 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class Sub implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(
-      Address currentAddress, Operand targetOperand, Operand sourceOperand) {
+  public ByteSource generate(Address currentAddress, Operand targetOperand, Operand sourceOperand) {
     ByteSource resolved = null;
 
     resolved =

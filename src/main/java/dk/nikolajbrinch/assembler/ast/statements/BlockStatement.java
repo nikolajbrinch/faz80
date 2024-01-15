@@ -1,9 +1,11 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.parser.Line;
 import java.util.List;
 
-public record BlockStatement(List<Statement> statements) implements Statement {
+public record BlockStatement(SymbolTable symbolTable, List<Statement> statements)
+    implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

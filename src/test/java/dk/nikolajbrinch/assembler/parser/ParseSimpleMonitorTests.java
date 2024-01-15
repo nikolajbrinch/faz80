@@ -4,7 +4,6 @@ import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ParseSimpleMonitorTests {

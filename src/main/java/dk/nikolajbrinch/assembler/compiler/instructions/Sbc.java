@@ -16,7 +16,8 @@ public class Sbc implements InstructionGenerator {
       if (register == Register.A) {
         resolved =
             switch (sourceOperand.addressingMode()) {
-              case REGISTER -> ByteSource.of(0b10011000 | Registers.r.get(sourceOperand.asRegister()));
+              case REGISTER -> ByteSource.of(
+                  0b10011000 | Registers.r.get(sourceOperand.asRegister()));
               case REGISTER_INDIRECT -> {
                 if (sourceOperand.asRegister() == Register.HL) {
                   yield ByteSource.of(() -> 0x9E);

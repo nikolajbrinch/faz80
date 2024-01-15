@@ -8,5 +8,4 @@ public record EmptyStatement(Line line) implements Statement {
   public <R> R accept(StatementVisitor<R> visitor) {
     return visitor.visitEmptyStatement(this);
   }
-
 }

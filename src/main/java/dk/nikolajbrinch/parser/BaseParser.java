@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public abstract class BaseParser<S, E extends TokenType, T extends Token> implements Parser<S> {
 
-  private Logger logger = LoggerFactory.getLogger();
+  private final Logger logger = LoggerFactory.getLogger();
 
   private final TokenProducer<T> tokenProducer;
   private final boolean debug = false;
@@ -139,7 +139,8 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
   }
 
   private void ignoreComments() {
-    while (isNotType(tokenProducer.peek(), getEofType()) && isType(tokenProducer.peek(), getCommentType())) {
+    while (isNotType(tokenProducer.peek(), getEofType())
+        && isType(tokenProducer.peek(), getCommentType())) {
       tokenProducer.next();
     }
   }

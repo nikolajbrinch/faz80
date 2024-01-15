@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class ScanNestedMacro {
 
-//  @Disabled
+  //  @Disabled
   @Test
   void testScan() throws IOException {
     try (ByteArrayInputStream inputStream =

@@ -1,11 +1,13 @@
 package dk.nikolajbrinch.assembler.ast.statements;
 
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
 import dk.nikolajbrinch.parser.Line;
 import java.util.List;
 
-public record MacroStatement(AssemblerToken name, List<Parameter> parameters, BlockStatement block)
+public record MacroStatement(
+    AssemblerToken name, SymbolTable symbolTable, List<Parameter> parameters, BlockStatement block)
     implements Statement {
 
   @Override

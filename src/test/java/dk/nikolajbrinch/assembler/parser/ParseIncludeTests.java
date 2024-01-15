@@ -39,7 +39,8 @@ class ParseIncludeTests {
   @Test
   void testParseMacrosAndConstants() throws IOException {
     final Path nextFile = Files.createFile(tempDir.resolve("macros.z80"));
-    Files.writeString(nextFile, """
+    Files.writeString(
+        nextFile, """
     macro macro1 p1, p2
       ld a, p1
       ld b, p2
@@ -53,10 +54,12 @@ class ParseIncludeTests {
     """);
 
     final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
-    Files.writeString(tempFile, """
+    Files.writeString(
+        tempFile,
+        """
     .include "macros.z80"
     .include "constants.z80"
-    
+
     macro1 $10, 0b1010
     ld c, constant1
     ld d, constant2

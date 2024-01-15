@@ -57,9 +57,11 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
   protected abstract T createToken() throws IOException;
 
-  protected abstract T createEofToken(Line line, int position) throws IOException;
+  protected abstract T createEofToken(Position position, Line line, int linePosition)
+      throws IOException;
 
-  protected abstract T createToken(E tokenType, Line line, int start, int end, String text);
+  protected abstract T createToken(
+      E tokenType, Position position, Line line, int start, int end, String text);
 
   protected Char nextChar() throws IOException {
     return charReader.next();
@@ -94,9 +96,10 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
     return createToken(
         tokenType,
+        new Position(first.position(), last.position()),
         first.line(),
-        first.position(),
-        last.position(),
+        first.linePosition(),
+        last.linePosition(),
         new String(charArray));
   }
 
@@ -170,7 +173,11 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     try {
       while (token == null) {
         if (!charReader.hasNext()) {
-          token = createEofToken(charReader.getLine(), charReader.getPosition());
+          token =
+              createEofToken(
+                  new Position(charReader.getPosition(), charReader.getPosition()),
+                  charReader.getLine(),
+                  charReader.getLinePosition());
         } else {
           token = createToken();
         }

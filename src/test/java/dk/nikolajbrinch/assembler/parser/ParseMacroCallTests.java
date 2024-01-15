@@ -34,6 +34,5 @@ class ParseMacroCallTests {
     for (Statement statement : statements) {
       System.out.println(new AssemblerAstPrinter().print(statement));
     }
-
   }
 }

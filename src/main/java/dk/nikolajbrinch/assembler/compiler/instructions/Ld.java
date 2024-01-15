@@ -2,7 +2,6 @@ package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.IllegalSizeException;
 import dk.nikolajbrinch.assembler.compiler.operands.Registers;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
@@ -89,10 +88,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexedToRegister(
-      Address currentAddress,
-      Register targetRegister,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, Register targetRegister, Register sourceRegister, long displacement) {
     return switch (sourceRegister) {
       case IX -> ByteSource.of(
           0xDD, 0b01000110 | (Registers.r.get(targetRegister) << 3), displacement);
@@ -122,10 +118,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      Register sourceRegister) {
+      Address currentAddress, Register targetRegister, long displacement, Register sourceRegister) {
     return switch (targetRegister) {
       case IX -> ByteSource.of(0xDD, 0b01110000 | Registers.r.get(sourceRegister));
       case IY -> ByteSource.of(0xFD, 0b01110000 | Registers.r.get(sourceRegister));
@@ -145,10 +138,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateImmediateToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, long displacement, NumberValue numberValue) {
     return switch (targetRegister) {
       case IX -> ByteSource.of(0xDD, 0x36, displacement, numberValue.value());
       case IY -> ByteSource.of(0xFD, 0x36, displacement, numberValue.value());
@@ -188,10 +178,7 @@ public class Ld implements InstructionGenerator {
 
   @Override
   public ByteSource generateExtendedToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, long displacement, NumberValue numberValue) {
     return switch (targetRegister) {
       case IX -> ByteSource.of(0xDD, 0x2A, numberValue.lsb().value(), numberValue.msb().value());
       case IY -> ByteSource.of(0xFD, 0x2A, numberValue.lsb().value(), numberValue.msb().value());

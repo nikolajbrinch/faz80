@@ -1,14 +1,12 @@
 package dk.nikolajbrinch.assembler.compiler.symbols;
 
-import dk.nikolajbrinch.assembler.compiler.AssembleException;
+public class UndefinedSymbolException extends SymbolException {
 
-public class UndefinedSymbolException extends AssembleException {
-
-  public UndefinedSymbolException(String message) {
-    super(message);
+  public UndefinedSymbolException(String name, String message) {
+    super(name, message);
   }
 
-  public UndefinedSymbolException(String message, Throwable cause) {
-    super(message, cause);
+  public UndefinedSymbolException(String name, String message, Throwable cause) {
+    super(name, message, cause);
   }
 }

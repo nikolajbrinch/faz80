@@ -1,0 +1,51 @@
+.identifier-class {
+  -fx-fill: #0000ff;
+  -fx-font-weight: bold;
+  -fx-background-color: lightgray;
+}
+
+.string-class {
+  -fx-fill: #007f00;
+  -fx-font-weight: bold;
+}
+
+.number-class {
+  -fx-fill: #9f0000;
+  -fx-font-weight: bold;
+}
+
+.mnemonic-class {
+  -fx-fill: #cf6730;
+  -fx-font-weight: bold;
+}
+
+.directive-class {
+  -fx-fill: #d00095;
+  -fx-font-weight: bold;
+}
+
+.register-class {
+  -fx-fill: #009075;
+  -fx-font-weight: bold;
+}
+
+.dollar-class {
+  -fx-fill: #000000;
+  -fx-font-weight: bold;
+}
+
+.operator-class {
+  -fx-fill: #855080;
+  -fx-font-weight: bold;
+}
+
+.paren-class {
+  -fx-fill: #8888ff;
+  -fx-font-weight: bold;
+}
+
+.comment-class {
+  -fx-fill: #777777;
+  -fx-font-weight: bold;
+  -fx-font-style: italic;
+}

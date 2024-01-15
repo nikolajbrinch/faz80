@@ -53,10 +53,7 @@ public class Res implements InstructionGenerator {
    */
   @Override
   public ByteSource generateIndexedToImmediate(
-      Address currentAddress,
-      NumberValue numberValue,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, NumberValue numberValue, Register sourceRegister, long displacement) {
     return switch (sourceRegister) {
       case IX -> ByteSource.of(
           0xDD, 0xCB, displacement, 0b10000110 | ((numberValue.value() & 0b00000111) << 3));

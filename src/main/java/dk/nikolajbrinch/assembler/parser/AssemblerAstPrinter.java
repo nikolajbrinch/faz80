@@ -18,10 +18,12 @@ import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
+import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
 import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
@@ -29,7 +31,6 @@ import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
 import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
@@ -38,7 +39,7 @@ import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
+import dk.nikolajbrinch.assembler.compiler.EvaluationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -124,7 +125,6 @@ public class AssemblerAstPrinter
     return parenthesize("text: ", statement.values().toArray(new Expression[0]));
   }
 
-
   @Override
   public String visitOriginStatement(OriginStatement statement) {
     return parenthesize("org: ", statement.location(), statement.fillByte());
@@ -152,7 +152,15 @@ public class AssemblerAstPrinter
             + statement.name()
             + "] ("
             + statement.parameters().stream()
-                .map(parameter -> parameter.name().text() + defaultValue(parameter))
+                .map(
+                    parameter -> {
+                      try {
+                        return parameter.name().text() + defaultValue(parameter);
+                      } catch (EvaluationException e) {
+                        e.printStackTrace();
+                        return null;
+                      }
+                    })
                 .collect(Collectors.joining(","))
             + ") ",
         statement.block().statements());

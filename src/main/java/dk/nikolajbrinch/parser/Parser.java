@@ -1,14 +1,14 @@
 package dk.nikolajbrinch.parser;
 
+import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public interface Parser<S> {
 
-  List<S> parse(File file) throws IOException;
+  BlockStatement parse(File file) throws IOException;
 
-  default List<S> parse(String filename) throws IOException {
+  default BlockStatement parse(String filename) throws IOException {
     return parse(new File(filename));
   }
 }

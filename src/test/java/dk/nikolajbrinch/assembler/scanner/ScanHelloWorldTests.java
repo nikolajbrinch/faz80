@@ -17,7 +17,7 @@ class ScanHelloWorldTests {
 
       List<AssemblerToken> tokens = new ArrayList<>();
       scanner.forEach(tokens::add);
-      Assertions.assertEquals(56, tokens.size());
+      Assertions.assertEquals(54, tokens.size());
     }
   }
 }

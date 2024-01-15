@@ -8,13 +8,14 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ParseRepeatTests {
 
-  @TempDir
-  Path tempDir;
+  @TempDir Path tempDir;
 
   @Test
   void testParse() throws IOException {
     final Path tempFile = Files.createFile(tempDir.resolve("code.z80"));
-    Files.writeString(tempFile, """
+    Files.writeString(
+        tempFile,
+        """
         count1 equ 4
         rept count1
         label: set 89

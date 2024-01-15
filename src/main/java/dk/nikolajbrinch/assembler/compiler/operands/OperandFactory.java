@@ -13,7 +13,10 @@ import dk.nikolajbrinch.assembler.compiler.values.Value;
 
 public class OperandFactory {
 
-  public Operand createOperand(dk.nikolajbrinch.assembler.ast.operands.Operand operand, SymbolTable symbols, ExpressionEvaluator evaluator) {
+  public Operand createOperand(
+      dk.nikolajbrinch.assembler.ast.operands.Operand operand,
+      SymbolTable symbols,
+      ExpressionEvaluator evaluator) {
     if (operand == null) {
       return null;
     }
@@ -34,10 +37,12 @@ public class OperandFactory {
       evaluatedOperand = registerOperand.register();
     } else if (operand instanceof ConditionOperand conditionOperand) {
       evaluatedOperand = conditionOperand.condition();
-    } else if (operand instanceof ExpressionOperand expressionOperand){
-      evaluatedOperand = validateOperand(evaluator.evaluate(expressionOperand.expression(), symbols));
+    } else if (operand instanceof ExpressionOperand expressionOperand) {
+      evaluatedOperand =
+          validateOperand(evaluator.evaluate(expressionOperand.expression(), symbols));
     }
-    Object evaluatedDisplacement = displacment == null ? null : validateDisplacement(evaluator.evaluate(displacment, symbols));
+    Object evaluatedDisplacement =
+        displacment == null ? null : validateDisplacement(evaluator.evaluate(displacment, symbols));
 
     AddressingMode addressingMode =
         new AddressingDecoder().decode(evaluatedOperand, isIndirect, displacment != null);

@@ -12,7 +12,9 @@ public class Jp implements InstructionGenerator {
   public ByteSource generate(Address currentAddress, Operand targetOperand, Operand sourceOperand) {
     return switch (targetOperand.addressingMode()) {
       case IMMEDIATE_EXTENDED -> ByteSource.of(
-          0xC3, targetOperand.asNumberValue().lsb().value(), targetOperand.asNumberValue().msb().value());
+          0xC3,
+          targetOperand.asNumberValue().lsb().value(),
+          targetOperand.asNumberValue().msb().value());
       case REGISTER_INDIRECT -> switch (targetOperand.asRegister()) {
         case HL -> ByteSource.of(0xE9);
         case IX -> ByteSource.of(0xDD, 0xE9);

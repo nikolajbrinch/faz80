@@ -19,7 +19,10 @@ public class CharReaderImpl extends BaseReader<Char> implements CharReader {
   private int lineCount = 1;
 
   private Line currentLine;
-  private int position = 1;
+
+  private int currentPosition = 0;
+
+  private int linePosition = 1;
 
   public CharReaderImpl(InputStream inputStream) {
     this(inputStream, UTF_8);
@@ -29,11 +32,19 @@ public class CharReaderImpl extends BaseReader<Char> implements CharReader {
     this.reader = new BufferedReader(new InputStreamReader(inputStream, charset));
   }
 
-  public Line getLine() { return currentLine; }
+  @Override
+  public Line getLine() {
+    return currentLine;
+  }
 
   @Override
   public int getPosition() {
-    return position;
+    return currentPosition;
+  }
+
+  @Override
+  public int getLinePosition() {
+    return linePosition;
   }
 
   /**
@@ -49,23 +60,24 @@ public class CharReaderImpl extends BaseReader<Char> implements CharReader {
     if (currentLine == null) {
       String string = reader.readLine();
       if (string != null) {
-        currentLine = new Line(lineCount, string  + "\n");
+        currentLine = new Line(lineCount, string + "\n");
       } else {
         currentLine = null;
       }
     }
 
     if (currentLine != null) {
-      value = currentLine.read(position);
+      value = currentLine.read(currentPosition, linePosition);
+      currentPosition++;
 
       if (value.character() == '\n') {
         lineCount++;
-        position = 1;
+        linePosition = 1;
         currentLine = null;
       } else {
-        position++;
+        linePosition++;
       }
-  }
+    }
 
     return value;
   }

@@ -33,10 +33,7 @@ public class Sll implements InstructionGenerator {
 
   @Override
   public ByteSource generateRegisterToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      Register sourceRegister) {
+      Address currentAddress, Register targetRegister, long displacement, Register sourceRegister) {
 
     return switch (targetRegister) {
       case IX -> ByteSource.of(

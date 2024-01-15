@@ -1,0 +1,6 @@
+.header-label {
+  -fx-min-height: 30px;
+  -fx-pref-height: 30px;
+  -fx-max-height: 30px;
+  -fx-padding: 5px;
+}

@@ -5,11 +5,6 @@ import dk.nikolajbrinch.parser.Logger;
 public enum LoggerImpl implements Logger {
   INSTANCE;
 
-  enum Level {
-    DEBUG,
-    INFO
-  }
-
   private Level level;
 
   @Override
@@ -44,5 +39,10 @@ public enum LoggerImpl implements Logger {
 
   private String format(String message, Object[] args) {
     return args.length > 0 ? String.format(message, args) : message;
+  }
+
+  enum Level {
+    DEBUG,
+    INFO
   }
 }

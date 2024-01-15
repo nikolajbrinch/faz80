@@ -1,7 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
-import dk.nikolajbrinch.assembler.compiler.IllegalMathOperationException;
-
 public final class IntegerMath {
 
   public static Value<?> divide(Value<?> left, Value<?> right) {

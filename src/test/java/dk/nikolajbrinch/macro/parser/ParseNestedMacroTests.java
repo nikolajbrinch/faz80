@@ -1,15 +1,12 @@
 package dk.nikolajbrinch.macro.parser;
 
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.compiler.Assembler;
 import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.parser.AssemblerParser;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -35,14 +32,14 @@ class ParseNestedMacroTests {
             macro2 4+3
             """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    BlockStatement block = new AssemblerParser().parse(tempFile.toFile());
 
-    new Assembler(new ExpressionEvaluator()).assemble(statements);
+    new Assembler(new ExpressionEvaluator()).assemble(block);
 
-//    Assertions.assertEquals("""
-//ld c, 4+3
-//ld a, 1
-//ld b,  2
-//""", resolved);
+    //    Assertions.assertEquals("""
+    // ld c, 4+3
+    // ld a, 1
+    // ld b,  2
+    // """, resolved);
   }
 }

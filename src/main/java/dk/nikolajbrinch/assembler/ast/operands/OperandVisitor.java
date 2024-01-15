@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.ast.operands;
 
-
 public interface OperandVisitor<R> {
 
   R visitRegisterOperand(RegisterOperand operand);

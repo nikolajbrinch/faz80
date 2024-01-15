@@ -2,7 +2,6 @@ package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.IllegalInstructionException;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
@@ -69,8 +68,7 @@ public interface InstructionGenerator {
     return null;
   }
 
-  default ByteSource generateIndexed(
-      Address currentAddress, Register register, long displacement) {
+  default ByteSource generateIndexed(Address currentAddress, Register register, long displacement) {
     return null;
   }
 
@@ -141,10 +139,7 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateRegisterToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      Register sourceRegister) {
+      Address currentAddress, Register targetRegister, long displacement, Register sourceRegister) {
     return null;
   }
 
@@ -196,10 +191,7 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateRegisterIndirectToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      Register sourceRegister) {
+      Address currentAddress, Register targetRegister, long displacement, Register sourceRegister) {
     return null;
   }
 
@@ -248,10 +240,7 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateExtendedToIndexed(
-      Address currentAddress,
-      Register targetRegister,
-      long displacement,
-      NumberValue numberValue) {
+      Address currentAddress, Register targetRegister, long displacement, NumberValue numberValue) {
     return null;
   }
 
@@ -354,10 +343,7 @@ public interface InstructionGenerator {
   }
 
   private ByteSource generateSourceOperandIndexed(
-      Address currentAddress,
-      Operand targetOperand,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, Operand targetOperand, Register sourceRegister, long displacement) {
     return switch (targetOperand.addressingMode()) {
       case REGISTER -> generateIndexedToRegister(
           currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
@@ -376,10 +362,7 @@ public interface InstructionGenerator {
   }
 
   default ByteSource generateIndexedToRegister(
-      Address currentAddress,
-      Register targetRegister,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, Register targetRegister, Register sourceRegister, long displacement) {
     return null;
   }
 

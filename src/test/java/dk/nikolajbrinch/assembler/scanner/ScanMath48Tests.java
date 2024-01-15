@@ -16,7 +16,7 @@ class ScanMath48Tests {
 
       List<AssemblerToken> tokens = new ArrayList<>();
       scanner.forEach(tokens::add);
-      Assertions.assertEquals(7059, tokens.size());
+      Assertions.assertEquals(6878, tokens.size());
     }
   }
 }

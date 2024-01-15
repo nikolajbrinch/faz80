@@ -9,10 +9,12 @@ import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
 import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
 import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
 import dk.nikolajbrinch.assembler.compiler.values.BinaryMath;
+import dk.nikolajbrinch.assembler.compiler.values.IllegalMathOperationException;
 import dk.nikolajbrinch.assembler.compiler.values.IntegerMath;
 import dk.nikolajbrinch.assembler.compiler.values.Logic;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
@@ -29,35 +31,43 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
     Value<?> left = evaluate(expression.left());
     Value<?> right = evaluate(expression.right());
 
-    return switch (expression.operator().type()) {
-      case PLUS -> IntegerMath.add(left, right);
-      case MINUS -> IntegerMath.subtract(left, right);
-      case STAR -> IntegerMath.multiply(left, right);
-      case SLASH -> IntegerMath.divide(left, right);
-      case EQUAL_EQUAL -> Logic.compare(left, right);
-      case AND -> BinaryMath.and(left, right);
-      case AND_AND -> Logic.and(left, right);
-      case PIPE -> BinaryMath.or(left, right);
-      case PIPE_PIPE -> Logic.or(left, right);
-      case CARET -> BinaryMath.xor(left, right);
-      case GREATER_GREATER -> BinaryMath.shiftRight(left, right);
-      case LESS_LESS -> BinaryMath.shiftLeft(left, right);
-      case GREATER_GREATER_GREATER -> Logic.shiftRight(left, right);
-      default -> throw new IllegalStateException("Unknown binary expression");
-    };
+    try {
+      return switch (expression.operator().type()) {
+        case PLUS -> IntegerMath.add(left, right);
+        case MINUS -> IntegerMath.subtract(left, right);
+        case STAR -> IntegerMath.multiply(left, right);
+        case SLASH -> IntegerMath.divide(left, right);
+        case EQUAL_EQUAL -> Logic.compare(left, right);
+        case AND -> BinaryMath.and(left, right);
+        case AND_AND -> Logic.and(left, right);
+        case PIPE -> BinaryMath.or(left, right);
+        case PIPE_PIPE -> Logic.or(left, right);
+        case CARET -> BinaryMath.xor(left, right);
+        case GREATER_GREATER -> BinaryMath.shiftRight(left, right);
+        case LESS_LESS -> BinaryMath.shiftLeft(left, right);
+        case GREATER_GREATER_GREATER -> Logic.shiftRight(left, right);
+        default -> throw new IllegalStateException("Unknown binary expression");
+      };
+    } catch (IllegalMathOperationException e) {
+      throw new EvaluationException(expression, e.getMessage(), e);
+    }
   }
 
   @Override
   public Value<?> visitUnaryExpression(UnaryExpression expression) {
     Value<?> value = evaluate(expression.expression());
 
-    return switch (expression.operator().type()) {
-      case MINUS -> IntegerMath.negate(value);
-      case PLUS -> value;
-      case BANG -> Logic.not(value);
-      case TILDE -> BinaryMath.not(value);
-      default -> throw new IllegalStateException("Unknown unary expression");
-    };
+    try {
+      return switch (expression.operator().type()) {
+        case MINUS -> IntegerMath.negate(value);
+        case PLUS -> value;
+        case BANG -> Logic.not(value);
+        case TILDE -> BinaryMath.not(value);
+        default -> throw new IllegalStateException("Unknown unary expression");
+      };
+    } catch (IllegalMathOperationException e) {
+      throw new EvaluationException(expression, e.getMessage(), e);
+    }
   }
 
   @Override
@@ -71,13 +81,19 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
       case DECIMAL_NUMBER, HEX_NUMBER, OCTAL_NUMBER, BINARY_NUMBER -> NumberValue.create(
           expression.token());
       case STRING, CHAR -> StringValue.create(expression.token());
-      default -> throw new IllegalStateException("Unknown literal expression");
+      default -> throw new EvaluationException(expression, "Unknown literal expression");
     };
   }
 
   @Override
   public Value<?> visitIdentifierExpression(IdentifierExpression expression) {
-    ValueSymbol symbol = symbolTable.get(expression.token().text());
+    ValueSymbol symbol = null;
+
+    try {
+      symbol = symbolTable.get(expression.token().text());
+    } catch (SymbolException e) {
+      throw new EvaluationException(expression, e.getMessage(), e);
+    }
 
     return symbol.value();
   }
@@ -85,10 +101,15 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
   @Override
   public Value<?> visitAssignExpression(AssignExpression expression) {
     String name = expression.identifier().text();
-    SymbolType type = symbolTable.getSymbolType(name);
-    symbolTable.assign(name, type, new ValueSymbol(evaluate(expression.expression())));
 
-    throw new IllegalStateException("Unknown assign expression");
+    try {
+      SymbolType type = symbolTable.getSymbolType(name);
+      symbolTable.assign(name, type, new ValueSymbol(evaluate(expression.expression())));
+    } catch (SymbolException e) {
+      throw new EvaluationException(expression, e.getMessage(), e);
+    }
+
+    throw new EvaluationException(expression, "Unknown assign expression");
   }
 
   @Override
@@ -114,7 +135,8 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
     return (T) expression.accept(this);
   }
 
-  public <T extends Value<T>> T evaluate(Expression expression, SymbolTable symbolTable, Address currentAddress) {
+  public <T extends Value<T>> T evaluate(
+      Expression expression, SymbolTable symbolTable, Address currentAddress) {
     this.symbolTable = symbolTable;
     this.currentAddress = currentAddress;
 

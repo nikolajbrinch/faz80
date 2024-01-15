@@ -4,7 +4,6 @@ import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;

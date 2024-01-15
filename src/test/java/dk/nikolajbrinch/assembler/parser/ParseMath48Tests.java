@@ -4,15 +4,13 @@ import dk.nikolajbrinch.assembler.ast.statements.Statement;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ParseMath48Tests {
 
-  @Disabled
   @Test
   void testParse() throws IOException {
-    File file = new File(ParseMath48Tests.class.getResource("/Math48.z80").toExternalForm());
+    File file = new File(new File("."), "src/test/resources/Math48.z80");
     List<Statement> statements = new AssemblerParser().parse(file);
 
     for (Statement statement : statements) {

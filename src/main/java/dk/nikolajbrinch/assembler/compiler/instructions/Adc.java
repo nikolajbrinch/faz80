@@ -41,10 +41,7 @@ public class Adc implements InstructionGenerator {
 
   @Override
   public ByteSource generateIndexedToRegister(
-      Address currentAddress,
-      Register targetRegister,
-      Register sourceRegister,
-      long displacement) {
+      Address currentAddress, Register targetRegister, Register sourceRegister, long displacement) {
     if (targetRegister == Register.A) {
       return switch (sourceRegister) {
         case IX -> ByteSource.of(0xDD, 0x8E, displacement);
