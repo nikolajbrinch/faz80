@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.VBox?>
+<VBox fx:id="rootLayout" minHeight="-Infinity" prefWidth="900.0"
+  fx:controller="dk.nikolajbrinch.assembler.ide.IdeController" xmlns:fx="http://javafx.com/fxml">
+  <children>
+    <ToolBar>
+      <items>
+        <Button text="Open..." onAction="#openFile"/>
+        <Button text="Assemble" onAction="#assemble" fx:id="assembleButton"/>
+      </items>
+    </ToolBar>
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75" orientation="VERTICAL">
+      <items>
+        <VBox>
+          <SplitPane VBox.vgrow="ALWAYS">
+            <items>
+              <VBox>
+                <children>
+                  <TabPane fx:id="editorTabPane" VBox.vgrow="ALWAYS">
+
+                  </TabPane>
+                </children>
+              </VBox>
+              <VBox prefWidth="900.0">
+                <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.25">
+                  <items>
+                    <VBox prefWidth="300.0" styleClass="container">
+                      <children>
+                        <Label styleClass="header-label" text="AST"/>
+                        <TreeView styleClass="ast-tree" fx:id="astTreeView" VBox.vgrow="ALWAYS"
+                          showRoot="true"/>
+                      </children>
+                    </VBox>
+                    <VBox prefWidth="600.0" styleClass="container">
+                      <children>
+                        <Label styleClass="header-label" text="Symbols"/>
+                        <TableView fx:id="symbolTableView"
+                          VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn fx:id="name" text="Name" minWidth="150.0" prefWidth="150.0"
+                              maxWidth="150.0"/>
+                            <TableColumn fx:id="type" text="Type" minWidth="100.0" prefWidth="100.0"
+                              maxWidth="100.0"/>
+                            <TableColumn fx:id="value" text="Value" minWidth="500.0"
+                              maxWidth="Infinity"/>
+                          </columns>
+                        </TableView>
+                      </children>
+                    </VBox>
+                  </items>
+                </SplitPane>
+              </VBox>
+            </items>
+          </SplitPane>
+        </VBox>
+        <VBox prefWidth="600.0">
+          <children>
+            <TabPane VBox.vgrow="ALWAYS" fx:id="statusTabPane">
+              <Tab text="Output" fx:id="outputTab">
+                <TextArea fx:id="output" styleClass="output" VBox.vgrow="ALWAYS"/>
+              </Tab>
+              <Tab text="Errors" fx:id="errorsTab">
+                <TableView fx:id="errorTableView" styleClass="status-table" VBox.vgrow="ALWAYS">
+                  <columns>
+                    <TableColumn fx:id="errorLine" minWidth="50.0" prefWidth="50.0" maxWidth="50.0"
+                      text="Line"/>
+                    <TableColumn fx:id="errorTyoe" minWidth="70.0" prefWidth="70.0" maxWidth="70.0"
+                      text="Task"/>
+                    <TableColumn fx:id="errorToken" minWidth="120.0" prefWidth="120.0"
+                      maxWidth="120.0"
+                      text="Token"/>
+                    <TableColumn fx:id="errorDescription" minWidth="500.0" prefWidth="500.0"
+                      maxWidth="Infinity" text="Description"/>
+                  </columns>
+                </TableView>
+              </Tab>
+            </TabPane>
+          </children>
+        </VBox>
+      </items>
+    </SplitPane>
+  </children>
+  <MenuBar useSystemMenuBar="true" VBox.vgrow="NEVER">
+    <menus>
+      <Menu mnemonicParsing="false" text="File">
+        <items>
+          <MenuItem mnemonicParsing="false" text="New"/>
+          <MenuItem mnemonicParsing="false" onAction="#openFile" text="Open…"/>
+          <Menu mnemonicParsing="false" text="Open Recent"/>
+          <SeparatorMenuItem mnemonicParsing="false"/>
+          <MenuItem mnemonicParsing="false" text="Close"/>
+          <MenuItem mnemonicParsing="false" text="Save"/>
+          <MenuItem mnemonicParsing="false" text="Save As…"/>
+          <MenuItem mnemonicParsing="false" text="Revert"/>
+          <SeparatorMenuItem mnemonicParsing="false"/>
+          <MenuItem mnemonicParsing="false" text="Preferences…"/>
+          <SeparatorMenuItem mnemonicParsing="false"/>
+          <MenuItem mnemonicParsing="false" text="Quit"/>
+        </items>
+      </Menu>
+      <Menu mnemonicParsing="false" text="Edit">
+        <items>
+          <MenuItem mnemonicParsing="false" text="Undo"/>
+          <MenuItem mnemonicParsing="false" text="Redo"/>
+          <SeparatorMenuItem mnemonicParsing="false"/>
+          <MenuItem mnemonicParsing="false" text="Cut"/>
+          <MenuItem mnemonicParsing="false" text="Copy"/>
+          <MenuItem mnemonicParsing="false" text="Paste"/>
+          <MenuItem mnemonicParsing="false" text="Delete"/>
+          <SeparatorMenuItem mnemonicParsing="false"/>
+          <MenuItem mnemonicParsing="false" text="Select All"/>
+          <MenuItem mnemonicParsing="false" text="Unselect All"/>
+        </items>
+      </Menu>
+      <Menu mnemonicParsing="false" text="Help">
+        <items>
+          <MenuItem mnemonicParsing="false" text="About FZA80"/>
+        </items>
+      </Menu>
+    </menus>
+  </MenuBar>
+  <stylesheets>
+    <URL value="@styles/styles.css"/>
+    <URL value="@styles/syntax.css"/>
+  </stylesheets>
+</VBox>

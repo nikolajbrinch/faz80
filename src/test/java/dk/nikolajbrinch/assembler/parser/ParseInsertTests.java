@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +21,7 @@ class ParseInsertTests {
 incbin "/Users/neko/somefile.z80"
 """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
 
     Assertions.assertEquals(1, statements.size());
 

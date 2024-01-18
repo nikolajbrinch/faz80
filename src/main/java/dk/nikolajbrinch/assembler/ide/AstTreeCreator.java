@@ -1,41 +1,42 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.ExpressionVisitor;
-import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
-import dk.nikolajbrinch.assembler.ast.operands.ConditionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.ExpressionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.GroupingOperand;
-import dk.nikolajbrinch.assembler.ast.operands.OperandVisitor;
-import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
-import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
-import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
-import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
-import dk.nikolajbrinch.assembler.ast.statements.PhaseStatement;
-import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
-import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
-import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
+import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
+import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.GroupingOperand;
+import dk.nikolajbrinch.assembler.parser.operands.OperandVisitor;
+import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
+import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataWordStatement;
+import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
+import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
+import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
+import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
+import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
+import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import javafx.scene.control.TreeItem;
 
 public class AstTreeCreator
@@ -46,7 +47,8 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitBinaryExpression(BinaryExpression expression) {
     TreeItem<AstTreeValue> operator =
-        new TreeItem<>(new AstTreeValue(expression.line().number(), expression.operator().text()));
+        new TreeItem<>(
+            new AstTreeValue(expression.line().number(), () -> expression.operator().text()));
 
     operator.getChildren().add(expression.left().accept(this));
     operator.getChildren().add(expression.right().accept(this));
@@ -57,7 +59,8 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitUnaryExpression(UnaryExpression expression) {
     TreeItem<AstTreeValue> operator =
-        new TreeItem<>(new AstTreeValue(expression.line().number(), expression.operator().text()));
+        new TreeItem<>(
+            new AstTreeValue(expression.line().number(), () -> expression.operator().text()));
 
     operator.getChildren().add(expression.expression().accept(this));
 
@@ -67,7 +70,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitGroupingExpression(GroupingExpression expression) {
     TreeItem<AstTreeValue> group =
-        new TreeItem<>(new AstTreeValue(expression.line().number(), "Group"));
+        new TreeItem<>(new AstTreeValue(expression.line().number(), () -> "Group"));
     group.getChildren().add(expression.accept(this));
 
     return group;
@@ -78,46 +81,64 @@ public class AstTreeCreator
     return new TreeItem<>(
         new AstTreeValue(
             expression.line().number(),
-            switch (expression.token().type()) {
-              case HEX_NUMBER -> "0x" + expression.token().text();
-              case BINARY_NUMBER -> "0b" + expression.token().text();
-              case OCTAL_NUMBER -> "0" + expression.token().text();
-              default -> expression.token().text();
-            }));
+            () ->
+                switch (expression.token().type()) {
+                  case HEX_NUMBER -> String.format("0x%s", expression.token().text());
+                  case BINARY_NUMBER -> String.format("0b%s", expression.token().text());
+                  case OCTAL_NUMBER -> String.format("0%s", expression.token().text());
+                  default -> expression.token().text();
+                }));
   }
 
   @Override
   public TreeItem<AstTreeValue> visitIdentifierExpression(IdentifierExpression expression) {
-    return new TreeItem<>(new AstTreeValue(expression.line().number(), expression.token().text()));
+    return new TreeItem<>(
+        new AstTreeValue(expression.line().number(), () -> expression.token().text()));
   }
 
   @Override
   public TreeItem<AstTreeValue> visitAddressExpression(AddressExpression expression) {
-    return new TreeItem<>(new AstTreeValue(expression.line().number(), expression.token().text()));
+    return new TreeItem<>(
+        new AstTreeValue(expression.line().number(), () -> expression.token().text()));
   }
 
   @Override
-  public TreeItem<AstTreeValue> visitAssignExpression(AssignExpression expression) {
-    TreeItem<AstTreeValue> assign =
-        new TreeItem<>(new AstTreeValue(expression.line().number(), "Assign"));
-    assign
+  public TreeItem<AstTreeValue> visitMacroCallExpression(MacroCallExpression expression) {
+    TreeItem<AstTreeValue> macroCall =
+        new TreeItem<>(new AstTreeValue(expression.line().number(), () -> "MacroCall"));
+
+    TreeItem<AstTreeValue> macro =
+        new TreeItem<>(new AstTreeValue(expression.line().number(), () -> "Macro"));
+    macroCall.getChildren().add(macro);
+    macro
         .getChildren()
         .add(
             new TreeItem<>(
-                new AstTreeValue(expression.line().number(), expression.identifier().text())));
-    assign.getChildren().add(expression.expression().accept(this));
+                new AstTreeValue(expression.line().number(), () -> expression.name().text())));
 
-    return assign;
+    if (!expression.arguments().isEmpty()) {
+      TreeItem<AstTreeValue> arguments =
+          new TreeItem<>(
+              new AstTreeValue(expression.arguments().get(0).line().number(), () -> "Arguments"));
+      macroCall.getChildren().add(arguments);
+      expression
+          .arguments()
+          .forEach(argument -> arguments.getChildren().add(argument.accept(this)));
+    }
+
+    return macroCall;
   }
 
   @Override
   public TreeItem<AstTreeValue> visitRegisterOperand(RegisterOperand operand) {
     TreeItem<AstTreeValue> register =
-        new TreeItem<>(new AstTreeValue(operand.line().number(), "Register"));
+        new TreeItem<>(new AstTreeValue(operand.line().number(), () -> "Register"));
 
     register
         .getChildren()
-        .add(new TreeItem<>(new AstTreeValue(operand.line().number(), operand.register().name())));
+        .add(
+            new TreeItem<>(
+                new AstTreeValue(operand.line().number(), () -> operand.register().name())));
     if (operand.displacement() != null) {
       register.getChildren().add(operand.displacement().accept(this));
     }
@@ -132,13 +153,14 @@ public class AstTreeCreator
 
   @Override
   public TreeItem<AstTreeValue> visitConditionOperand(ConditionOperand operand) {
-    return new TreeItem<>(new AstTreeValue(operand.line().number(), operand.condition().name()));
+    return new TreeItem<>(
+        new AstTreeValue(operand.line().number(), () -> operand.condition().name()));
   }
 
   @Override
   public TreeItem<AstTreeValue> visitGroupingOperand(GroupingOperand operand) {
     TreeItem<AstTreeValue> group =
-        new TreeItem<>(new AstTreeValue(operand.line().number(), "Group"));
+        new TreeItem<>(new AstTreeValue(operand.line().number(), () -> "Group"));
     group.getChildren().add(operand.operand().accept(this));
 
     return group;
@@ -147,7 +169,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitExpressionStatement(ExpressionStatement statement) {
     TreeItem<AstTreeValue> expression =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Expression"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Expression"));
     expression.getChildren().add(statement.expression().accept(this));
 
     return expression;
@@ -156,16 +178,15 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitInstructionStatement(InstructionStatement statement) {
     TreeItem<AstTreeValue> instruction =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Instruction"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Instruction"));
     TreeItem<AstTreeValue> opcode =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), statement.mnemonic().text()));
+        new TreeItem<>(
+            new AstTreeValue(statement.line().number(), () -> statement.mnemonic().text()));
     instruction.getChildren().add(opcode);
-    if (statement.operand1() != null) {
-      opcode.getChildren().add(statement.operand1().accept(this));
-    }
-    if (statement.operand2() != null) {
-      opcode.getChildren().add(statement.operand2().accept(this));
-    }
+    TreeItem<AstTreeValue> operands =
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Operands"));
+    instruction.getChildren().add(operands);
+    statement.operands().forEach(operand -> operands.getChildren().add(operand.accept(this)));
 
     return instruction;
   }
@@ -173,12 +194,12 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitConstantStatement(ConstantStatement statement) {
     TreeItem<AstTreeValue> assign =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Constant"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Constant"));
     assign
         .getChildren()
         .add(
             new TreeItem<>(
-                new AstTreeValue(statement.line().number(), statement.identifier().text())));
+                new AstTreeValue(statement.line().number(), () -> statement.identifier().text())));
     assign.getChildren().add(statement.value().accept(this));
 
     return assign;
@@ -187,12 +208,12 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitVariableStatement(VariableStatement statement) {
     TreeItem<AstTreeValue> veriable =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Variable"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Variable"));
     veriable
         .getChildren()
         .add(
             new TreeItem<>(
-                new AstTreeValue(statement.line().number(), statement.identifier().text())));
+                new AstTreeValue(statement.line().number(), () -> statement.identifier().text())));
     veriable.getChildren().add(statement.intializer().accept(this));
 
     return veriable;
@@ -201,7 +222,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitDataByteStatement(DataByteStatement statement) {
     TreeItem<AstTreeValue> dataByte =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Byte"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Byte"));
     statement.values().forEach(value -> dataByte.getChildren().add(value.accept(this)));
 
     return dataByte;
@@ -210,7 +231,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitDataWordStatement(DataWordStatement statement) {
     TreeItem<AstTreeValue> dataWord =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Word"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Word"));
     statement.values().forEach(value -> dataWord.getChildren().add(value.accept(this)));
 
     return dataWord;
@@ -219,7 +240,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitDataLongStatement(DataLongStatement statement) {
     TreeItem<AstTreeValue> dataLong =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Long"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Long"));
     statement.values().forEach(value -> dataLong.getChildren().add(value.accept(this)));
 
     return dataLong;
@@ -228,7 +249,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitDataTextStatement(DataTextStatement statement) {
     TreeItem<AstTreeValue> dataText =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Text"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Text"));
     statement.values().forEach(value -> dataText.getChildren().add(value.accept(this)));
 
     return dataText;
@@ -237,7 +258,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitOriginStatement(OriginStatement statement) {
     TreeItem<AstTreeValue> origin =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Origin"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Origin"));
 
     origin.getChildren().add(statement.location().accept(this));
     if (statement.fillByte() != null) {
@@ -250,18 +271,24 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitAlignStatement(AlignStatement statement) {
     TreeItem<AstTreeValue> align =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Align"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Align"));
 
     align.getChildren().add(statement.alignment().accept(this));
-    align.getChildren().add(statement.fillByte().accept(this));
+    if (statement.fillByte() != null) {
+      align.getChildren().add(statement.fillByte().accept(this));
+    }
 
     return align;
   }
 
   @Override
   public TreeItem<AstTreeValue> visitBlockStatement(BlockStatement statement) {
+    if (statement.statements().isEmpty()) {
+      return null;
+    }
+
     TreeItem<AstTreeValue> block =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Block"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Block"));
 
     block.getChildren().add(new SymbolTableTreeItem(statement.symbolTable()));
 
@@ -273,7 +300,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitLocalStatement(LocalStatement statement) {
     TreeItem<AstTreeValue> local =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Local"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Local"));
 
     local.getChildren().add(statement.block().accept(this));
 
@@ -283,19 +310,20 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitMacroStatement(MacroStatement statement) {
     TreeItem<AstTreeValue> macro =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Macro"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Macro"));
     macro
         .getChildren()
         .add(
             new TreeItem<>(
-                new AstTreeValue(statement.name().line().number(), statement.name().text())));
+                new AstTreeValue(statement.name().line().number(), () -> statement.name().text())));
 
     macro.getChildren().add(new SymbolTableTreeItem(statement.symbolTable()));
 
     if (!statement.parameters().isEmpty()) {
       TreeItem<AstTreeValue> parameters =
           new TreeItem<>(
-              new AstTreeValue(statement.parameters().get(0).name().line().number(), "Parameters"));
+              new AstTreeValue(
+                  statement.parameters().get(0).name().line().number(), () -> "Parameters"));
       macro.getChildren().add(parameters);
       statement
           .parameters()
@@ -306,7 +334,8 @@ public class AstTreeCreator
                       .add(
                           new TreeItem<>(
                               new AstTreeValue(
-                                  parameter.name().line().number(), parameter.name().text()))));
+                                  parameter.name().line().number(),
+                                  () -> parameter.name().text()))));
     }
 
     macro.getChildren().add(statement.block().accept(this));
@@ -317,17 +346,13 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitPhaseStatement(PhaseStatement statement) {
     TreeItem<AstTreeValue> phase =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Phase"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Phase"));
 
     TreeItem<AstTreeValue> count =
-        new TreeItem<>(new AstTreeValue(statement.expression().line().number(), "Address"));
+        new TreeItem<>(new AstTreeValue(statement.expression().line().number(), () -> "Address"));
     phase.getChildren().add(count);
     count.getChildren().add(statement.expression().accept(this));
-
-    TreeItem<AstTreeValue> block =
-        new TreeItem<>(new AstTreeValue(statement.block().line().number(), "Block"));
-    phase.getChildren().add(block);
-    block.getChildren().add(statement.block().accept(this));
+    phase.getChildren().add(statement.block().accept(this));
 
     return phase;
   }
@@ -335,27 +360,40 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitRepeatStatement(RepeatStatement statement) {
     TreeItem<AstTreeValue> repeat =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Repeat"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Repeat"));
 
     TreeItem<AstTreeValue> count =
-        new TreeItem<>(new AstTreeValue(statement.count().line().number(), "Count"));
+        new TreeItem<>(new AstTreeValue(statement.count().line().number(), () -> "Count"));
     repeat.getChildren().add(count);
     count.getChildren().add(statement.count().accept(this));
-
-    TreeItem<AstTreeValue> block =
-        new TreeItem<>(new AstTreeValue(statement.blockStatement().line().number(), "Block"));
-    repeat.getChildren().add(block);
-    block.getChildren().add(statement.blockStatement().accept(this));
+    repeat.getChildren().add(statement.blockStatement().accept(this));
 
     return repeat;
   }
 
   @Override
   public TreeItem<AstTreeValue> visitConditionalStatement(ConditionalStatement statement) {
-    TreeItem<AstTreeValue> condition = statement.accept(this);
+    TreeItem<AstTreeValue> condition =
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "If"));
 
-    condition.getChildren().add(statement.thenBranch().accept(this));
-    condition.getChildren().add(statement.elseBranch().accept(this));
+    TreeItem<AstTreeValue> expression =
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Expression"));
+    condition.getChildren().add(expression);
+    expression.getChildren().add(statement.condition().accept(this));
+
+    if (statement.thenBranch() != null) {
+      TreeItem<AstTreeValue> then =
+          new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Then"));
+      condition.getChildren().add(then);
+      then.getChildren().add(statement.thenBranch().accept(this));
+    }
+
+    if (statement.elseBranch() != null) {
+      TreeItem<AstTreeValue> elseNode =
+          new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Else"));
+      condition.getChildren().add(elseNode);
+      elseNode.getChildren().add(statement.elseBranch().accept(this));
+    }
 
     return condition;
   }
@@ -363,7 +401,7 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitAssertStatement(AssertStatement statement) {
     TreeItem<AstTreeValue> assertion =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Label"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Label"));
     assertion.getChildren().add(statement.expression().accept(this));
 
     return assertion;
@@ -372,19 +410,20 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitGlobalStatement(GlobalStatement statement) {
     return new TreeItem<>(
-        new AstTreeValue(statement.identifier().line().number(), statement.identifier().text()));
+        new AstTreeValue(
+            statement.identifier().line().number(), () -> statement.identifier().text()));
   }
 
   @Override
   public TreeItem<AstTreeValue> visitLabelStatement(LabelStatement statement) {
     TreeItem<AstTreeValue> label =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Label"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Label"));
     label
         .getChildren()
         .add(
             new TreeItem<>(
                 new AstTreeValue(
-                    statement.identifier().line().number(), statement.identifier().text())));
+                    statement.identifier().line().number(), () -> statement.identifier().text())));
 
     return label;
   }
@@ -392,19 +431,21 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitMacroCallStatement(MacroCallStatement statement) {
     TreeItem<AstTreeValue> macroCall =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "MacroCall"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "MacroCall"));
 
     TreeItem<AstTreeValue> macro =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Macro"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Macro"));
     macroCall.getChildren().add(macro);
     macro
         .getChildren()
-        .add(new TreeItem<>(new AstTreeValue(statement.line().number(), statement.name().text())));
+        .add(
+            new TreeItem<>(
+                new AstTreeValue(statement.line().number(), () -> statement.name().text())));
 
     if (!statement.arguments().isEmpty()) {
       TreeItem<AstTreeValue> arguments =
           new TreeItem<>(
-              new AstTreeValue(statement.arguments().get(0).line().number(), "Arguments"));
+              new AstTreeValue(statement.arguments().get(0).line().number(), () -> "Arguments"));
       macroCall.getChildren().add(arguments);
       statement.arguments().forEach(argument -> arguments.getChildren().add(argument.accept(this)));
     }
@@ -414,17 +455,31 @@ public class AstTreeCreator
 
   @Override
   public TreeItem<AstTreeValue> visitEmptyStatement(EmptyStatement statement) {
-    return new TreeItem<>(new AstTreeValue(statement.line().number(), statement));
+    return new TreeItem<>(new AstTreeValue(statement.line().number(), () -> ""));
   }
 
   @Override
   public TreeItem<AstTreeValue> visitInsertStatement(InsertStatement statement) {
     TreeItem<AstTreeValue> insert =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), "Insert"));
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Insert"));
     insert
         .getChildren()
         .add(
-            new TreeItem<>(new AstTreeValue(statement.line().number(), statement.string().text())));
+            new TreeItem<>(
+                new AstTreeValue(statement.line().number(), () -> statement.string().text())));
+
+    return insert;
+  }
+
+  @Override
+  public TreeItem<AstTreeValue> visitIncludeStatement(IncludeStatement statement) {
+    TreeItem<AstTreeValue> insert =
+        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Include"));
+    insert
+        .getChildren()
+        .add(
+            new TreeItem<>(
+                new AstTreeValue(statement.line().number(), () -> statement.string().text())));
 
     return insert;
   }

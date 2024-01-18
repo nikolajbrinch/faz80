@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import java.io.File;
 import java.io.IOException;
 

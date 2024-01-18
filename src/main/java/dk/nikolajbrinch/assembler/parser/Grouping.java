@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
 import java.util.Arrays;
 
 public enum Grouping {

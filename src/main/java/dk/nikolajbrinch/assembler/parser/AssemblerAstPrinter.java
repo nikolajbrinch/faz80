@@ -1,44 +1,45 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.expressions.ExpressionVisitor;
-import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
-import dk.nikolajbrinch.assembler.ast.operands.ConditionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.ExpressionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.GroupingOperand;
-import dk.nikolajbrinch.assembler.ast.operands.Operand;
-import dk.nikolajbrinch.assembler.ast.operands.OperandVisitor;
-import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
-import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
-import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
-import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
-import dk.nikolajbrinch.assembler.ast.statements.PhaseStatement;
-import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
-import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
+import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
+import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.GroupingOperand;
+import dk.nikolajbrinch.assembler.parser.operands.Operand;
+import dk.nikolajbrinch.assembler.parser.operands.OperandVisitor;
+import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
+import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataWordStatement;
+import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
+import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
+import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
+import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
+import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.compiler.EvaluationException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -92,7 +93,7 @@ public class AssemblerAstPrinter
   @Override
   public String visitInstructionStatement(InstructionStatement statement) {
     return parenthesize(
-        "instruction: " + statement.mnemonic().text(), statement.operand1(), statement.operand2());
+        "instruction: " + statement.mnemonic().text(), statement.operands().toArray(new Operand[0]));
   }
 
   @Override
@@ -219,8 +220,13 @@ public class AssemblerAstPrinter
   }
 
   @Override
-  public String visitAssignExpression(AssignExpression expression) {
-    return parenthesize("assign: " + expression.identifier().text(), expression.expression());
+  public String visitIncludeStatement(IncludeStatement statement) {
+    return "include: " + statement.string();
+  }
+
+  @Override
+  public String visitMacroCallExpression(MacroCallExpression expression) {
+    return parenthesize("call: " + expression.name(), expression.arguments());
   }
 
   @Override

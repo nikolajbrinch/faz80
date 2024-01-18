@@ -1,14 +1,16 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.AssignExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.expressions.ExpressionVisitor;
-import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.compiler.symbols.AddressSymbol;
+import dk.nikolajbrinch.assembler.compiler.symbols.Symbol;
+import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
+import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
@@ -20,7 +22,7 @@ import dk.nikolajbrinch.assembler.compiler.values.Logic;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.compiler.values.Value;
-import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
 
 public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
 
@@ -87,7 +89,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
 
   @Override
   public Value<?> visitIdentifierExpression(IdentifierExpression expression) {
-    ValueSymbol symbol = null;
+    Symbol<?> symbol = null;
 
     try {
       symbol = symbolTable.get(expression.token().text());
@@ -95,21 +97,15 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
       throw new EvaluationException(expression, e.getMessage(), e);
     }
 
-    return symbol.value();
-  }
-
-  @Override
-  public Value<?> visitAssignExpression(AssignExpression expression) {
-    String name = expression.identifier().text();
-
-    try {
-      SymbolType type = symbolTable.getSymbolType(name);
-      symbolTable.assign(name, type, new ValueSymbol(evaluate(expression.expression())));
-    } catch (SymbolException e) {
-      throw new EvaluationException(expression, e.getMessage(), e);
+    if (symbol instanceof ValueSymbol valueSymbol) {
+      return valueSymbol.value();
     }
 
-    throw new EvaluationException(expression, "Unknown assign expression");
+    return ((AddressSymbol) symbol).value().logicalAddress();
+  }
+  @Override
+  public Value<?> visitMacroCallExpression(MacroCallExpression macroCallExpression) {
+    return null;
   }
 
   @Override

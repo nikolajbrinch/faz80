@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +31,7 @@ class ParseIncludeTests {
     .include "include.z80"
     """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
 
     Assertions.assertEquals(2, statements.size());
   }
@@ -65,7 +65,7 @@ class ParseIncludeTests {
     ld d, constant2
     """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
 
     Assertions.assertEquals(6, statements.size());
     statements.forEach(statement -> System.out.println(statement));

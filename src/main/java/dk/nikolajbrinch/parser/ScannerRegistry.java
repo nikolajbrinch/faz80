@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 public interface ScannerRegistry<T> {
-  void register(File file) throws IOException;
+  void register(ScannerSource source) throws IOException;
 
   void register(String filename) throws IOException;
 

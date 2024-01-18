@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.symbols;
 
+
 public class SymbolException extends RuntimeException {
 
   private final String name;

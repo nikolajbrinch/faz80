@@ -1,57 +1,61 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.expressions.AddressExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.ast.expressions.UnaryExpression;
-import dk.nikolajbrinch.assembler.ast.operands.ConditionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.ExpressionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.GroupingOperand;
-import dk.nikolajbrinch.assembler.ast.operands.Operand;
-import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
-import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
-import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
-import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
-import dk.nikolajbrinch.assembler.ast.statements.PhaseStatement;
-import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.Macro;
 import dk.nikolajbrinch.assembler.compiler.symbols.ExpressionSymbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.LabelSymbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.MacroSymbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.Symbol;
-import dk.nikolajbrinch.assembler.compiler.symbols.SymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
+import dk.nikolajbrinch.assembler.compiler.symbols.UndefinedSymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
-import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
-import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
-import dk.nikolajbrinch.assembler.scanner.Mnemonic;
+import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
+import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.GroupingOperand;
+import dk.nikolajbrinch.assembler.parser.operands.Operand;
+import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.assembler.parser.scanner.Mnemonic;
+import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataWordStatement;
+import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
+import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
+import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
+import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.parser.BaseParser;
+import dk.nikolajbrinch.parser.FileSource;
 import dk.nikolajbrinch.parser.Logger;
 import dk.nikolajbrinch.parser.ParseException;
+import dk.nikolajbrinch.parser.StringSource;
 import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +66,10 @@ import java.util.Set;
 public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken> {
 
   private static final Logger logger = LoggerFactory.getLogger();
+  private static final AssemblerTokenType[] EOF_TYPES =
+      new AssemblerTokenType[] {AssemblerTokenType.EOF, AssemblerTokenType.END};
+  private static final AssemblerTokenType[] COMMENT_TYPES =
+      new AssemblerTokenType[] {AssemblerTokenType.COMMENT};
 
   private final Set<Mnemonic> conditionalInstructions =
       Set.of(Mnemonic.JR, Mnemonic.JP, Mnemonic.CALL, Mnemonic.RET);
@@ -71,43 +79,27 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
   private final ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
 
+  private final Configuration configuration = new Configuration();
+
   private SymbolTable currentSymbolTable;
 
   public AssemblerParser() {
     super(new AssemblerTokenProducer(), true);
   }
 
-  /*
-   * TODO: Error reporting needs to be much better
-   */
-  protected static void reportError(AssemblerToken token, String message) {
-    if (token.type() == AssemblerTokenType.EOF) {
-      report(
-          "Parsing error in line " + token.line().number() + ", " + token.start() + ": at end",
-          message);
-    } else {
-      report(
-          "Parsing error in line "
-              + token.line().number()
-              + ", "
-              + token.start()
-              + ": at '"
-              + token.text()
-              + "'",
-          message);
-    }
-  }
-
-  /*
-   * TODO: Error reporting needs to be much better
-   */
-  protected static void report(String location, String message) {
-    logger.error("%s: %s%n", location, message);
-  }
-
   public BlockStatement parse(File file) throws IOException {
-    newFile(file);
+    newSource(new FileSource(file));
 
+    return parse();
+  }
+
+  public BlockStatement parse(String source) throws IOException {
+    newSource(new StringSource(source));
+
+    return parse();
+  }
+
+  private BlockStatement parse() {
     currentSymbolTable = new SymbolTable();
 
     List<Statement> statements = new ArrayList<>();
@@ -146,17 +138,26 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
         case DUPLICATE -> duplicate();
         case LOCAL -> local();
         case PHASE -> phase();
-        case IF -> condition();
+        case IF, ELSE, ELSE_IF, ENDIF -> condition();
         case ASSERT -> assertion();
         case GLOBAL -> global();
         case SET -> instruction(nextToken());
+        case DIRECTIVE -> directive();
         default -> statement();
       };
-    } catch (ParseException | IOException | SymbolException e) {
+    } catch (ParseException e) {
+      reportError(e);
+
       synchronize();
 
       return null;
     }
+  }
+
+  private Statement directive() {
+    AssemblerToken token = consume(AssemblerTokenType.DIRECTIVE, "Expect directive");
+
+    throw new ParseException(token, "Unknown directive: " + token.text());
   }
 
   private Statement identifier() {
@@ -166,7 +167,13 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
       /*
        * Check if identifier is a macroCall reference
        */
-      SymbolType symbolType = currentSymbolTable.getSymbolType(identifier.text());
+      SymbolType symbolType = null;
+
+      try {
+        symbolType = currentSymbolTable.getSymbolType(identifier.text());
+      } catch (UndefinedSymbolException e) {
+        throw new ParseException(identifier, e.getMessage(), e);
+      }
 
       if (symbolType == SymbolType.MACRO) {
         return macroCall(identifier);
@@ -206,6 +213,8 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     currentSymbolTable.define(
         identifier.text(), SymbolType.LABEL, new LabelSymbol(identifier.text()));
+
+
 
     return statement;
   }
@@ -286,12 +295,20 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     return new AlignStatement(alignment, fillByte);
   }
 
-  private Statement include() throws IOException {
+  private Statement include() {
     consume(AssemblerTokenType.INCLUDE, "Expect include");
 
     AssemblerToken string = consume(AssemblerTokenType.STRING, "Expect string after include");
 
-    newFile(StringUtil.unquote(string.text()));
+    if (configuration.isResolveIncludes()) {
+      try {
+        newSource(new FileSource(StringUtil.unquote(string.text())));
+      } catch (IOException e) {
+        throw new ParseException(string, e.getMessage(), e);
+      }
+    } else {
+      return new IncludeStatement(string);
+    }
 
     return null;
   }
@@ -429,10 +446,10 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
                 SymbolType.MACRO_ARGUMENT,
                 new ExpressionSymbol(parameter.defaultValue())));
 
-    BlockStatement block = block(AssemblerTokenType.ENDMACRO, macroSymbolTable);
+    BlockStatement block = block(macroSymbolTable, AssemblerTokenType.ENDMACRO);
 
-    consume(AssemblerTokenType.ENDMACRO, "Expect endmarco after body!");
-    expectEol("Expect newline or eof after endmarco.");
+    consume(AssemblerTokenType.ENDMACRO, "Expect endmacro after body!");
+    expectEol("Expect newline or eof after endmacro.");
 
     MacroStatement statement = new MacroStatement(name, macroSymbolTable, parameters, block);
 
@@ -511,10 +528,10 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   /*
    * TODO: Rework scanner and parser to create args as strings for later macro expansion
    */
-  private List<Statement> parseArgs(AssemblerTokenType stop) {
+  private List<Statement> parseArgs(AssemblerTokenType... stop) {
     List<Statement> arguments = new ArrayList<>();
 
-    while (!checkType(stop)) {
+    while (!match(stop)) {
       if (checkType(AssemblerTokenType.LESS)) {
         try {
           AssemblerToken start =
@@ -531,6 +548,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
                     new LiteralExpression(
                         new AssemblerToken(
                             AssemblerTokenType.CHAR,
+                            getSourceInfo(),
                             token.position(),
                             token.line(),
                             token.start(),
@@ -556,6 +574,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
                     new LiteralExpression(
                         new AssemblerToken(
                             AssemblerTokenType.CHAR,
+                            getSourceInfo(),
                             token.position(),
                             token.line(),
                             token.start() + 1,
@@ -640,15 +659,23 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   }
 
   private Statement condition() {
+    boolean error = false;
+
     if (match(AssemblerTokenType.IF)) {
       consume(AssemblerTokenType.IF, "Expect if");
     } else if (match(AssemblerTokenType.ELSE_IF)) {
       consume(AssemblerTokenType.ELSE_IF, "Expect else if");
+    } else {
+      error = true;
     }
 
-    Expression expression = expression();
+    Expression expression = null;
 
-    consume(AssemblerTokenType.NEWLINE, "Expect newline after if.");
+    if (!error) {
+      expression = expression();
+
+      consume(AssemblerTokenType.NEWLINE, "Expect newline after if.");
+    }
 
     AssemblerToken token =
         search(AssemblerTokenType.ELSE, AssemblerTokenType.ELSE_IF, AssemblerTokenType.ENDIF);
@@ -656,30 +683,54 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     Statement thenBranch = null;
     Statement elseBranch = null;
 
-    if (token.type() == AssemblerTokenType.ENDIF) {
-      thenBranch = block(AssemblerTokenType.ENDIF);
-      consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
-      expectEol("Expect newline or eof after endif.");
-    } else if (token.type() == AssemblerTokenType.ELSE) {
-      thenBranch = block(AssemblerTokenType.ELSE);
-      consume(AssemblerTokenType.ELSE, "Expect else after body!");
-      consume(AssemblerTokenType.NEWLINE, "Expect newline after else!");
-      elseBranch = block(AssemblerTokenType.ENDIF);
-      consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
-      expectEol("Expect newline or eof after endif.");
-    } else if (token.type() == AssemblerTokenType.ELSE_IF) {
-      thenBranch = block(AssemblerTokenType.ELSE_IF);
-      elseBranch = condition();
+    List<ParseException> errors = new ArrayList<>();
+
+    if (token != null) {
+      if (token.type() == AssemblerTokenType.ENDIF) {
+        thenBranch = block(AssemblerTokenType.ENDIF);
+        AssemblerToken temp = consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
+        if (error) {
+          errors.add(new ParseException(temp, "Missing #if or #elif"));
+        }
+        expectEol("Expect newline or eof after endif.");
+      } else if (token.type() == AssemblerTokenType.ELSE) {
+        thenBranch = block(AssemblerTokenType.ELSE);
+        AssemblerToken temp1 = consume(AssemblerTokenType.ELSE, "Expect else after body!");
+        if (error) {
+          errors.add(new ParseException(temp1, "Missing #if or #elif"));
+        }
+        consume(AssemblerTokenType.NEWLINE, "Expect newline after else!");
+        elseBranch = block(AssemblerTokenType.ENDIF);
+        AssemblerToken temp2 = consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
+        if (error) {
+          errors.add(new ParseException(temp2, "Missing #if or #elif"));
+        }
+        expectEol("Expect newline or eof after endif.");
+      } else if (token.type() == AssemblerTokenType.ELSE_IF) {
+        thenBranch = block(AssemblerTokenType.ELSE_IF);
+        if (error) {
+          errors.add(new ParseException(nextToken(), "Missing #if or #elif"));
+        } else {
+          elseBranch = condition();
+        }
+      }
+    }
+
+    if (!errors.isEmpty()) {
+      ParseException exception = errors.removeFirst();
+      errors.forEach(this::reportError);
+
+      throw exception;
     }
 
     return new ConditionalStatement(expression, thenBranch, elseBranch);
   }
 
   private BlockStatement block(AssemblerTokenType endToken) {
-    return block(endToken, null);
+    return block(null, endToken);
   }
 
-  private BlockStatement block(AssemblerTokenType endToken, SymbolTable symbolTable) {
+  private BlockStatement block(SymbolTable symbolTable, AssemblerTokenType endToken) {
     List<Statement> statements = new ArrayList<>();
 
     SymbolTable previousSymbolTable = currentSymbolTable;
@@ -704,18 +755,21 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   }
 
   private Statement instruction(AssemblerToken mnemonic) {
-    Operand left = operand(mnemonic);
+    List<Operand> operands = new ArrayList<>();
 
-    Operand right = null;
-    if (match(AssemblerTokenType.COMMA)) {
-      nextToken();
+    while (!isEol()) {
+      operands.add(operand(mnemonic));
 
-      right = operand(mnemonic);
+      if (match(AssemblerTokenType.COMMA)) {
+        nextToken();
+      } else {
+        break;
+      }
     }
 
     expectEol("Expect newline or eof after instruction.");
 
-    return new InstructionStatement(mnemonic, left, right);
+    return new InstructionStatement(mnemonic, operands);
   }
 
   private Operand operand(AssemblerToken mnemonic) {
@@ -793,20 +847,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   }
 
   public Expression expression() {
-    return assignment();
-  }
-
-  private Expression assignment() {
-    Expression expression = logicalOr();
-
-    //    if (control.match(TokenType.EQUAL)) {
-    //      control.nextToken();
-    //      Expression expression = logicalOr();
-    //
-    //      return new AssignExpression(control.getAndClearLastIdentifier(), expression);
-    //    }
-
-    return expression;
+    return logicalOr();
   }
 
   private Expression logicalOr() {
@@ -973,7 +1014,25 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
      * Identifier expressions
      */
     if (match(AssemblerTokenType.IDENTIFIER)) {
-      return new IdentifierExpression(nextToken());
+      AssemblerToken identifier = nextToken();
+
+      if (currentSymbolTable.exists(identifier.text())) {
+        try {
+          if (currentSymbolTable.getSymbolType(identifier.text()) == SymbolType.MACRO) {
+            consume(AssemblerTokenType.LEFT_PAREN, "Expect ( before macro call arguments");
+
+            List<Statement> arguments = parseArgs(AssemblerTokenType.RIGHT_PAREN);
+
+            consume(AssemblerTokenType.RIGHT_PAREN, "Expect ) after macro call arguments");
+
+            return new MacroCallExpression(identifier, arguments);
+          }
+        } catch (UndefinedSymbolException e) {
+          throw new ParseException(identifier, e.getMessage(), e);
+        }
+      }
+
+      return new IdentifierExpression(identifier);
     }
 
     /*
@@ -1037,10 +1096,8 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     throw error(peek(), message);
   }
 
-  protected RuntimeException error(AssemblerToken token, String message) {
-    reportError(token, message);
-
-    return new ParseException(message);
+  protected ParseException error(AssemblerToken token, String message) {
+    return new ParseException(token, message);
   }
 
   protected boolean lineHasToken(AssemblerTokenType type) {
@@ -1071,13 +1128,13 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   }
 
   @Override
-  protected AssemblerTokenType getEofType() {
-    return AssemblerTokenType.EOF;
+  protected AssemblerTokenType[] getEofTypes() {
+    return EOF_TYPES;
   }
 
   @Override
-  protected AssemblerTokenType getCommentType() {
-    return AssemblerTokenType.COMMENT;
+  protected AssemblerTokenType[] getCommentTypes() {
+    return COMMENT_TYPES;
   }
 
   protected boolean isEol() {

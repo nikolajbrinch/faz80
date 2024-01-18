@@ -20,22 +20,34 @@ public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
   private Scanner<T> currentScanner;
   private File currentDirectory;
 
-  public void register(File file) throws IOException {
-    String canonicalPath = file.getCanonicalPath();
-
-    if (registry.containsKey(canonicalPath)) {
-      cyclicDependencyError(canonicalPath);
+  public void register(ScannerSource source) throws IOException {
+    if (registry.containsKey(source.getSourceInfo().name())) {
+      cyclicDependencyError(source.getSourceInfo().name());
     }
 
-    Scanner<T> scanner = createScanner(file);
-    File canonicalDirectory = file.getParentFile().getCanonicalFile();
+    Scanner<T> scanner = createScanner(source);
+    File canonicalDirectory = directory(source);
 
     scanners.addFirst(scanner);
     directories.addFirst(canonicalDirectory);
-    registry.put(canonicalPath, scanner);
-    registryReverse.put(scanner, canonicalPath);
+    registry.put(source.getSourceInfo().name(), scanner);
+    registryReverse.put(scanner, source.getSourceInfo().name());
     currentScanner = scanner;
     currentDirectory = canonicalDirectory;
+  }
+
+  private File directory(ScannerSource source) throws IOException {
+    File directory = null;
+
+    File file = new File(source.getSourceInfo().name());
+
+    if (file.exists()) {
+      directory = file.getParentFile().getCanonicalFile();
+    } else {
+      directory = new File(new File(".").getCanonicalPath());
+    }
+
+    return directory;
   }
 
   public void register(String filename) throws IOException {
@@ -45,7 +57,7 @@ public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
       file = new File(currentDirectory, filename);
     }
 
-    register(file);
+    register(new FileSource(file));
   }
 
   public void unregister() {
@@ -66,7 +78,7 @@ public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
     return scanners.size() == 1;
   }
 
-  protected abstract Scanner<T> createScanner(File file) throws IOException;
+  protected abstract Scanner<T> createScanner(ScannerSource source) throws IOException;
 
   private void cyclicDependencyError(String includePath) {
     String includingFile = registryReverse.get(scanners.getFirst());

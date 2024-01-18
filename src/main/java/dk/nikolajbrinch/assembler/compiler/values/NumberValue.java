@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
 import dk.nikolajbrinch.assembler.compiler.values.StringValue.Type;
-import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 
 public record NumberValue(long value, Size size) implements Value<NumberValue> {
 

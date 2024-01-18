@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 
 public class EvaluationException extends RuntimeException {
 

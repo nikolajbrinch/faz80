@@ -1,10 +1,10 @@
 package dk.nikolajbrinch.assembler.compiler.operands;
 
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.operands.ConditionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.ExpressionOperand;
-import dk.nikolajbrinch.assembler.ast.operands.GroupingOperand;
-import dk.nikolajbrinch.assembler.ast.operands.RegisterOperand;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
+import dk.nikolajbrinch.assembler.parser.operands.GroupingOperand;
+import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
@@ -14,7 +14,7 @@ import dk.nikolajbrinch.assembler.compiler.values.Value;
 public class OperandFactory {
 
   public Operand createOperand(
-      dk.nikolajbrinch.assembler.ast.operands.Operand operand,
+      dk.nikolajbrinch.assembler.parser.operands.Operand operand,
       SymbolTable symbols,
       ExpressionEvaluator evaluator) {
     if (operand == null) {

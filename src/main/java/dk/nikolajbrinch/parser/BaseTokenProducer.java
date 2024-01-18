@@ -30,14 +30,13 @@ public abstract class BaseTokenProducer<T> implements TokenProducer<T> {
         .orElseGet(() -> scannerRegistry.getCurrentScanner().next());
   }
 
-  @Override
-  public void newFile(File file) throws IOException {
-    scannerRegistry.register(file);
+  public SourceInfo getSourceInfo() {
+    return null;
   }
 
   @Override
-  public void newFile(String filename) throws IOException {
-    scannerRegistry.register(filename);
+  public void newSource(ScannerSource source) throws IOException {
+    scannerRegistry.register(source);
   }
 
   private Optional<T> determineToken(T token) {

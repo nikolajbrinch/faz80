@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +34,7 @@ class ParseMacroTests {
             macro1(1, 2, 4+3)
             """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
     for (Statement statement : statements) {
       System.out.println(new AssemblerAstPrinter().print(statement));
     }

@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
-import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 
 public record StringValue(String value, Type type) implements Value<StringValue> {
 

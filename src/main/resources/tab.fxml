@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import dk.nikolajbrinch.assembler.ide.CodeEditor?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.VBox?>
+<Tab xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="dk.nikolajbrinch.assembler.ide.TabController">
+  <userData>
+    <fx:reference source="controller"/>
+  </userData>
+  <VBox>
+    <children>
+      <CodeEditor fx:id="editor" styleClass="code-editor" VBox.vgrow="ALWAYS"/>
+    </children>
+  </VBox>
+</Tab>

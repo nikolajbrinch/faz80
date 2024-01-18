@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +21,7 @@ class ParseExpressionTests {
         """
             0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9""");
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile());
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
 
     Assertions.assertEquals(
         "(expression (| (^ (== (+ 10011001 (/ (* (* (- 8) 207) (group (+ 304 4))) 5a)) (* 6 (group (+ identifier: a (+ identifier: b::))))) (& (>>> (group (<< 4f 1111111)) 3) 7)) 9))",

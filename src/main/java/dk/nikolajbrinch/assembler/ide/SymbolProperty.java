@@ -3,7 +3,7 @@ package dk.nikolajbrinch.assembler.ide;
 import javafx.beans.property.SimpleStringProperty;
 
 public class SymbolProperty {
-  private final SimpleStringProperty key = new SimpleStringProperty("");
+  private final SimpleStringProperty name = new SimpleStringProperty("");
   private final SimpleStringProperty type = new SimpleStringProperty("");
   private final SimpleStringProperty value = new SimpleStringProperty("");
 
@@ -11,22 +11,22 @@ public class SymbolProperty {
     this("", "", "");
   }
 
-  public SymbolProperty(String key, String type, String value) {
-    setKey(key);
+  public SymbolProperty(String name, String type, String value) {
+    setName(name);
     setType(type);
     setValue(value);
   }
 
-  public String getKey() {
-    return key.get();
+  public String getName() {
+    return name.get();
   }
 
-  public void setKey(String k) {
-    key.set(k);
+  public void setName(String k) {
+    name.set(k);
   }
 
-  public SimpleStringProperty keyProperty() {
-    return key;
+  public SimpleStringProperty nameProperty() {
+    return name;
   }
 
   public String getType() {

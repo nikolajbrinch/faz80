@@ -1,26 +1,26 @@
 .identifier-class {
-  -fx-fill: #0000ff;
+  -fx-fill: #56A8F5;
   -fx-font-weight: bold;
   -fx-background-color: lightgray;
 }
 
 .string-class {
-  -fx-fill: #007f00;
+  -fx-fill: #6AAB73;
   -fx-font-weight: bold;
 }
 
 .number-class {
-  -fx-fill: #9f0000;
+  -fx-fill: #2AACB8;
   -fx-font-weight: bold;
 }
 
 .mnemonic-class {
-  -fx-fill: #cf6730;
+  -fx-fill: #CF8E6D;
   -fx-font-weight: bold;
 }
 
 .directive-class {
-  -fx-fill: #d00095;
+  -fx-fill: #B3AE60;
   -fx-font-weight: bold;
 }
 
@@ -39,13 +39,29 @@
   -fx-font-weight: bold;
 }
 
-.paren-class {
-  -fx-fill: #8888ff;
+.operator-class {
+  -fx-fill: #BCBEC4;
   -fx-font-weight: bold;
 }
 
 .comment-class {
-  -fx-fill: #777777;
+  -fx-fill: #7A7E85;
   -fx-font-weight: bold;
   -fx-font-style: italic;
+}
+
+.constant-class {
+  -fx-fill: #C77DBB;
+  -fx-font-weight: bold;
+  -fx-font-style: italic;
+}
+
+.error-class {
+  -fx-fill: #FF0000;
+  -fx-font-weight: bold;
+  -fx-font-style: italic;
+  -rtfx-underline-color: #FF0000;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-offset: 1px;
+  -rtfx-underline-dash-array: 1px 3px;
 }

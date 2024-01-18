@@ -5,7 +5,5 @@ import java.io.IOException;
 
 public interface TokenProducer<T> extends Scanner<T> {
 
-  void newFile(File file) throws IOException;
-
-  void newFile(String filename) throws IOException;
+  void newSource(ScannerSource source) throws IOException;
 }

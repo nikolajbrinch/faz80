@@ -3,7 +3,7 @@ package dk.nikolajbrinch.parser;
 import dk.nikolajbrinch.parser.impl.CharReaderImpl;
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,16 +15,27 @@ import java.util.stream.StreamSupport;
 public abstract class BaseScanner<E extends TokenType, T extends Token>
     implements Scanner<T>, Iterable<T>, AutoCloseable, Closeable {
 
+  private final SourceInfo sourceInfo;
   final CharReader charReader;
 
   private final List<T> buffer = new LinkedList<>();
 
-  public BaseScanner(InputStream inputStream) {
-    this.charReader = new CharReaderImpl(inputStream);
+  public BaseScanner(ScannerSource source) {
+    this.sourceInfo = source.getSourceInfo();
+    try {
+      this.charReader = new CharReaderImpl(source.openStream());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   protected CharReader getCharReader() {
     return charReader;
+  }
+
+  @Override
+  public SourceInfo getSourceInfo() {
+    return sourceInfo;
   }
 
   public T next() {
@@ -57,11 +68,17 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
   protected abstract T createToken() throws IOException;
 
-  protected abstract T createEofToken(Position position, Line line, int linePosition)
-      throws IOException;
+  protected abstract T createEofToken(
+      SourceInfo fileInfo, Position position, Line line, int linePosition) throws IOException;
 
   protected abstract T createToken(
-      E tokenType, Position position, Line line, int start, int end, String text);
+      E tokenType,
+      SourceInfo fileInfo,
+      Position position,
+      Line line,
+      int start,
+      int end,
+      String text);
 
   protected Char nextChar() throws IOException {
     return charReader.next();
@@ -96,6 +113,7 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
     return createToken(
         tokenType,
+        sourceInfo,
         new Position(first.position(), last.position()),
         first.line(),
         first.linePosition(),
@@ -175,6 +193,7 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
         if (!charReader.hasNext()) {
           token =
               createEofToken(
+                  sourceInfo,
                   new Position(charReader.getPosition(), charReader.getPosition()),
                   charReader.getLine(),
                   charReader.getLinePosition());

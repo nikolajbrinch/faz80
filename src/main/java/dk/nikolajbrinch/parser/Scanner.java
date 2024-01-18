@@ -7,4 +7,6 @@ public interface Scanner<T> {
   T peek(int position);
 
   T next();
+
+  SourceInfo getSourceInfo();
 }

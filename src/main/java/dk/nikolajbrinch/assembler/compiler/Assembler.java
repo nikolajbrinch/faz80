@@ -1,45 +1,45 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.ast.expressions.Expression;
-import dk.nikolajbrinch.assembler.ast.operands.Operand;
-import dk.nikolajbrinch.assembler.ast.statements.AlignStatement;
-import dk.nikolajbrinch.assembler.ast.statements.AssertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ConstantStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataByteStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataLongStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataTextStatement;
-import dk.nikolajbrinch.assembler.ast.statements.DataWordStatement;
-import dk.nikolajbrinch.assembler.ast.statements.EmptyStatement;
-import dk.nikolajbrinch.assembler.ast.statements.ExpressionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.GlobalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InsertStatement;
-import dk.nikolajbrinch.assembler.ast.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LabelStatement;
-import dk.nikolajbrinch.assembler.ast.statements.LocalStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroCallStatement;
-import dk.nikolajbrinch.assembler.ast.statements.MacroStatement;
-import dk.nikolajbrinch.assembler.ast.statements.OriginStatement;
-import dk.nikolajbrinch.assembler.ast.statements.PhaseStatement;
-import dk.nikolajbrinch.assembler.ast.statements.RepeatStatement;
-import dk.nikolajbrinch.assembler.ast.statements.Statement;
-import dk.nikolajbrinch.assembler.ast.statements.StatementVisitor;
-import dk.nikolajbrinch.assembler.ast.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.compiler.instructions.InstructionException;
 import dk.nikolajbrinch.assembler.compiler.operands.OperandFactory;
 import dk.nikolajbrinch.assembler.compiler.symbols.AddressSymbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.MacroSymbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.StatementSymbol;
+import dk.nikolajbrinch.assembler.compiler.symbols.SymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
-import dk.nikolajbrinch.assembler.compiler.symbols.UndefinedSymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
 import dk.nikolajbrinch.assembler.compiler.values.BooleanValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.compiler.values.Value;
 import dk.nikolajbrinch.assembler.parser.Parameter;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
+import dk.nikolajbrinch.assembler.parser.statements.DataWordStatement;
+import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
+import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
+import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
+import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
+import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
+import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
+import dk.nikolajbrinch.assembler.parser.statements.Statement;
+import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
+import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -52,7 +52,7 @@ public class Assembler implements StatementVisitor<Void> {
   private final List<ByteSource> bytes = new ArrayList<>();
 
   private final SymbolTable globals = new SymbolTable();
-  private final List<Error> errors = new ArrayList<>();
+  private final List<AssembleError> errors = new ArrayList<>();
   private SymbolTable symbols = globals;
   private Address currentAddress = new Address(NumberValue.create(0), NumberValue.create(0));
 
@@ -60,7 +60,7 @@ public class Assembler implements StatementVisitor<Void> {
     this.expressionEvaluator = expressionEvaluator;
   }
 
-  public List<Error> getErrors() {
+  public List<AssembleError> getErrors() {
     return errors;
   }
 
@@ -72,6 +72,10 @@ public class Assembler implements StatementVisitor<Void> {
 
   public boolean hasErrors() {
     return !errors.isEmpty();
+  }
+
+  public List<ByteSource> getBytes() {
+    return bytes;
   }
 
   @Override
@@ -88,19 +92,26 @@ public class Assembler implements StatementVisitor<Void> {
   @Override
   public Void visitInstructionStatement(InstructionStatement statement) {
     try {
-      Operand operand1 = statement.operand1();
-      Operand operand2 = statement.operand2();
-
       ByteSource byteSource =
           instructionByteSourceFactory.generateByteSource(
               statement.mnemonic(),
               currentAddress,
-              new OperandFactory().createOperand(operand1, symbols, expressionEvaluator),
-              new OperandFactory().createOperand(operand2, symbols, expressionEvaluator));
+              statement.operands().stream()
+                  .map(
+                      operand ->
+                          new OperandFactory().createOperand(operand, symbols, expressionEvaluator))
+                  .toList());
 
       bytes.add(byteSource);
 
-      currentAddress = currentAddress.add(NumberValue.create(byteSource.length()));
+      if (byteSource == null) {
+        reportError(
+            new AssembleException(
+                statement,
+                "No instruction generated for instruction: " + statement.mnemonic().text()));
+      } else {
+        currentAddress = currentAddress.add(NumberValue.create(byteSource.length()));
+      }
     } catch (InstructionException | EvaluationException e) {
       reportError(new AssembleException(statement, e.getMessage(), e));
     }
@@ -290,7 +301,22 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitRepeatStatement(RepeatStatement statement) {
-    throw new IllegalStateException("Macros should have been resolved!");
+    try {
+      Object result = evaluate(statement.count());
+
+      if (result instanceof NumberValue value) {
+        for (int i = 0; i < value.value(); i++) {
+          statement.blockStatement().accept(this);
+        }
+      } else {
+        reportError(new AssembleException(statement, "Count is not a number"));
+      }
+
+    } catch (EvaluationException e) {
+      reportError(new AssembleException(statement, e.getMessage(), e));
+    }
+
+    return null;
   }
 
   @Override
@@ -307,7 +333,7 @@ public class Assembler implements StatementVisitor<Void> {
           }
         }
       } else {
-        throw new IllegalStateException("Condition is not boolean");
+        reportError(new AssembleException(statement, "Condition is not boolean"));
       }
     } catch (EvaluationException e) {
       reportError(new AssembleException(statement, e.getMessage(), e));
@@ -367,18 +393,24 @@ public class Assembler implements StatementVisitor<Void> {
     return null;
   }
 
+  @Override
+  public Void visitIncludeStatement(IncludeStatement includeStatement) {
+    return null;
+  }
+
   private void execute(Statement statement) {
     statement.accept(this);
   }
 
   private void expandMacro(MacroCallStatement statement) {
+    String macroName = statement.name().text();
+    List<Statement> arguments = statement.arguments();
+
     MacroSymbol symbol = null;
 
     try {
-      String macroName = statement.name().text();
       symbol = symbols.get(macroName);
 
-      List<Statement> arguments = statement.arguments();
       Macro macro = symbol.value();
 
       SymbolTable macroEnvironment = new SymbolTable(symbols);
@@ -414,7 +446,7 @@ public class Assembler implements StatementVisitor<Void> {
       }
 
       withSymbols(macroEnvironment, () -> macro.block().accept(this));
-    } catch (UndefinedSymbolException | EvaluationException e) {
+    } catch (SymbolException | EvaluationException e) {
       reportError(new AssembleException(statement, e.getMessage(), e));
     }
   }
@@ -435,6 +467,6 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   private void reportError(AssembleException e) {
-    errors.add(new Error(e));
+    errors.add(new AssembleError(e));
   }
 }

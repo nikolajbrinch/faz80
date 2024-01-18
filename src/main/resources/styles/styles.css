@@ -1,6 +1,73 @@
-.header-label {
-  -fx-min-height: 30px;
-  -fx-pref-height: 30px;
-  -fx-max-height: 30px;
-  -fx-padding: 5px;
+
+.container {
+  -fx-background-color: -fx-outer-border, -fx-inner-border-bottomup, -fx-body-color-bottomup;
+}
+
+.container .header-label {
+  -fx-padding: 2px;
+  -fx-font-size: 8pt;
+}
+
+.ast-tree {
+  -fx-font-size: 8pt;
+}
+
+.tab-pane > .tab-header-area {
+  -fx-padding: 0;
+  -fx-min-height: 20px;
+  -fx-pref-height: 20px;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+  -fx-min-height: 20px;
+  -fx-pref-height: 20px;
+  -fx-max-height: 20px;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+  -fx-font-size: 8pt;
+  -fx-padding: 0px 10px;
+}
+
+.table-view {
+  -fx-font-size: 8pt;
+}
+
+.table-view .column-header .label {
+  -fx-alignment: center-left;
+  -fx-font-weight: normal;
+}
+
+.table-row-cell:odd {
+  -fx-background: -fx-control-inner-background;
+}
+
+.code-editor {
+  -fx-font-family: "Consolas";
+  -fx-font-size: 9pt;
+  -fx-font-weight: bold;
+}
+
+.code-editor .selected-text {
+  -fx-background-color: yellow;
+}
+
+.code-editor .line-highlight {
+  -fx-background-color: lightgray;
+}
+
+.code-editor .lineno {
+  -fx-font-family: "Consolas";
+  -fx-font-size: 9pt;
+  -fx-font-weight: bold;
+  -fx-text-fill: #444;
+  -fx-background-color: #404040;
+  -fx-font-style: italic;
+  -fx-padding: 0 5px;
+}
+
+.output {
+  -fx-font-family: "Consolas";
+  -fx-font-size: 9pt;
+  -fx-font-weight: bold;
 }

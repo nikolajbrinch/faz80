@@ -56,8 +56,7 @@ public class SymbolTable {
     return false;
   }
 
-  public <R, T extends Symbol<R>> T assign(String name, SymbolType type, T symbol)
-      throws WrongSymbolTypeException, UndefinedSymbolException {
+  public <R, T extends Symbol<R>> T assign(String name, SymbolType type, T symbol) {
     if (symbols.containsKey(name)) {
       if (symbolTypes.get(name) == type) {
         symbols.put(name, symbol);

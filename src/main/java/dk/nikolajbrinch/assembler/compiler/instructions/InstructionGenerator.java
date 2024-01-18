@@ -5,6 +5,7 @@ import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.operands.Operand;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.Register;
+import java.util.List;
 import java.util.Map;
 
 public interface InstructionGenerator {
@@ -19,6 +20,7 @@ public interface InstructionGenerator {
 
   default ByteSource generate(
       Address currentAddress, Operand targetOperand, Operand sourceOperand) {
+
     ByteSource generated;
 
     if (targetOperand == null && sourceOperand == null) {
@@ -42,8 +44,8 @@ public interface InstructionGenerator {
       case EXTENDED -> generateExtended(currentAddress, operand.asNumberValue());
       case IMMEDIATE -> generateImmediate(currentAddress, operand.asNumberValue());
       case IMMEDIATE_EXTENDED -> generateImmediateExtended(currentAddress, operand.asNumberValue());
-      case INDEXED -> generateIndexed(
-          currentAddress, operand.asRegister(), operand.displacementD());
+      case INDEXED ->
+          generateIndexed(currentAddress, operand.asRegister(), operand.displacementD());
       default -> null;
     };
   }
@@ -75,18 +77,26 @@ public interface InstructionGenerator {
   private ByteSource generateTwoOperands(
       Address currentAddress, Operand targetOperand, Operand sourceOperand) {
     return switch (sourceOperand.addressingMode()) {
-      case REGISTER -> generateSourceOperandRegister(
-          currentAddress, targetOperand, sourceOperand.asRegister());
-      case REGISTER_INDIRECT -> generateSourceOperandRegisterIndirect(
-          currentAddress, targetOperand, sourceOperand.asRegister());
-      case EXTENDED -> generateSourceOperandExtended(
-          currentAddress, targetOperand, sourceOperand.asNumberValue());
-      case IMMEDIATE -> generateSourceOperandImmediate(
-          currentAddress, targetOperand, sourceOperand.asNumberValue());
-      case IMMEDIATE_EXTENDED -> generateSourceOperandImmediateExtended(
-          currentAddress, targetOperand, sourceOperand.asNumberValue());
-      case INDEXED -> generateSourceOperandIndexed(
-          currentAddress, targetOperand, sourceOperand.asRegister(), sourceOperand.displacementD());
+      case REGISTER ->
+          generateSourceOperandRegister(currentAddress, targetOperand, sourceOperand.asRegister());
+      case REGISTER_INDIRECT ->
+          generateSourceOperandRegisterIndirect(
+              currentAddress, targetOperand, sourceOperand.asRegister());
+      case EXTENDED ->
+          generateSourceOperandExtended(
+              currentAddress, targetOperand, sourceOperand.asNumberValue());
+      case IMMEDIATE ->
+          generateSourceOperandImmediate(
+              currentAddress, targetOperand, sourceOperand.asNumberValue());
+      case IMMEDIATE_EXTENDED ->
+          generateSourceOperandImmediateExtended(
+              currentAddress, targetOperand, sourceOperand.asNumberValue());
+      case INDEXED ->
+          generateSourceOperandIndexed(
+              currentAddress,
+              targetOperand,
+              sourceOperand.asRegister(),
+              sourceOperand.displacementD());
       default -> null;
     };
   }
@@ -94,21 +104,25 @@ public interface InstructionGenerator {
   private ByteSource generateSourceOperandRegister(
       Address currentAddress, Operand targetOperand, Register sourceRegister) {
     return switch (targetOperand.addressingMode()) {
-      case REGISTER -> generateRegisterToRegister(
-          currentAddress, targetOperand.asRegister(), sourceRegister);
-      case REGISTER_INDIRECT -> generateRegisterToRegisterIndirect(
-          currentAddress, targetOperand.asRegister(), sourceRegister);
-      case EXTENDED -> generateRegisterToExtended(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister);
-      case IMMEDIATE -> generateRegisterToImmediate(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister);
-      case IMMEDIATE_EXTENDED -> generateRegisterToImmediateExtended(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister);
-      case INDEXED -> generateRegisterToIndexed(
-          currentAddress,
-          targetOperand.asRegister(),
-          targetOperand.displacementD(),
-          sourceRegister);
+      case REGISTER ->
+          generateRegisterToRegister(currentAddress, targetOperand.asRegister(), sourceRegister);
+      case REGISTER_INDIRECT ->
+          generateRegisterToRegisterIndirect(
+              currentAddress, targetOperand.asRegister(), sourceRegister);
+      case EXTENDED ->
+          generateRegisterToExtended(currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case IMMEDIATE ->
+          generateRegisterToImmediate(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case IMMEDIATE_EXTENDED ->
+          generateRegisterToImmediateExtended(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case INDEXED ->
+          generateRegisterToIndexed(
+              currentAddress,
+              targetOperand.asRegister(),
+              targetOperand.displacementD(),
+              sourceRegister);
       default -> null;
     };
   }
@@ -146,21 +160,27 @@ public interface InstructionGenerator {
   private ByteSource generateSourceOperandRegisterIndirect(
       Address currentAddress, Operand targetOperand, Register sourceRegister) {
     return switch (targetOperand.addressingMode()) {
-      case REGISTER -> generateRegisterIndirectToRegister(
-          currentAddress, targetOperand.asRegister(), sourceRegister);
-      case REGISTER_INDIRECT -> generateRegisterIndirectToRegisterIndirect(
-          currentAddress, targetOperand.asRegister(), sourceRegister);
-      case EXTENDED -> generateRegisterIndirectToExtended(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister);
-      case IMMEDIATE -> generateRegisterIndirectToImmediate(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister);
-      case IMMEDIATE_EXTENDED -> generateRegisterIndirectToImmediateExtended(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister);
-      case INDEXED -> generateRegisterIndirectToIndexed(
-          currentAddress,
-          targetOperand.asRegister(),
-          targetOperand.displacementD(),
-          sourceRegister);
+      case REGISTER ->
+          generateRegisterIndirectToRegister(
+              currentAddress, targetOperand.asRegister(), sourceRegister);
+      case REGISTER_INDIRECT ->
+          generateRegisterIndirectToRegisterIndirect(
+              currentAddress, targetOperand.asRegister(), sourceRegister);
+      case EXTENDED ->
+          generateRegisterIndirectToExtended(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case IMMEDIATE ->
+          generateRegisterIndirectToImmediate(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case IMMEDIATE_EXTENDED ->
+          generateRegisterIndirectToImmediateExtended(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister);
+      case INDEXED ->
+          generateRegisterIndirectToIndexed(
+              currentAddress,
+              targetOperand.asRegister(),
+              targetOperand.displacementD(),
+              sourceRegister);
       default -> null;
     };
   }
@@ -198,18 +218,24 @@ public interface InstructionGenerator {
   private ByteSource generateSourceOperandExtended(
       Address currentAddress, Operand sourceOperand, NumberValue numberValue) {
     return switch (sourceOperand.addressingMode()) {
-      case REGISTER -> generateExtendedToRegister(
-          currentAddress, sourceOperand.asRegister(), numberValue);
-      case REGISTER_INDIRECT -> generateExtendedToRegisterIndirect(
-          currentAddress, sourceOperand.asRegister(), numberValue);
-      case EXTENDED -> generateExtendedToExtended(
-          currentAddress, sourceOperand.asNumberValue(), numberValue);
-      case IMMEDIATE -> generateExtendedToImmediate(
-          currentAddress, sourceOperand.asNumberValue(), numberValue);
-      case IMMEDIATE_EXTENDED -> generateExtendedToImmediateExtended(
-          currentAddress, sourceOperand.asNumberValue(), numberValue);
-      case INDEXED -> generateExtendedToIndexed(
-          currentAddress, sourceOperand.asRegister(), sourceOperand.displacementD(), numberValue);
+      case REGISTER ->
+          generateExtendedToRegister(currentAddress, sourceOperand.asRegister(), numberValue);
+      case REGISTER_INDIRECT ->
+          generateExtendedToRegisterIndirect(
+              currentAddress, sourceOperand.asRegister(), numberValue);
+      case EXTENDED ->
+          generateExtendedToExtended(currentAddress, sourceOperand.asNumberValue(), numberValue);
+      case IMMEDIATE ->
+          generateExtendedToImmediate(currentAddress, sourceOperand.asNumberValue(), numberValue);
+      case IMMEDIATE_EXTENDED ->
+          generateExtendedToImmediateExtended(
+              currentAddress, sourceOperand.asNumberValue(), numberValue);
+      case INDEXED ->
+          generateExtendedToIndexed(
+              currentAddress,
+              sourceOperand.asRegister(),
+              sourceOperand.displacementD(),
+              numberValue);
       default -> null;
     };
   }
@@ -247,18 +273,24 @@ public interface InstructionGenerator {
   private ByteSource generateSourceOperandImmediate(
       Address currentAddress, Operand targetOperand, NumberValue numberValue) {
     return switch (targetOperand.addressingMode()) {
-      case REGISTER -> generateImmediateToRegister(
-          currentAddress, targetOperand.asRegister(), numberValue);
-      case REGISTER_INDIRECT -> generateImmediateToRegisterIndirect(
-          currentAddress, targetOperand.asRegister(), numberValue);
-      case EXTENDED -> generateImmediateToExtended(
-          currentAddress, targetOperand.asNumberValue(), numberValue);
-      case IMMEDIATE -> generateImmediateToImmediate(
-          currentAddress, targetOperand.asNumberValue(), numberValue);
-      case IMMEDIATE_EXTENDED -> generateImmediateToImmediateExtended(
-          currentAddress, targetOperand.asNumberValue(), numberValue);
-      case INDEXED -> generateImmediateToIndexed(
-          currentAddress, targetOperand.asRegister(), targetOperand.displacementD(), numberValue);
+      case REGISTER ->
+          generateImmediateToRegister(currentAddress, targetOperand.asRegister(), numberValue);
+      case REGISTER_INDIRECT ->
+          generateImmediateToRegisterIndirect(
+              currentAddress, targetOperand.asRegister(), numberValue);
+      case EXTENDED ->
+          generateImmediateToExtended(currentAddress, targetOperand.asNumberValue(), numberValue);
+      case IMMEDIATE ->
+          generateImmediateToImmediate(currentAddress, targetOperand.asNumberValue(), numberValue);
+      case IMMEDIATE_EXTENDED ->
+          generateImmediateToImmediateExtended(
+              currentAddress, targetOperand.asNumberValue(), numberValue);
+      case INDEXED ->
+          generateImmediateToIndexed(
+              currentAddress,
+              targetOperand.asRegister(),
+              targetOperand.displacementD(),
+              numberValue);
       default -> null;
     };
   }
@@ -296,18 +328,27 @@ public interface InstructionGenerator {
   private ByteSource generateSourceOperandImmediateExtended(
       Address currentAddress, Operand targetOperand, NumberValue numberValue) {
     return switch (targetOperand.addressingMode()) {
-      case REGISTER -> generateImmediateExtendedToRegister(
-          currentAddress, targetOperand.asRegister(), numberValue);
-      case REGISTER_INDIRECT -> generateImmediateExtendedToRegisterIndirect(
-          currentAddress, targetOperand.asRegister(), numberValue);
-      case EXTENDED -> generateImmediateExtendedToExtended(
-          currentAddress, targetOperand.asNumberValue(), numberValue);
-      case IMMEDIATE -> generateImmediateExtendedToImmediate(
-          currentAddress, targetOperand.asNumberValue(), numberValue);
-      case IMMEDIATE_EXTENDED -> generateImmediateExtendedToImmediateExtended(
-          currentAddress, targetOperand.asNumberValue(), numberValue);
-      case INDEXED -> generateImmediateExtendedToIndexed(
-          currentAddress, targetOperand.asRegister(), targetOperand.displacementD(), numberValue);
+      case REGISTER ->
+          generateImmediateExtendedToRegister(
+              currentAddress, targetOperand.asRegister(), numberValue);
+      case REGISTER_INDIRECT ->
+          generateImmediateExtendedToRegisterIndirect(
+              currentAddress, targetOperand.asRegister(), numberValue);
+      case EXTENDED ->
+          generateImmediateExtendedToExtended(
+              currentAddress, targetOperand.asNumberValue(), numberValue);
+      case IMMEDIATE ->
+          generateImmediateExtendedToImmediate(
+              currentAddress, targetOperand.asNumberValue(), numberValue);
+      case IMMEDIATE_EXTENDED ->
+          generateImmediateExtendedToImmediateExtended(
+              currentAddress, targetOperand.asNumberValue(), numberValue);
+      case INDEXED ->
+          generateImmediateExtendedToIndexed(
+              currentAddress,
+              targetOperand.asRegister(),
+              targetOperand.displacementD(),
+              numberValue);
       default -> null;
     };
   }
@@ -345,18 +386,23 @@ public interface InstructionGenerator {
   private ByteSource generateSourceOperandIndexed(
       Address currentAddress, Operand targetOperand, Register sourceRegister, long displacement) {
     return switch (targetOperand.addressingMode()) {
-      case REGISTER -> generateIndexedToRegister(
-          currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
-      case REGISTER_INDIRECT -> generateIndexedToRegisterIndirect(
-          currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
-      case EXTENDED -> generateIndexedToExtended(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
-      case IMMEDIATE -> generateIndexedToImmediate(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
-      case IMMEDIATE_EXTENDED -> generateIndexedToImmediateExtended(
-          currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
-      case INDEXED -> generateIndexedToIndexed(
-          currentAddress, targetOperand, sourceRegister, displacement);
+      case REGISTER ->
+          generateIndexedToRegister(
+              currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
+      case REGISTER_INDIRECT ->
+          generateIndexedToRegisterIndirect(
+              currentAddress, targetOperand.asRegister(), sourceRegister, displacement);
+      case EXTENDED ->
+          generateIndexedToExtended(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
+      case IMMEDIATE ->
+          generateIndexedToImmediate(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
+      case IMMEDIATE_EXTENDED ->
+          generateIndexedToImmediateExtended(
+              currentAddress, targetOperand.asNumberValue(), sourceRegister, displacement);
+      case INDEXED ->
+          generateIndexedToIndexed(currentAddress, targetOperand, sourceRegister, displacement);
       default -> null;
     };
   }

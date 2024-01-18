@@ -3,6 +3,8 @@ package dk.nikolajbrinch.parser;
 import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BaseParser<S, E extends TokenType, T extends Token> implements Parser<S> {
 
@@ -12,17 +14,27 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
   private final boolean debug = false;
   private final boolean isIgnoreComments;
 
+  private final List<ParseError> errors = new ArrayList<>();
+
   protected BaseParser(TokenProducer<T> tokenProducer, boolean ignoreComments) {
     this.tokenProducer = tokenProducer;
     this.isIgnoreComments = ignoreComments;
   }
 
-  protected void newFile(File file) throws IOException {
-    tokenProducer.newFile(file);
+  public boolean hasErrors() {
+    return !errors.isEmpty();
   }
 
-  protected void newFile(String filename) throws IOException {
-    tokenProducer.newFile(filename);
+  public List<ParseError> getErrors() {
+    return errors;
+  }
+
+  protected void newSource(ScannerSource source) throws IOException {
+    tokenProducer.newSource(source);
+  }
+
+  protected SourceInfo getSourceInfo() {
+    return tokenProducer.getSourceInfo();
   }
 
   /**
@@ -33,6 +45,16 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
   protected boolean match(E... types) {
     for (E type : types) {
       if (checkType(type)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  protected boolean match(T token, E... types) {
+    for (E type : types) {
+      if (isType(token, type)) {
         return true;
       }
     }
@@ -127,11 +149,11 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
    * @return
    */
   protected boolean isEof() {
-    return isType(peek(), getEofType());
+    return match(peek(), getEofTypes());
   }
 
   protected boolean isEof(int position) {
-    return isType(peek(position), getEofType());
+    return match(peek(position), getEofTypes());
   }
 
   protected boolean isNotType(T token, E type) {
@@ -139,15 +161,19 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
   }
 
   private void ignoreComments() {
-    while (isNotType(tokenProducer.peek(), getEofType())
-        && isType(tokenProducer.peek(), getCommentType())) {
+    while (!match(tokenProducer.peek(), getEofTypes())
+        && match(tokenProducer.peek(), getCommentTypes())) {
       tokenProducer.next();
     }
   }
 
   protected abstract boolean isType(T token, E type);
 
-  protected abstract E getEofType();
+  protected abstract E[] getEofTypes();
 
-  protected abstract E getCommentType();
+  protected abstract E[] getCommentTypes();
+
+  protected void reportError(ParseException e) {
+    errors.add(new ParseError(e));
+  }
 }

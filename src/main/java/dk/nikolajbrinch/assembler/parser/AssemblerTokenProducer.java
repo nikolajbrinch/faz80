@@ -1,14 +1,18 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.scanner.AssemblerScanner;
-import dk.nikolajbrinch.assembler.scanner.AssemblerToken;
-import dk.nikolajbrinch.assembler.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerScanner;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
+import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
+import dk.nikolajbrinch.parser.ScannerSource;
+import dk.nikolajbrinch.parser.SourceInfo;
 import dk.nikolajbrinch.parser.BaseScannerRegistry;
 import dk.nikolajbrinch.parser.BaseTokenProducer;
 import dk.nikolajbrinch.parser.Scanner;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class AssemblerTokenProducer extends BaseTokenProducer<AssemblerToken> {
 
@@ -16,8 +20,9 @@ public class AssemblerTokenProducer extends BaseTokenProducer<AssemblerToken> {
     super(
         new BaseScannerRegistry<>() {
           @Override
-          protected Scanner<AssemblerToken> createScanner(File file) throws IOException {
-            return new AssemblerScanner(new FileInputStream(file));
+          protected Scanner<AssemblerToken> createScanner(ScannerSource source)
+              throws IOException {
+            return new AssemblerScanner(source);
           }
         });
   }
