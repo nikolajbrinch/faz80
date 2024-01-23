@@ -3,7 +3,6 @@ package dk.nikolajbrinch.assembler.ide;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import javafx.scene.control.Label;
 import javafx.scene.paint.Paint;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -14,13 +13,7 @@ public class CodeEditor extends CodeArea {
     super();
     setLineHighlighterFill(Paint.valueOf("lightblue"));
     setParagraphGraphicFactory(LineNumberFactory.get(this));
-    setParagraphGraphicFactory(
-        lineNumber -> {
-          Label lineNo = new Label(String.format("% 5d ", lineNumber + 1));
-          lineNo.applyCss();
-
-          return lineNo;
-        });
+    setParagraphGraphicFactory(LineNumberFactory.get(this, digits -> "%1$5s"));
     setOnMouseClicked(event -> setLineHighlighterOn(false));
     textProperty().addListener((obs, oldText, newText) -> setLineHighlighterOn(false));
   }
@@ -33,6 +26,7 @@ public class CodeEditor extends CodeArea {
         Math.max(0, currentParagraph - 10 < 0 ? currentParagraph : currentParagraph - 10);
     showParagraphAtTop(scrollToParagraph);
     setLineHighlighterOn(true);
+    requestFocus();
   }
 
   public void newText(File file) throws IOException {

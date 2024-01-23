@@ -1,20 +1,8 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-import dk.nikolajbrinch.assembler.compiler.symbols.AddressSymbol;
-import dk.nikolajbrinch.assembler.compiler.symbols.Symbol;
-import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.Expression;
-import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
-import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolException;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
-import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
 import dk.nikolajbrinch.assembler.compiler.values.BinaryMath;
 import dk.nikolajbrinch.assembler.compiler.values.IllegalMathOperationException;
 import dk.nikolajbrinch.assembler.compiler.values.IntegerMath;
@@ -22,7 +10,18 @@ import dk.nikolajbrinch.assembler.compiler.values.Logic;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.compiler.values.Value;
+import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.Expression;
+import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
+import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.NumberExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.StringExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
+import java.util.Optional;
 
 public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
 
@@ -78,31 +77,42 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
   }
 
   @Override
-  public Value<?> visitLiteralExpression(LiteralExpression expression) {
-    return switch (expression.token().type()) {
-      case DECIMAL_NUMBER, HEX_NUMBER, OCTAL_NUMBER, BINARY_NUMBER -> NumberValue.create(
-          expression.token());
-      case STRING, CHAR -> StringValue.create(expression.token());
-      default -> throw new EvaluationException(expression, "Unknown literal expression");
-    };
+  public Value<?> visitNumberExpression(NumberExpression expression) {
+    return expression.numberValue();
+  }
+
+  @Override
+  public Value<?> visitStringExpression(StringExpression expression) {
+    return expression.stringValue();
   }
 
   @Override
   public Value<?> visitIdentifierExpression(IdentifierExpression expression) {
-    Symbol<?> symbol = null;
+    Optional<?> optional = null;
 
     try {
-      symbol = symbolTable.get(expression.token().text());
+      optional = symbolTable.get(expression.token().text());
     } catch (SymbolException e) {
       throw new EvaluationException(expression, e.getMessage(), e);
     }
 
-    if (symbol instanceof ValueSymbol valueSymbol) {
-      return valueSymbol.value();
+    if (optional.isPresent()) {
+      Object symbol = optional.get();
+
+      if (symbol instanceof Value<?> value) {
+        return value;
+      }
+    } else {
+      SymbolType symbolType = symbolTable.getSymbolType(expression.token().text());
+
+      throw new EvaluationException(
+          expression,
+          "Undefined value for " + symbolType + " identifier: " + expression.token().text());
     }
 
-    return ((AddressSymbol) symbol).value().logicalAddress();
+    return null;
   }
+
   @Override
   public Value<?> visitMacroCallExpression(MacroCallExpression macroCallExpression) {
     return null;
@@ -121,7 +131,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
     throw new IllegalStateException("Unknown address expression");
   }
 
-  public <T extends Value<T>> T evaluate(Expression expression) {
+  private <T extends Value<T>> T evaluate(Expression expression) {
     return (T) expression.accept(this);
   }
 
@@ -138,4 +148,5 @@ public class ExpressionEvaluator implements ExpressionVisitor<Value<?>> {
 
     return (T) expression.accept(this);
   }
+
 }

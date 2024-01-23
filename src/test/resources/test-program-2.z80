@@ -1,0 +1,24 @@
+;
+; Test Program 2
+;
+
+START: LD   A, 00h       ; 3E 00
+       LD   B, 0FFh      ; 06 FF
+       LD   HL, 4000h    ; 21 00 40
+LP1:   LD   (HL),A       ; 77
+       INC  HL           ; 23
+       INC  A            ; 3C
+       DJNZ LP1          ; 10 (FD) FB
+       LD   A,00h        ; 3E 00
+       LD   B, 0FFh      ; 06 FF
+       LD   HL, 4000h    ; 21 00 40
+LP2:   CP   (HL)         ; BE
+       JP   NZ, ER       ; C2 (09 3C) 00 20
+       INC  A            ; 3C
+       INC  HL           ; 23
+       DJNZ LP2          ; 10 (FB) F8
+       JP   START        ; C3 00 00
+
+ER:    NOP               ; 00
+       NOP               ; 00
+       JP   ER           ; C3 1D 1D

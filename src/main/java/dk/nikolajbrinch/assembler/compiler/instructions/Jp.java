@@ -2,35 +2,49 @@ package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
+import dk.nikolajbrinch.assembler.compiler.ByteSupplier;
 import dk.nikolajbrinch.assembler.compiler.operands.Conditions;
-import dk.nikolajbrinch.assembler.compiler.operands.Operand;
+import dk.nikolajbrinch.assembler.compiler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.assembler.parser.Condition;
+import dk.nikolajbrinch.assembler.parser.Register;
 
 public class Jp implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(Address currentAddress, Operand targetOperand, Operand sourceOperand) {
-    return switch (targetOperand.addressingMode()) {
-      case IMMEDIATE_EXTENDED -> ByteSource.of(
-          0xC3,
-          targetOperand.asNumberValue().lsb().value(),
-          targetOperand.asNumberValue().msb().value());
-      case REGISTER_INDIRECT -> switch (targetOperand.asRegister()) {
-        case HL -> ByteSource.of(0xE9);
-        case IX -> ByteSource.of(0xDD, 0xE9);
-        case IY -> ByteSource.of(0xFD, 0xE9);
-        default -> null;
-      };
-      default -> {
-        if (targetOperand.operand() instanceof Condition condition) {
-          yield ByteSource.of(
-              0b11000010 | Conditions.cc.get(condition),
-              targetOperand.asNumberValue().lsb().value(),
-              targetOperand.asNumberValue().msb().value());
-        }
+  public ByteSource generateImmediate(Address numberValue, ValueSupplier value) {
+    return generateImmediateExtended(numberValue, value);
+  }
 
-        yield null;
-      }
+  @Override
+  public ByteSource generateImmediateExtended(Address numberValue, ValueSupplier value) {
+    return ByteSource.of(0xC3, lsb(value), msb(value));
+  }
+
+  @Override
+  public ByteSource generateRegisterIndirect(Address currentAddress, Register register) {
+    return switch (register) {
+      case HL -> ByteSource.of(0xE9);
+      case IX -> ByteSource.of(0xDD, 0xE9);
+      case IY -> ByteSource.of(0xFD, 0xE9);
+      default -> null;
     };
+  }
+
+  @Override
+  public ByteSource generateConditionImmediate(
+      Address currentAddress,
+      Condition condition,
+      ValueSupplier value,
+      EvaluatedOperand displacement) {
+    return generateConditionImmediateExtended(currentAddress, condition, value, displacement);
+  }
+
+  @Override
+  public ByteSource generateConditionImmediateExtended(
+      Address currentAddress,
+      Condition condition,
+      ValueSupplier value,
+      EvaluatedOperand displacement) {
+    return ByteSource.of(0b11000010 | Conditions.cc.get(condition), lsb(value), msb(value));
   }
 }

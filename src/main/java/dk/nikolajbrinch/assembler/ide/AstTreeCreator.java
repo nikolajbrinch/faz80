@@ -5,8 +5,9 @@ import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.NumberExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.StringExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
 import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
@@ -37,6 +38,7 @@ import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
+import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import javafx.scene.control.TreeItem;
 
 public class AstTreeCreator
@@ -71,13 +73,13 @@ public class AstTreeCreator
   public TreeItem<AstTreeValue> visitGroupingExpression(GroupingExpression expression) {
     TreeItem<AstTreeValue> group =
         new TreeItem<>(new AstTreeValue(expression.line().number(), () -> "Group"));
-    group.getChildren().add(expression.accept(this));
+    group.getChildren().add(expression.expression().accept(this));
 
     return group;
   }
 
   @Override
-  public TreeItem<AstTreeValue> visitLiteralExpression(LiteralExpression expression) {
+  public TreeItem<AstTreeValue> visitNumberExpression(NumberExpression expression) {
     return new TreeItem<>(
         new AstTreeValue(
             expression.line().number(),
@@ -88,6 +90,12 @@ public class AstTreeCreator
                   case OCTAL_NUMBER -> String.format("0%s", expression.token().text());
                   default -> expression.token().text();
                 }));
+  }
+
+  @Override
+  public TreeItem<AstTreeValue> visitStringExpression(StringExpression expression) {
+    return new TreeItem<>(
+        new AstTreeValue(expression.line().number(), () -> expression.token().text()));
   }
 
   @Override
@@ -181,7 +189,8 @@ public class AstTreeCreator
         new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Instruction"));
     TreeItem<AstTreeValue> opcode =
         new TreeItem<>(
-            new AstTreeValue(statement.line().number(), () -> statement.mnemonic().text()));
+            new AstTreeValue(
+                statement.line().number(), () -> Mnemonic.find(statement.mnemonic().text())));
     instruction.getChildren().add(opcode);
     TreeItem<AstTreeValue> operands =
         new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Operands"));

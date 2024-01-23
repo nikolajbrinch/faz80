@@ -39,6 +39,11 @@ public abstract class BaseTokenProducer<T> implements TokenProducer<T> {
     scannerRegistry.register(source);
   }
 
+  @Override
+  public void newSource(String filename) throws IOException {
+    scannerRegistry.register(filename);
+  }
+
   private Optional<T> determineToken(T token) {
     if (scannerRegistry.isBaseScanner()) {
       return Optional.of(token);

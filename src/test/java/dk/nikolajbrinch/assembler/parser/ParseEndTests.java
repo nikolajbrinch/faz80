@@ -3,7 +3,7 @@ package dk.nikolajbrinch.assembler.parser;
 import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
-import dk.nikolajbrinch.assembler.parser.scanner.Mnemonic;
+import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

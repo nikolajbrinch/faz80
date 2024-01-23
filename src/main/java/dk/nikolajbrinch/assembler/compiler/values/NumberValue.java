@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.values;
 
+import dk.nikolajbrinch.assembler.compiler.instructions.IllegalSizeException;
 import dk.nikolajbrinch.assembler.compiler.values.StringValue.Type;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 
@@ -40,11 +41,15 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   }
 
   private static NumberValue fromHex(AssemblerToken token) {
+    String text = token.text();
+
     Size size =
-        switch (token.text().length()) {
+        switch (text.length()) {
           case 1, 2 -> Size.BYTE;
-          case 3, 4 -> Size.WORD;
-          case 5, 6, 7, 8 -> Size.LONG;
+          case 3 -> text.charAt(0) == '0' ? Size.BYTE : Size.WORD;
+          case 4 -> Size.WORD;
+          case 5 -> text.charAt(0) == '0' ? Size.WORD : Size.LONG;
+          case 6, 7, 8 -> Size.LONG;
           default -> null;
         };
 
@@ -179,6 +184,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
 
   public NumberValue msb() {
     return switch (size()) {
+      case UNKNOWN -> throw new IllegalSizeException("Number has unknown size!");
       case BYTE -> lsb();
       case WORD -> new NumberValue((value() >> 8) & 0xFFL, Size.BYTE);
       case LONG -> new NumberValue((value() >> 24) & 0xFFL, Size.BYTE);
@@ -187,6 +193,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
 
   public NumberValue msw() {
     return switch (size()) {
+      case UNKNOWN -> throw new IllegalSizeException("Number has unknown size!");
       case BYTE -> lsw();
       case WORD -> lsw();
       case LONG -> new NumberValue((value() >> 16) & 0xFFFFL, Size.WORD);
@@ -216,6 +223,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   }
 
   public enum Size {
+    UNKNOWN,
     BYTE,
     WORD,
     LONG

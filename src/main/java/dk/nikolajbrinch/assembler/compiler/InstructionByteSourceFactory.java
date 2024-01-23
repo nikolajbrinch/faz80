@@ -20,6 +20,7 @@ import dk.nikolajbrinch.assembler.compiler.instructions.Ei;
 import dk.nikolajbrinch.assembler.compiler.instructions.Ex;
 import dk.nikolajbrinch.assembler.compiler.instructions.Exx;
 import dk.nikolajbrinch.assembler.compiler.instructions.Halt;
+import dk.nikolajbrinch.assembler.compiler.instructions.IllegalInstructionException;
 import dk.nikolajbrinch.assembler.compiler.instructions.Im;
 import dk.nikolajbrinch.assembler.compiler.instructions.In;
 import dk.nikolajbrinch.assembler.compiler.instructions.Inc;
@@ -27,6 +28,7 @@ import dk.nikolajbrinch.assembler.compiler.instructions.Ind;
 import dk.nikolajbrinch.assembler.compiler.instructions.Indr;
 import dk.nikolajbrinch.assembler.compiler.instructions.Ini;
 import dk.nikolajbrinch.assembler.compiler.instructions.Inir;
+import dk.nikolajbrinch.assembler.compiler.instructions.InstructionException;
 import dk.nikolajbrinch.assembler.compiler.instructions.InstructionGenerator;
 import dk.nikolajbrinch.assembler.compiler.instructions.Jp;
 import dk.nikolajbrinch.assembler.compiler.instructions.Jr;
@@ -69,12 +71,14 @@ import dk.nikolajbrinch.assembler.compiler.instructions.Sra;
 import dk.nikolajbrinch.assembler.compiler.instructions.Srl;
 import dk.nikolajbrinch.assembler.compiler.instructions.Sub;
 import dk.nikolajbrinch.assembler.compiler.instructions.Xor;
-import dk.nikolajbrinch.assembler.compiler.operands.Operand;
+import dk.nikolajbrinch.assembler.compiler.operands.EvaluatedOperand;
+import dk.nikolajbrinch.assembler.compiler.operands.IllegalDisplacementException;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
-import dk.nikolajbrinch.assembler.parser.scanner.Mnemonic;
+import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class InstructionByteSourceFactory {
 
@@ -156,13 +160,45 @@ public class InstructionByteSourceFactory {
   }
 
   public ByteSource generateByteSource(
-      AssemblerToken mnemonic, Address currentAddress, List<Operand> operands) {
+      AssemblerToken mnemonic, Address currentAddress, List<EvaluatedOperand> operands) {
     InstructionGenerator generator = findGenerator(Mnemonic.find(mnemonic.text()));
 
-    return generator.generate(
-        currentAddress,
-        operands.size() > 0 ? operands.get(0) : null,
-        operands.size() > 1 ? operands.get(1) : null);
+    try {
+      return generator.generate(currentAddress, operands);
+    } catch (IllegalInstructionException e) {
+      throw new IllegalInstructionException(
+          String.format(
+              "Illegal instruction: %s %s",
+              mnemonic.text(),
+              operands.stream()
+                  .map(operand -> String.valueOf(operand))
+                  .collect(Collectors.joining(", "))));
+    } catch (IllegalDisplacementException e) {
+      throw new IllegalInstructionException(
+          String.format(
+              "Illegal displacement for instruction: %s %s",
+              mnemonic.text(),
+              operands.stream()
+                  .map(operand -> String.valueOf(operand))
+                  .collect(Collectors.joining(", "))),
+          e);
+    } catch (NullPointerException e) {
+      throw new InstructionException(
+          String.format(
+              "Issue generating instruction: %s %s",
+              mnemonic.text(),
+              operands.stream()
+                  .map(operand -> String.valueOf(operand))
+                  .collect(Collectors.joining(", "))));
+    } catch (Exception e) {
+      throw new InstructionException(
+          String.format(
+              "Issue generating instruction: %s %s",
+              mnemonic.text(),
+              operands.stream()
+                  .map(operand -> String.valueOf(operand))
+                  .collect(Collectors.joining(", "))));
+    }
   }
 
   private InstructionGenerator findGenerator(Mnemonic mnemonic) {

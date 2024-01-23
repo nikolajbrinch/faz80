@@ -5,16 +5,16 @@ import javafx.beans.property.SimpleStringProperty;
 public class SymbolProperty {
   private final SimpleStringProperty name = new SimpleStringProperty("");
   private final SimpleStringProperty type = new SimpleStringProperty("");
-  private final SimpleStringProperty value = new SimpleStringProperty("");
+  private final SimpleStringProperty values = new SimpleStringProperty("");
 
   public SymbolProperty() {
     this("", "", "");
   }
 
-  public SymbolProperty(String name, String type, String value) {
+  public SymbolProperty(String name, String type, String values) {
     setName(name);
     setType(type);
-    setValue(value);
+    setValues(values);
   }
 
   public String getName() {
@@ -41,15 +41,15 @@ public class SymbolProperty {
     return type;
   }
 
-  public String getValue() {
-    return value.get();
+  public String getValues() {
+    return values.get();
   }
 
-  public void setValue(String v) {
-    value.set(v);
+  public void setValues(String v) {
+    values.set(v);
   }
 
-  public SimpleStringProperty valueProperty() {
-    return value;
+  public SimpleStringProperty valuesProperty() {
+    return values;
   }
 }

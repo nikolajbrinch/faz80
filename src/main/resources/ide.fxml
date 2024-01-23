@@ -22,7 +22,7 @@
     <ToolBar>
       <items>
         <Button text="Open..." onAction="#openFile"/>
-        <Button text="Assemble" onAction="#assemble" fx:id="assembleButton"/>
+        <Button text="Compile" onAction="#compile" fx:id="assembleButton"/>
       </items>
     </ToolBar>
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75" orientation="VERTICAL">
@@ -57,7 +57,7 @@
                               maxWidth="150.0"/>
                             <TableColumn fx:id="type" text="Type" minWidth="100.0" prefWidth="100.0"
                               maxWidth="100.0"/>
-                            <TableColumn fx:id="value" text="Value" minWidth="500.0"
+                            <TableColumn fx:id="values" text="Value" minWidth="500.0"
                               maxWidth="Infinity"/>
                           </columns>
                         </TableView>

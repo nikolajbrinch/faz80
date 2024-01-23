@@ -33,6 +33,10 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
     tokenProducer.newSource(source);
   }
 
+  protected void newSource(String filename) throws IOException {
+    tokenProducer.newSource(filename);
+  }
+
   protected SourceInfo getSourceInfo() {
     return tokenProducer.getSourceInfo();
   }

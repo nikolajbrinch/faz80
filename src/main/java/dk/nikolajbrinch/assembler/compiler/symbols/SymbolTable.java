@@ -1,8 +1,11 @@
 package dk.nikolajbrinch.assembler.compiler.symbols;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class SymbolTable {
 
@@ -10,7 +13,7 @@ public class SymbolTable {
 
   private final Map<String, SymbolType> symbolTypes = new HashMap<>();
 
-  private final Map<String, Symbol<?>> symbols = new LinkedHashMap<>();
+  private final Map<String, List<Optional<?>>> symbols = new LinkedHashMap<>();
 
   public SymbolTable() {
     this(null);
@@ -20,72 +23,108 @@ public class SymbolTable {
     this.parent = parent;
   }
 
-  public <R, T extends Symbol<R>> T get(String name) {
-    if (symbols.containsKey(name)) {
-      return (T) symbols.get(name);
+  public Optional<?> get(String name) {
+    String normalizedName = normalize(name);
+
+    if (symbolTypes.containsKey(normalizedName)) {
+      List<Optional<?>> values = symbols.get(normalizedName);
+
+      return values == null ? null : values.getFirst();
     }
 
     if (parent != null) {
-      return parent.get(name);
+      return parent.get(normalizedName);
     }
 
-    throw new UndefinedSymbolException(name, "Undefined symbol: " + name);
+    throw new UndefinedSymbolException(name, "Undefined symbol: " + normalizedName);
   }
 
   public SymbolType getSymbolType(String name) {
-    if (symbolTypes.containsKey(name)) {
-      return symbolTypes.get(name);
+    String normalizedName = normalize(name);
+
+    if (symbolTypes.containsKey(normalizedName)) {
+      return symbolTypes.get(normalizedName);
     }
 
     if (parent != null) {
-      return parent.getSymbolType(name);
+      return parent.getSymbolType(normalizedName);
     }
 
-    throw new UndefinedSymbolException(name, "Undefined symbol: " + name);
+    throw new UndefinedSymbolException(normalizedName, "Undefined symbol: " + normalizedName);
   }
 
   public boolean exists(String name) {
-    if (symbols.containsKey(name)) {
+    String normalizedName = normalize(name);
+
+    if (symbolTypes.containsKey(normalizedName)) {
       return true;
     }
 
     if (parent != null) {
-      return parent.exists(name);
+      return parent.exists(normalizedName);
     }
 
     return false;
   }
 
-  public <R, T extends Symbol<R>> T assign(String name, SymbolType type, T symbol) {
-    if (symbols.containsKey(name)) {
-      if (symbolTypes.get(name) == type) {
-        symbols.put(name, symbol);
+  public Optional<?> assign(String name, SymbolType type, Optional<?> symbol) {
+    String normalizedName = normalize(name);
+
+    SymbolType symbolType = symbolTypes.get(normalizedName);
+
+    if (symbolType != null) {
+      if (symbolType == type) {
+        addSymbol(normalizedName, symbol);
       } else {
         throw new WrongSymbolTypeException(
-            name, "Expected symbol type: " + type + ", but was: " + symbolTypes.get(name));
+            normalizedName,
+            "Expected symbol type: " + type + ", but was: " + symbolTypes.get(normalizedName));
       }
 
       return symbol;
     }
 
     if (parent != null) {
-      return parent.assign(name, type, symbol);
+      return parent.assign(normalizedName, type, symbol);
     }
 
-    throw new UndefinedSymbolException(name, "Undefined symbol: " + name);
+    throw new UndefinedSymbolException(name, "Undefined symbol: " + normalizedName);
   }
 
-  public void define(String name, SymbolType type, Symbol<?> symbol) {
-    symbolTypes.put(name, type);
-    symbols.put(name, symbol);
+  public void define(String name, SymbolType type) {
+    define(name, type, null);
   }
 
-  public Map<String, Symbol<?>> getSymbols() {
+  public void define(String name, SymbolType type, Optional<?> symbol) {
+    String normalizedName = normalize(name);
+
+    symbolTypes.put(normalizedName, type);
+    addSymbol(normalizedName, symbol);
+  }
+
+  public Map<String, List<Optional<?>>> getSymbols() {
     return symbols;
   }
 
   @Override
   public String toString() {
     return symbols.toString();
+  }
+
+  private void addSymbol(String name, Optional<?> symbol) {
+    if (symbol != null) {
+      List<Optional<?>> optionals = symbols.get(name);
+
+      if (optionals == null) {
+        optionals = new ArrayList<>(List.of(symbol));
+        symbols.put(name, optionals);
+      } else {
+        optionals.addFirst(symbol);
+      }
+    }
+  }
+
+  private String normalize(String name) {
+    return name.replaceAll("^(?:[.]*?)([^.]+?)(?:\\:*?)$", "$1");
   }
 }

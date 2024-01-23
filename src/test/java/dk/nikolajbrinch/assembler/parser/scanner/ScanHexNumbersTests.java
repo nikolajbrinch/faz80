@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.StringSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,15 +14,14 @@ class ScanHexNumbersTests {
 
   @Test
   void testScan() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new StringSource(
                 """
-                var set 0xffff
-                var set $ffff
-                var set 0Xffff
-        """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+                  var set 0xffff
+                  var set $ffff
+                  var set 0Xffff
+          """))) {
 
       Assertions.assertEquals(AssemblerTokenType.HEX_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("ffff", scanner.peek(3).text());

@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.StringSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,12 +14,11 @@ class ScanNewlineTests {
 
   @Test
   void testScan() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
-                "ld a, b\nld b, d\rld d, e\r\n".getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+      try (AssemblerScanner scanner =
+          new AssemblerScanner(
+              new StringSource("ld a, b\nld b, d\rld d, e\r\n"))) {
 
-      Assertions.assertEquals(AssemblerTokenType.NEWLINE, scanner.peek(5).type());
+        Assertions.assertEquals(AssemblerTokenType.NEWLINE, scanner.peek(5).type());
       Assertions.assertEquals(AssemblerTokenType.NEWLINE, scanner.peek(10).type());
       Assertions.assertEquals(AssemblerTokenType.NEWLINE, scanner.peek(15).type());
 

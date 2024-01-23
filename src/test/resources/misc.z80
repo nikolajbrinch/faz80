@@ -2,8 +2,8 @@ org 0
             const equ 0x00
             var1:: set %00000001
             label1
-            label::  ld a, $
-            label    ld $$, d
+            label::  ld a, b
+            label    ld bc, $$
             .align 256  ; this is a comment
             .local
             ; comments
@@ -16,7 +16,8 @@ org 0
              macro macro2 param3, param4
              macro1(3,4)
             .endm
-            rept $2 - $
+            macro2
+            rept $20 - $
             ld a, $34
             endr
             .phase $1000

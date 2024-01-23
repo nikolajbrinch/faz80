@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.UrlSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -12,8 +13,9 @@ class ScanMath48Tests {
 
   @Test
   void testScan() throws IOException {
-    try (InputStream inputStream = ScanMath48Tests.class.getResourceAsStream("/Math48.z80");
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new UrlSource(ScanDloopMacrosTests.class.getResource("/Math48.z80")))) {
 
       List<AssemblerToken> tokens = new ArrayList<>();
       scanner.forEach(tokens::add);

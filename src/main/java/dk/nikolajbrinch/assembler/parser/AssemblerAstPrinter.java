@@ -1,13 +1,15 @@
 package dk.nikolajbrinch.assembler.parser;
 
+import dk.nikolajbrinch.assembler.compiler.EvaluationException;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
 import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.NumberExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.StringExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
 import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
@@ -40,7 +42,6 @@ import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
-import dk.nikolajbrinch.assembler.compiler.EvaluationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,7 +72,12 @@ public class AssemblerAstPrinter
   }
 
   @Override
-  public String visitLiteralExpression(LiteralExpression expression) {
+  public String visitNumberExpression(NumberExpression expression) {
+    return expression.token().text();
+  }
+
+  @Override
+  public String visitStringExpression(StringExpression expression) {
     return expression.token().text();
   }
 
@@ -93,7 +99,8 @@ public class AssemblerAstPrinter
   @Override
   public String visitInstructionStatement(InstructionStatement statement) {
     return parenthesize(
-        "instruction: " + statement.mnemonic().text(), statement.operands().toArray(new Operand[0]));
+        "instruction: " + statement.mnemonic().text(),
+        statement.operands().toArray(new Operand[0]));
   }
 
   @Override

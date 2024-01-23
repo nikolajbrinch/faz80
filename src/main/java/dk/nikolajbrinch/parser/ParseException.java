@@ -2,7 +2,7 @@ package dk.nikolajbrinch.parser;
 
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 
-public class ParseException extends RuntimeException {
+public class ParseException extends BaseException {
 
   private final AssemblerToken token;
 

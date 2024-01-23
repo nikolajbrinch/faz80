@@ -1,9 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
-import dk.nikolajbrinch.parser.SourceInfo;
-import java.io.ByteArrayInputStream;
+import dk.nikolajbrinch.parser.StringSource;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -13,15 +11,14 @@ class ScanDecimalNumbersTests {
 
   @Test
   void testScan() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new StringSource(
                 """
                 var set 0
                 var set 1234567890
                 var set 91
-        """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+        """))) {
 
       Assertions.assertEquals(AssemblerTokenType.DECIMAL_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("0", scanner.peek(3).text());

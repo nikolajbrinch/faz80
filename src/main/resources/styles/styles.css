@@ -38,8 +38,8 @@
   -fx-font-weight: normal;
 }
 
-.table-row-cell:odd {
-  -fx-background: -fx-control-inner-background;
+.table-row-cell {
+  -fx-cell-size: 20px;
 }
 
 .code-editor {
@@ -53,7 +53,7 @@
 }
 
 .code-editor .line-highlight {
-  -fx-background-color: lightgray;
+  -fx-background-color: lightblue;
 }
 
 .code-editor .lineno {
@@ -61,9 +61,13 @@
   -fx-font-size: 9pt;
   -fx-font-weight: bold;
   -fx-text-fill: #444;
-  -fx-background-color: #404040;
+  -fx-background-color: #BBB;
   -fx-font-style: italic;
   -fx-padding: 0 5px;
+}
+
+.code-editor .paragraph-text {
+  -fx-tab-size: 2;
 }
 
 .output {

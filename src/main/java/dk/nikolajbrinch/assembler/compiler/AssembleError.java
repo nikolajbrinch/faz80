@@ -1,3 +1,5 @@
 package dk.nikolajbrinch.assembler.compiler;
 
-public record AssembleError(AssembleException exception) {}
+import dk.nikolajbrinch.parser.BaseError;
+
+public record AssembleError(AssembleException exception) implements BaseError<AssembleException> {}

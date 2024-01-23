@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler.symbols;
 
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -10,15 +11,15 @@ class SymbolTableTests {
   void testSimple() throws Exception {
     SymbolTable symbolTable = new SymbolTable();
 
-    symbolTable.define("symbol", SymbolType.CONSTANT, new ValueSymbol(NumberValue.create(100L)));
+    symbolTable.define("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
 
     Assertions.assertNotNull(symbolTable.get("symbol"));
-    Assertions.assertEquals(100L, ((NumberValue) symbolTable.get("symbol").value()).value());
+    Assertions.assertEquals(100L, ((NumberValue) symbolTable.get("symbol").get()).value());
 
-    symbolTable.assign("symbol", SymbolType.CONSTANT, new ValueSymbol(NumberValue.create(200L)));
+    symbolTable.assign("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(200L)));
 
     Assertions.assertNotNull(symbolTable.get("symbol"));
-    Assertions.assertEquals(200L, ((NumberValue) symbolTable.get("symbol").value()).value());
+    Assertions.assertEquals(200L, ((NumberValue) symbolTable.get("symbol").get()).value());
 
     Assertions.assertTrue(symbolTable.exists("symbol"));
   }
@@ -28,15 +29,15 @@ class SymbolTableTests {
     SymbolTable parent = new SymbolTable();
     SymbolTable symbolTable = new SymbolTable(parent);
 
-    parent.define("symbol", SymbolType.CONSTANT, new ValueSymbol(NumberValue.create(100L)));
+    parent.define("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
 
     Assertions.assertNotNull(symbolTable.get("symbol"));
-    Assertions.assertEquals(100L, ((NumberValue) symbolTable.get("symbol").value()).value());
+    Assertions.assertEquals(100L, ((NumberValue) symbolTable.get("symbol").get()).value());
 
-    symbolTable.assign("symbol", SymbolType.CONSTANT, new ValueSymbol(NumberValue.create(200L)));
+    symbolTable.assign("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(200L)));
 
     Assertions.assertNotNull(symbolTable.get("symbol"));
-    Assertions.assertEquals(200L, ((NumberValue) symbolTable.get("symbol").value()).value());
+    Assertions.assertEquals(200L, ((NumberValue) symbolTable.get("symbol").get()).value());
 
     Assertions.assertTrue(parent.exists("symbol"));
     Assertions.assertTrue(symbolTable.exists("symbol"));
@@ -52,19 +53,19 @@ class SymbolTableTests {
         UndefinedSymbolException.class,
         () ->
             symbolTable.assign(
-                "symbol", SymbolType.CONSTANT, new ValueSymbol(NumberValue.create(200L))));
+                "symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(200L))));
   }
 
   @Test
   void testWrongSymbolType() throws Exception {
     SymbolTable symbolTable = new SymbolTable();
 
-    symbolTable.define("symbol", SymbolType.CONSTANT, new ValueSymbol(NumberValue.create(100L)));
+    symbolTable.define("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
 
     Assertions.assertThrows(
         WrongSymbolTypeException.class,
         () ->
             symbolTable.assign(
-                "symbol", SymbolType.VARIABLE, new ValueSymbol(NumberValue.create(200L))));
+                "symbol", SymbolType.VARIABLE, Optional.of(NumberValue.create(200L))));
   }
 }

@@ -2,21 +2,19 @@ package dk.nikolajbrinch.assembler.parser;
 
 import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.Macro;
-import dk.nikolajbrinch.assembler.compiler.symbols.ExpressionSymbol;
-import dk.nikolajbrinch.assembler.compiler.symbols.LabelSymbol;
-import dk.nikolajbrinch.assembler.compiler.symbols.MacroSymbol;
-import dk.nikolajbrinch.assembler.compiler.symbols.Symbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
 import dk.nikolajbrinch.assembler.compiler.symbols.UndefinedSymbolException;
-import dk.nikolajbrinch.assembler.compiler.symbols.ValueSymbol;
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.values.StringValue;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.assembler.parser.expressions.GroupingExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.IdentifierExpression;
-import dk.nikolajbrinch.assembler.parser.expressions.LiteralExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.MacroCallExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.NumberExpression;
+import dk.nikolajbrinch.assembler.parser.expressions.StringExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.UnaryExpression;
 import dk.nikolajbrinch.assembler.parser.operands.ConditionOperand;
 import dk.nikolajbrinch.assembler.parser.operands.ExpressionOperand;
@@ -25,7 +23,6 @@ import dk.nikolajbrinch.assembler.parser.operands.Operand;
 import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
-import dk.nikolajbrinch.assembler.parser.scanner.Mnemonic;
 import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
@@ -37,7 +34,6 @@ import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataWordStatement;
 import dk.nikolajbrinch.assembler.parser.statements.EmptyStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
-import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
@@ -51,6 +47,7 @@ import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.util.StringUtil;
+import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
 import dk.nikolajbrinch.parser.FileSource;
 import dk.nikolajbrinch.parser.Logger;
@@ -61,6 +58,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken> {
@@ -81,10 +80,16 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
   private final Configuration configuration = new Configuration();
 
-  private SymbolTable currentSymbolTable;
+  private final SymbolTable globaleSymbolTable = new SymbolTable();
+
+  private SymbolTable currentSymbolTable = globaleSymbolTable;
 
   public AssemblerParser() {
-    super(new AssemblerTokenProducer(), true);
+    this(null);
+  }
+
+  public AssemblerParser(File directory) {
+    super(new AssemblerTokenProducer(directory), true);
   }
 
   public BlockStatement parse(File file) throws IOException {
@@ -100,8 +105,6 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   }
 
   private BlockStatement parse() {
-    currentSymbolTable = new SymbolTable();
-
     List<Statement> statements = new ArrayList<>();
 
     while (!isEof()) {
@@ -172,10 +175,12 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
       try {
         symbolType = currentSymbolTable.getSymbolType(identifier.text());
       } catch (UndefinedSymbolException e) {
-        throw new ParseException(identifier, e.getMessage(), e);
+        /*
+         * Ignore
+         */
       }
 
-      if (symbolType == SymbolType.MACRO) {
+      if (symbolType != null && symbolType == SymbolType.MACRO) {
         return macroCall(identifier);
       }
     }
@@ -211,10 +216,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     LabelStatement statement = new LabelStatement(identifier);
 
-    currentSymbolTable.define(
-        identifier.text(), SymbolType.LABEL, new LabelSymbol(identifier.text()));
-
-
+    currentSymbolTable.define(identifier.text(), SymbolType.LABEL);
 
     return statement;
   }
@@ -228,15 +230,15 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     ConstantStatement statement = new ConstantStatement(identifier, value);
 
-    Symbol<?> symbol;
+    Optional<?> optional;
 
     try {
-      symbol = new ValueSymbol(expressionEvaluator.evaluate(value, currentSymbolTable));
+      optional = Optional.ofNullable(evaluate(value));
     } catch (Exception e) {
-      symbol = new ExpressionSymbol(value);
+      optional = Optional.empty();
     }
 
-    currentSymbolTable.define(identifier.text(), SymbolType.CONSTANT, symbol);
+    currentSymbolTable.define(identifier.text(), SymbolType.CONSTANT, optional);
 
     return statement;
   }
@@ -250,15 +252,15 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     VariableStatement statement = new VariableStatement(identifier, value);
 
-    Symbol<?> symbol;
+    Optional<?> optional;
 
     try {
-      symbol = new ValueSymbol(expressionEvaluator.evaluate(value, currentSymbolTable));
+      optional = Optional.ofNullable(evaluate(value));
     } catch (Exception e) {
-      symbol = new ExpressionSymbol(value);
+      optional = Optional.empty();
     }
 
-    currentSymbolTable.define(identifier.text(), SymbolType.VARIABLE, symbol);
+    currentSymbolTable.define(identifier.text(), SymbolType.VARIABLE, optional);
 
     return statement;
   }
@@ -302,7 +304,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     if (configuration.isResolveIncludes()) {
       try {
-        newSource(new FileSource(StringUtil.unquote(string.text())));
+        newSource(StringUtil.unquote(string.text()));
       } catch (IOException e) {
         throw new ParseException(string, e.getMessage(), e);
       }
@@ -405,7 +407,9 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after global declaration.");
 
-    return new GlobalStatement(identifier);
+    globaleSymbolTable.define(identifier.text(), SymbolType.LABEL, Optional.empty());
+
+    return null;
   }
 
   private Statement assertion() {
@@ -444,7 +448,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
             macroSymbolTable.define(
                 parameter.name().text(),
                 SymbolType.MACRO_ARGUMENT,
-                new ExpressionSymbol(parameter.defaultValue())));
+                Optional.ofNullable(parameter.defaultValue())));
 
     BlockStatement block = block(macroSymbolTable, AssemblerTokenType.ENDMACRO);
 
@@ -454,7 +458,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     MacroStatement statement = new MacroStatement(name, macroSymbolTable, parameters, block);
 
     currentSymbolTable.define(
-        name.text(), SymbolType.MACRO, new MacroSymbol(new Macro(name.text(), parameters, block)));
+        name.text(), SymbolType.MACRO, Optional.of(new Macro(name.text(), parameters, block)));
 
     return statement;
   }
@@ -543,17 +547,18 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
           } else if (checkType(AssemblerTokenType.GREATER_GREATER)) {
             AssemblerToken token =
                 consume(AssemblerTokenType.GREATER_GREATER, "Expect < before macro call argument");
+            AssemblerToken stringToken =
+                new AssemblerToken(
+                    AssemblerTokenType.CHAR,
+                    getSourceInfo(),
+                    token.position(),
+                    token.line(),
+                    token.start(),
+                    token.end() - 1,
+                    "'>'");
             arguments.add(
                 new ExpressionStatement(
-                    new LiteralExpression(
-                        new AssemblerToken(
-                            AssemblerTokenType.CHAR,
-                            getSourceInfo(),
-                            token.position(),
-                            token.line(),
-                            token.start(),
-                            token.end() - 1,
-                            "'>'"))));
+                    new StringExpression(stringToken, StringValue.create(stringToken))));
           } else {
             arguments.add(declaration());
             if (checkType(eos)) {
@@ -569,17 +574,18 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
               consume(AssemblerTokenType.LESS_LESS, "Expect < before macro call argument");
           eos = AssemblerTokenType.GREATER;
           if (checkType(eos)) {
+            AssemblerToken stringToken =
+                new AssemblerToken(
+                    AssemblerTokenType.CHAR,
+                    getSourceInfo(),
+                    token.position(),
+                    token.line(),
+                    token.start() + 1,
+                    token.end(),
+                    "'<'");
             arguments.add(
                 new ExpressionStatement(
-                    new LiteralExpression(
-                        new AssemblerToken(
-                            AssemblerTokenType.CHAR,
-                            getSourceInfo(),
-                            token.position(),
-                            token.line(),
-                            token.start() + 1,
-                            token.end(),
-                            "'<'"))));
+                    new StringExpression(stringToken, StringValue.create(stringToken))));
             expectEol("Expect > after macro call argument");
           } else {
             arguments.add(declaration());
@@ -748,7 +754,8 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
         statements.add(declaration());
       }
 
-      return new BlockStatement(currentSymbolTable, statements);
+      return new BlockStatement(
+          currentSymbolTable, statements.stream().filter(Objects::nonNull).toList());
     } finally {
       currentSymbolTable = previousSymbolTable;
     }
@@ -768,6 +775,26 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     }
 
     expectEol("Expect newline or eof after instruction.");
+
+    Mnemonic instruction = Mnemonic.find(mnemonic.text());
+
+    if (operands.size() < instruction.getOperandsLowerBound()) {
+      throw new ParseException(
+          mnemonic,
+          "Instruction "
+              + instruction
+              + " requires at least "
+              + instruction.getOperandsLowerBound()
+              + " operands");
+    } else if (operands.size() > instruction.getOperandsUpperBound()) {
+      throw new ParseException(
+          mnemonic,
+          "Instruction "
+              + instruction
+              + " accepts maximum "
+              + instruction.getOperandsLowerBound()
+              + " operands");
+    }
 
     return new InstructionStatement(mnemonic, operands);
   }
@@ -1004,10 +1031,12 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
         AssemblerTokenType.DECIMAL_NUMBER,
         AssemblerTokenType.OCTAL_NUMBER,
         AssemblerTokenType.HEX_NUMBER,
-        AssemblerTokenType.BINARY_NUMBER,
-        AssemblerTokenType.STRING,
-        AssemblerTokenType.CHAR)) {
-      return new LiteralExpression(nextToken());
+        AssemblerTokenType.BINARY_NUMBER)) {
+      AssemblerToken numberToken = nextToken();
+      return new NumberExpression(numberToken, NumberValue.create(numberToken));
+    } else if (match(AssemblerTokenType.STRING, AssemblerTokenType.CHAR)) {
+      AssemblerToken stringToken = nextToken();
+      return new StringExpression(stringToken, StringValue.create(stringToken));
     }
 
     /*
@@ -1055,6 +1084,10 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     }
 
     throw error(peek(), "Expect expression");
+  }
+
+  private Object evaluate(Expression expression) {
+    return expressionEvaluator.evaluate(expression, currentSymbolTable);
   }
 
   private boolean isGroupingStart() {

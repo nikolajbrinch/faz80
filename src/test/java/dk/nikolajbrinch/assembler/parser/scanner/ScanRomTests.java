@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.UrlSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -12,8 +13,8 @@ class ScanRomTests {
 
   @Test
   void testScan() throws IOException {
-    try (InputStream inputStream = ScanRomTests.class.getResourceAsStream("/rom.z80");
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(new UrlSource(ScanDloopMacrosTests.class.getResource("/rom.z80")))) {
 
       List<AssemblerToken> tokens = new ArrayList<>();
       scanner.forEach(tokens::add);

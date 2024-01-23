@@ -1,14 +1,10 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.compiler.AssembleError;
 import dk.nikolajbrinch.assembler.compiler.AssembleException;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.symbols.Symbol;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.ide.AstTreeValue.Type;
-import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
-import dk.nikolajbrinch.assembler.parser.statements.Statement;
-import dk.nikolajbrinch.parser.ParseError;
+import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.ParseException;
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -50,7 +47,7 @@ public class IdeController {
 
   @FXML private TableColumn<SymbolProperty, String> type;
 
-  @FXML private TableColumn<SymbolProperty, String> value;
+  @FXML private TableColumn<SymbolProperty, String> values;
 
   @FXML private TabPane statusTabPane;
 
@@ -76,7 +73,7 @@ public class IdeController {
     assembleButton.setDisable(true);
     name.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
     type.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
-    value.setCellValueFactory(cellData -> cellData.getValue().valueProperty());
+    values.setCellValueFactory(cellData -> cellData.getValue().valuesProperty());
 
     errorLine.setCellValueFactory(cellData -> cellData.getValue().lineProperty().asObject());
     errorTyoe.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
@@ -123,22 +120,16 @@ public class IdeController {
     }
   }
 
-  public void assemble(ActionEvent actionEvent) throws IOException {
+  public void compile(ActionEvent actionEvent) throws IOException {
     TabController controller = getTabController();
-    controller.assemble();
+    controller.compile();
 
     statusTabPane.getSelectionModel().select(errorsTab);
 
-    if (controller.hasParseErrors()) {
-      updateParseErrors(controller.getParseErrors());
-    } else {
-      if (controller.hasAssembleErrors()) {
-        updateAssembleErrors(controller.getAssembleErrors());
-      } else {
-        statusTabPane.getSelectionModel().select(outputTab);
+    updateErrors(controller.getErrors());
 
-        updateOutput(controller.getAssembleResult());
-      }
+    if (!controller.hasErrors()) {
+      updateOutput(controller.getAssembleResult());
     }
   }
 
@@ -153,12 +144,14 @@ public class IdeController {
         symbolTable = (SymbolTable) treeValue.valueSupplier().get();
 
         if (symbolTable != null) {
-          for (Map.Entry<String, Symbol<?>> entry : symbolTable.getSymbols().entrySet()) {
+          for (Map.Entry<String, List<Optional<?>>> entry : symbolTable.getSymbols().entrySet()) {
             data.add(
                 new SymbolProperty(
                     entry.getKey(),
                     String.valueOf(symbolTable.getSymbolType(entry.getKey())),
-                    String.valueOf(entry.getValue().value())));
+                    entry.getValue().stream()
+                        .map(optional -> String.valueOf(optional.orElse(null)))
+                        .collect(Collectors.joining("\n"))));
           }
         }
       }
@@ -201,47 +194,61 @@ public class IdeController {
     TabController controller = getTabController(tab);
     controller.parse();
 
-    assembleButton.setDisable(controller.hasParseErrors());
-    updateParseErrors(controller.getParseErrors());
+    assembleButton.setDisable(controller.hasErrors());
+    updateErrors(controller.getErrors());
   }
 
-  private void updateParseErrors(List<ParseError> errors) {
+  private void updateErrors(List<BaseError<?>> errors) {
     ObservableList<ErrorProperty> data = FXCollections.observableArrayList();
 
     errors.forEach(
         error -> {
-          ParseException exception = error.exception();
-          AssemblerToken token = exception.getToken();
+          Exception exception = error.exception();
           data.add(
-              new ErrorProperty(
-                  token.line().number(), "Parse", token.text(), exception.getMessage()));
-        });
-
-    errorTableView.setItems(data);
-  }
-
-  private void updateAssembleErrors(List<AssembleError> errors) {
-    ObservableList<ErrorProperty> data = FXCollections.observableArrayList();
-
-    errors.forEach(
-        error -> {
-          AssembleException exception = error.exception();
-          Statement statement = exception.getStatement();
-          data.add(
-              new ErrorProperty(statement.line().number(), "Assemble", "", exception.getMessage()));
+              switch (exception) {
+                case AssembleException assembleException ->
+                    new ErrorProperty(
+                        assembleException.getStatement().line().number(),
+                        "Assemble",
+                        "",
+                        exception.getMessage());
+                case ParseException parseException ->
+                    new ErrorProperty(
+                        parseException.getToken().line().number(),
+                        "Parse",
+                        parseException.getToken().text(),
+                        exception.getMessage());
+                default -> null;
+              });
         });
 
     errorTableView.setItems(data);
   }
 
   private void updateOutput(List<ByteSource> bytes) {
-    String values =
+    List<String> values =
         bytes.stream()
             .flatMapToLong(source -> Arrays.stream(source.getBytes()))
-            .mapToObj(value -> String.format("%02X", value & 0x00fF))
-            .collect(Collectors.joining(" "));
+            .mapToObj(value -> String.format("%02X", value & 0xFF))
+            .toList();
 
-    output.setText(values);
+    int address = 0;
+
+    StringBuilder builder = new StringBuilder(String.format("%04X: ", address & 0xFFFF));
+
+    for (int i = 0; i < values.size(); i++) {
+      if (i > 0 && i % 16 == 0) {
+        address += 16;
+        builder.append("\n");
+        builder.append(String.format("%04X: ", address & 0xFFFF));
+      }
+
+      builder.append(values.get(i));
+      builder.append(" ");
+    }
+
+    output.setText(builder.toString());
+    statusTabPane.getSelectionModel().select(outputTab);
   }
 
   private TabController createTab(String title, File file) throws IOException {
@@ -265,6 +272,8 @@ public class IdeController {
   }
 
   private void treeChanged(TreeItem<AstTreeValue> astTree) {
+    TabController controller = getTabController();
+
     Platform.runLater(
         () -> {
           astTreeView.setRoot(astTree);
@@ -272,6 +281,8 @@ public class IdeController {
           if (astTree != null) {
             expandTree(astTree);
           }
+
+          updateErrors(controller.getErrors());
         });
   }
 

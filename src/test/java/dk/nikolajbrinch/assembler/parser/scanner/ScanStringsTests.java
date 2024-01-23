@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.UrlSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -12,8 +13,9 @@ class ScanStringsTests {
 
   @Test
   void testScan() throws IOException {
-    try (InputStream inputStream = ScanStringsTests.class.getResourceAsStream("/strings.z80");
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new UrlSource(ScanDloopMacrosTests.class.getResource("/strings.z80")))) {
 
       Assertions.assertEquals(AssemblerTokenType.STRING, scanner.peek(2).type());
       Assertions.assertEquals("\"string\n\"\"", scanner.peek(2).text());

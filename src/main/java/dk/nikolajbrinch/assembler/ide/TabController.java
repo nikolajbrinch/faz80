@@ -1,20 +1,18 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.compiler.AssembleError;
-import dk.nikolajbrinch.assembler.compiler.Assembler;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
-import dk.nikolajbrinch.assembler.parser.AssemblerParser;
+import dk.nikolajbrinch.assembler.compiler.Compiler;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Register;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerScanner;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.assembler.parser.scanner.Directive;
-import dk.nikolajbrinch.assembler.parser.scanner.Mnemonic;
+import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.FileSource;
-import dk.nikolajbrinch.parser.ParseError;
+import dk.nikolajbrinch.parser.ParseException;
 import dk.nikolajbrinch.parser.ScannerSource;
 import dk.nikolajbrinch.parser.StringSource;
 import java.io.File;
@@ -23,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.fxml.FXML;
 import javafx.scene.control.TreeItem;
@@ -41,8 +40,8 @@ public class TabController {
     return editor;
   }
 
-  private ParseResultProperty parseResultProperty = new ParseResultProperty();
-  private AssembleResultProperty assembleResultProperty = new AssembleResultProperty();
+  private CompileResultProperty compileResultProperty = new CompileResultProperty();
+  private Compiler compiler = new Compiler();
 
   public void initialize() {
     editor
@@ -67,40 +66,34 @@ public class TabController {
 
   public void setFile(File file) throws IOException {
     this.source = new FileSource(file);
+    compiler.setDirectory(file.getParentFile().getCanonicalFile());
     editor.newText(file);
     parse();
   }
 
   public void parse() throws IOException {
-    AssemblerParser parser = new AssemblerParser();
-    parse(parser);
-  }
-
-  private void parse(AssemblerParser parser) throws IOException {
     BlockStatement block;
 
-    block = parser.parse(editor.getText());
-    parseResultProperty.setHasErrors(parser.hasErrors());
-    parseResultProperty.setErrors(parser.getErrors());
-    parseResultProperty.setResult(block);
+    compiler.parse(editor.getText());
+    compileResultProperty.setHasErrors(compiler.hasErrors());
+    compileResultProperty.setErrors(compiler.getErrors());
+    compileResultProperty.setParseResult(compiler.getParseResult());
 
-    if (block != null) {
-      parseResultProperty.setAstTree(new AstTreeCreator().createTree(block));
+    if (compiler.getParseResult() != null) {
+      compileResultProperty.setAstTree(new AstTreeCreator().createTree(compiler.getParseResult()));
     }
   }
 
-  public void assemble() throws IOException {
-    if (parseResultProperty.getResult() == null) {
-      parse();
-    }
+  public void compile() throws IOException {
+    compiler.compile(editor.getText());
 
-    if (parseResultProperty.getResult() != null && !parseResultProperty.hasErrors()) {
-      Assembler assembler = new Assembler(new ExpressionEvaluator());
-      assembler.assemble(parseResultProperty.getResult());
+    compileResultProperty.setHasErrors(compiler.hasErrors());
+    compileResultProperty.setErrors(compiler.getErrors());
+    compileResultProperty.setParseResult(compiler.getParseResult());
+    compileResultProperty.setAssembleResult(compiler.getAssembleResult());
 
-      assembleResultProperty.setHasErrors(assembler.hasErrors());
-      assembleResultProperty.setErrors(assembler.getErrors());
-      assembleResultProperty.setResult(assembler.getBytes());
+    if (compiler.getParseResult() != null) {
+      compileResultProperty.setAstTree(new AstTreeCreator().createTree(compiler.getParseResult()));
     }
   }
 
@@ -111,8 +104,18 @@ public class TabController {
     StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
 
     List<AssemblerToken> errorTokens =
-        parseResultProperty.getErrors().stream()
-            .map(error -> error.exception().getToken())
+        compileResultProperty.getErrors().stream()
+            .map(
+                error -> {
+                  Exception exception = error.exception();
+
+                  if (exception instanceof ParseException parseException) {
+                    return parseException.getToken();
+                  }
+
+                  return null;
+                })
+            .filter(Objects::nonNull)
             .toList();
 
     try (AssemblerScanner scanner =
@@ -220,31 +223,23 @@ public class TabController {
     return token.type() == errorToken.type() && token.position().equals(errorToken.position());
   }
 
-  public boolean hasParseErrors() {
-    return parseResultProperty.hasErrors();
+  public boolean hasErrors() {
+    return compileResultProperty.hasErrors();
   }
 
-  public List<ParseError> getParseErrors() {
-    return parseResultProperty.getErrors();
+  public List<BaseError<?>> getErrors() {
+    return compileResultProperty.getErrors();
   }
 
   public TreeItem<AstTreeValue> getAstTree() {
-    return parseResultProperty.getAstTree();
+    return compileResultProperty.getAstTree();
   }
 
   public Property<TreeItem<AstTreeValue>> getAstTreeProperty() {
-    return parseResultProperty.astTreeProperty();
-  }
-
-  public boolean hasAssembleErrors() {
-    return assembleResultProperty.hasErrors();
-  }
-
-  public List<AssembleError> getAssembleErrors() {
-    return assembleResultProperty.getErrors();
+    return compileResultProperty.astTreeProperty();
   }
 
   public List<ByteSource> getAssembleResult() {
-    return assembleResultProperty.getResult();
+    return compileResultProperty.getAssembleResult();
   }
 }

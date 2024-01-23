@@ -1,8 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
-import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.UrlSource;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -12,9 +11,9 @@ class ScanSimpleMonitorTests {
 
   @Test
   void testScan() throws IOException {
-    try (InputStream inputStream =
-            ScanSimpleMonitorTests.class.getResourceAsStream("/simple-monitor.z80");
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new UrlSource(ScanDloopMacrosTests.class.getResource("/simple-monitor.z80")))) {
 
       List<AssemblerToken> tokens = new ArrayList<>();
       scanner.forEach(tokens::add);

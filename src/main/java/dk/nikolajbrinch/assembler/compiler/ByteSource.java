@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.LongSupplier;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -162,6 +163,10 @@ public class ByteSource {
 
   public static ByteSource of(long... bytes) {
     return new ByteSource(Arrays.stream(bytes).mapToObj(ByteSupplier::of), bytes.length);
+  }
+
+  public static ByteSource of(List<ByteSupplier> bytes) {
+    return new ByteSource(bytes.stream(), bytes.size());
   }
 
   public ByteSource append(ByteSource other) {

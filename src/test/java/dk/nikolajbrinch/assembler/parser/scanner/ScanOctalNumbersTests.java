@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.StringSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,15 +14,14 @@ class ScanOctalNumbersTests {
 
   @Test
   void testScan() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new StringSource(
                 """
                 var set 0377
                 var set 0o377
                 var set 0O377
-        """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+        """))) {
 
       Assertions.assertEquals(AssemblerTokenType.OCTAL_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("377", scanner.peek(3).text());

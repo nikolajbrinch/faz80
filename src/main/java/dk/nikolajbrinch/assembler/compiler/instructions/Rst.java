@@ -2,8 +2,8 @@ package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.operands.Operand;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
+import dk.nikolajbrinch.assembler.compiler.ByteSupplier;
+import dk.nikolajbrinch.assembler.compiler.operands.EvaluatedOperand;
 import java.util.Map;
 
 public class Rst implements InstructionGenerator {
@@ -14,11 +14,12 @@ public class Rst implements InstructionGenerator {
           0x38, 0b111);
 
   @Override
-  public ByteSource generate(Address currentAddress, Operand targetOperand, Operand sourceOperand) {
+  public ByteSource generate(Address currentAddress, EvaluatedOperand targetOperand, EvaluatedOperand sourceOperand, EvaluatedOperand extraOperand) {
     ByteSource resolved = null;
 
-    if (targetOperand.operand() instanceof NumberValue number) {
-      resolved = ByteSource.of(0b11000111 | p.get((int) number.value()));
+    if (targetOperand.operand() instanceof ValueSupplier value) {
+      resolved = ByteSource.of(
+          ByteSupplier.of(() -> 0b11000111 | p.get((int) value.number().value())));
     }
 
     return resolved;

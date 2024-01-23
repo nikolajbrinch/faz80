@@ -1,13 +1,14 @@
 package dk.nikolajbrinch.assembler.parser.expressions;
 
+import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.parser.Line;
 
-public record LiteralExpression(AssemblerToken token) implements Expression {
+public record NumberExpression(AssemblerToken token, NumberValue numberValue) implements Expression {
 
   @Override
   public <R> R accept(ExpressionVisitor<R> visitor) {
-    return visitor.visitLiteralExpression(this);
+    return visitor.visitNumberExpression(this);
   }
 
   @Override

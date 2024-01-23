@@ -1,8 +1,9 @@
 package dk.nikolajbrinch.assembler.compiler;
 
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
+import dk.nikolajbrinch.parser.BaseException;
 
-public class AssembleException extends RuntimeException {
+public class AssembleException extends BaseException {
 
   private final Statement statement;
 

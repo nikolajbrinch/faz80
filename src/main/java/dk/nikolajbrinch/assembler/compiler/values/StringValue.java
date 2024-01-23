@@ -58,6 +58,10 @@ public record StringValue(String value, Type type) implements Value<StringValue>
     return new BooleanValue(value().equals(other.value()));
   }
 
+  public boolean canBeNUmber() {
+    return type() == Type.CHAR;
+  }
+
   enum Type {
     STRING,
     CHAR

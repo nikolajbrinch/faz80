@@ -20,6 +20,10 @@ public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
   private Scanner<T> currentScanner;
   private File currentDirectory;
 
+  public BaseScannerRegistry(File currentDirectory) {
+    this.currentDirectory = currentDirectory;
+  }
+
   public void register(ScannerSource source) throws IOException {
     if (registry.containsKey(source.getSourceInfo().name())) {
       cyclicDependencyError(source.getSourceInfo().name());
@@ -44,7 +48,8 @@ public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
     if (file.exists()) {
       directory = file.getParentFile().getCanonicalFile();
     } else {
-      directory = new File(new File(".").getCanonicalPath());
+      directory =
+          currentDirectory == null ? new File(new File(".").getCanonicalPath()) : currentDirectory;
     }
 
     return directory;

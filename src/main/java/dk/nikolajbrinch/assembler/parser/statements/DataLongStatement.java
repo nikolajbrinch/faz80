@@ -4,7 +4,7 @@ import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.parser.Line;
 import java.util.List;
 
-public record DataLongStatement(List<Expression> values) implements Statement {
+public record DataLongStatement(List<Expression> values) implements ValuesStatement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

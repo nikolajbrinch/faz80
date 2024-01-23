@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
 import dk.nikolajbrinch.parser.SourceInfo;
+import dk.nikolajbrinch.parser.StringSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,15 +14,14 @@ class ScanBinaryNumbersTests {
 
   @Test
   void testScan() throws IOException {
-    try (ByteArrayInputStream inputStream =
-            new ByteArrayInputStream(
+    try (AssemblerScanner scanner =
+        new AssemblerScanner(
+            new StringSource(
                 """
                 var set 0b10000000
                 var set %10000000
                 var set 0B10000000
-        """
-                    .getBytes(StandardCharsets.UTF_8));
-        AssemblerScanner scanner = new AssemblerScanner(new SourceInfo("name"), inputStream)) {
+        """))) {
 
       Assertions.assertEquals(AssemblerTokenType.BINARY_NUMBER, scanner.peek(3).type());
       Assertions.assertEquals("10000000", scanner.peek(3).text());
