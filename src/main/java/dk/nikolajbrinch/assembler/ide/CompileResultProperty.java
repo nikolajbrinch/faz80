@@ -1,7 +1,6 @@
 package dk.nikolajbrinch.assembler.ide;
 
 import dk.nikolajbrinch.assembler.compiler.Assembled;
-import dk.nikolajbrinch.assembler.compiler.ByteSource;
 import dk.nikolajbrinch.assembler.compiler.Linked;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.parser.BaseError;

@@ -2,7 +2,6 @@ package dk.nikolajbrinch.assembler.compiler.instructions;
 
 import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
-import dk.nikolajbrinch.assembler.compiler.ByteSupplier;
 import dk.nikolajbrinch.assembler.compiler.operands.Conditions;
 import dk.nikolajbrinch.assembler.compiler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.assembler.parser.Condition;

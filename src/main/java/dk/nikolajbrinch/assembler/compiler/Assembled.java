@@ -1,7 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler;
 
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
-import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import java.util.ArrayList;
 import java.util.List;

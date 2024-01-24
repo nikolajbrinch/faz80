@@ -1,7 +1,6 @@
 package dk.nikolajbrinch.parser;
 
 import dk.nikolajbrinch.parser.impl.LoggerFactory;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

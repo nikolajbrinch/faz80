@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.parser;
 
-import java.io.File;
 import java.io.IOException;
 
 public interface TokenProducer<T> extends Scanner<T> {

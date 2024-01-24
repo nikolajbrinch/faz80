@@ -2,7 +2,6 @@ package dk.nikolajbrinch.assembler.parser.expressions;
 
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
-import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.parser.Line;
 import java.util.List;
 

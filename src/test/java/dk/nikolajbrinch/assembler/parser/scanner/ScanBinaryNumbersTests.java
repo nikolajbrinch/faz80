@@ -1,10 +1,7 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
-import dk.nikolajbrinch.parser.SourceInfo;
 import dk.nikolajbrinch.parser.StringSource;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
