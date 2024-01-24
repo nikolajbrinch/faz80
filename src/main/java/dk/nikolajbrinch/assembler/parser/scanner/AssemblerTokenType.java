@@ -93,6 +93,10 @@ public enum AssemblerTokenType implements TokenType {
   DATA_TEXT,
   DATA_BLOCK,
   DATA,
+  CODE_SEGMENT,
+  DATA_SEGMENT,
+  TARGET,
   END,
-  DIRECTIVE, EOF
+  DIRECTIVE,
+  EOF
 }

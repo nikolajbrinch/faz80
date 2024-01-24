@@ -74,19 +74,23 @@ public class Ld implements InstructionGenerator {
   @Override
   public ByteSource generateRegisterIndirectToRegister(
       Address currentAddress, Register targetRegister, Register sourceRegister) {
-    if (sourceRegister == Register.HL) {
-      return ByteSource.of(0b01000110 | (Registers.r.get(targetRegister) << 3));
-    }
+    return switch (sourceRegister) {
+      case HL -> ByteSource.of(0b01000110 | (Registers.r.get(targetRegister) << 3));
+      case IX, IY ->
+          generateIndexedToRegister(
+              currentAddress, targetRegister, sourceRegister, ByteSupplier.of(0));
+      default -> {
+        if (targetRegister == Register.A) {
+          yield switch (sourceRegister) {
+            case BC -> ByteSource.of(0x0A);
+            case DE -> ByteSource.of(0x1A);
+            default -> null;
+          };
+        }
 
-    if (targetRegister == Register.A) {
-      return switch (sourceRegister) {
-        case BC -> ByteSource.of(0x0A);
-        case DE -> ByteSource.of(0x1A);
-        default -> null;
-      };
-    }
-
-    return null;
+        yield null;
+      }
+    };
   }
 
   @Override
