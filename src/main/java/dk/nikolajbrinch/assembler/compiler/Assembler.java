@@ -102,7 +102,7 @@ public class Assembler implements StatementVisitor<Void> {
           instructionByteSourceFactory.generateByteSource(
               statement.mnemonic(), currentAddress, operands);
 
-      assembled.add(byteSource);
+      assembled.add(statement, byteSource);
 
       if (byteSource == null) {
         reportError(
@@ -417,7 +417,7 @@ public class Assembler implements StatementVisitor<Void> {
     }
 
     if (byteSuppliers != null) {
-      assembled.add(ByteSource.of(byteSuppliers));
+      assembled.add(statement, ByteSource.of(byteSuppliers));
       currentAddress = currentAddress.add(NumberValue.create(byteSuppliers.size()));
     }
   }

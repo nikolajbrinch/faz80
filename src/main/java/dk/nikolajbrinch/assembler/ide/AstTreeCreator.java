@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.ide;
 
+import dk.nikolajbrinch.assembler.parser.IdentifierUtil;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.ExpressionVisitor;
@@ -99,7 +100,8 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitIdentifierExpression(IdentifierExpression expression) {
     return new TreeItem<>(
-        new AstTreeValue(expression.line().number(), () -> expression.token().text()));
+        new AstTreeValue(
+            expression.line().number(), () -> IdentifierUtil.normalize(expression.token().text())));
   }
 
   @Override
@@ -138,15 +140,16 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitRegisterOperand(RegisterOperand operand) {
     TreeItem<AstTreeValue> register =
-        new TreeItem<>(new AstTreeValue(operand.line().number(), () -> "Register"));
+        new TreeItem<>(
+            new AstTreeValue(
+                operand.line().number(),
+                () -> String.format("Register: %s", operand.register().name())));
 
-    register
-        .getChildren()
-        .add(
-            new TreeItem<>(
-                new AstTreeValue(operand.line().number(), () -> operand.register().name())));
     if (operand.displacement() != null) {
-      register.getChildren().add(operand.displacement().accept(this));
+      TreeItem<AstTreeValue> displacement =
+          new TreeItem<>(new AstTreeValue(operand.line().number(), () -> "Displacement"));
+      register.getChildren().add(displacement);
+      displacement.getChildren().add(operand.displacement().accept(this));
     }
 
     return register;
@@ -160,7 +163,9 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitConditionOperand(ConditionOperand operand) {
     return new TreeItem<>(
-        new AstTreeValue(operand.line().number(), () -> operand.condition().name()));
+        new AstTreeValue(
+            operand.line().number(),
+            () -> String.format("Condition: %s", operand.condition().name())));
   }
 
   @Override
@@ -184,12 +189,11 @@ public class AstTreeCreator
   @Override
   public TreeItem<AstTreeValue> visitInstructionStatement(InstructionStatement statement) {
     TreeItem<AstTreeValue> instruction =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Instruction"));
-    TreeItem<AstTreeValue> opcode =
         new TreeItem<>(
             new AstTreeValue(
-                statement.line().number(), () -> Mnemonic.find(statement.mnemonic().text())));
-    instruction.getChildren().add(opcode);
+                statement.line().number(),
+                () ->
+                    String.format("Instruction: %s", Mnemonic.find(statement.mnemonic().text()))));
     TreeItem<AstTreeValue> operands =
         new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Operands"));
     instruction.getChildren().add(operands);
@@ -209,7 +213,9 @@ public class AstTreeCreator
         .getChildren()
         .add(
             new TreeItem<>(
-                new AstTreeValue(statement.line().number(), () -> statement.identifier().text())));
+                new AstTreeValue(
+                    statement.line().number(),
+                    () -> IdentifierUtil.normalize(statement.identifier().text()))));
     assign.getChildren().add(statement.initializer().accept(this));
 
     return assign;
@@ -407,7 +413,8 @@ public class AstTreeCreator
   public TreeItem<AstTreeValue> visitGlobalStatement(GlobalStatement statement) {
     return new TreeItem<>(
         new AstTreeValue(
-            statement.identifier().line().number(), () -> statement.identifier().text()));
+            statement.identifier().line().number(),
+            () -> IdentifierUtil.normalize(statement.identifier().text())));
   }
 
   @Override

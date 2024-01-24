@@ -7,8 +7,8 @@ public class Linker {
 
   public Linked link(Assembled assembled) {
     final List<Integer> bytes =
-        assembled.getBytes().stream()
-            .flatMapToLong(source -> Arrays.stream(source.getBytes()))
+        assembled.getLines().stream()
+            .flatMapToLong(line -> Arrays.stream(line.byteSource().getBytes()))
             .mapToObj(value -> (int) (value & 0xFF))
             .toList();
 

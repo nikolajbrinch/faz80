@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.compiler.symbols;
 
+import dk.nikolajbrinch.assembler.parser.IdentifierUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,7 +25,7 @@ public class SymbolTable {
   }
 
   public Optional<?> get(String name) {
-    String normalizedName = normalize(name);
+    String normalizedName = IdentifierUtil.normalize(name);
 
     if (symbolTypes.containsKey(normalizedName)) {
       List<Optional<?>> values = symbols.get(normalizedName);
@@ -42,7 +43,7 @@ public class SymbolTable {
   }
 
   public SymbolType getSymbolType(String name) {
-    String normalizedName = normalize(name);
+    String normalizedName = IdentifierUtil.normalize(name);
 
     if (symbolTypes.containsKey(normalizedName)) {
       return symbolTypes.get(normalizedName);
@@ -56,7 +57,7 @@ public class SymbolTable {
   }
 
   public boolean exists(String name) {
-    String normalizedName = normalize(name);
+    String normalizedName = IdentifierUtil.normalize(name);
 
     if (symbolTypes.containsKey(normalizedName)) {
       return true;
@@ -70,7 +71,7 @@ public class SymbolTable {
   }
 
   public Optional<?> assign(String name, SymbolType type, Optional<?> symbol) {
-    String normalizedName = normalize(name);
+    String normalizedName = IdentifierUtil.normalize(name);
 
     SymbolType symbolType = symbolTypes.get(normalizedName);
 
@@ -94,7 +95,7 @@ public class SymbolTable {
   }
 
   public void define(String name, SymbolType type) {
-    String normalizedName = normalize(name);
+    String normalizedName = IdentifierUtil.normalize(name);
 
     symbolTypes.put(normalizedName, type);
   }
@@ -121,7 +122,4 @@ public class SymbolTable {
     }
   }
 
-  private String normalize(String name) {
-    return name.replaceAll("^(?:[.]*?)([^.]+?)(?:\\:*?)$", "$1");
-  }
 }

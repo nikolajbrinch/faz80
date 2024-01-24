@@ -13,7 +13,7 @@ public class Add implements InstructionGenerator {
     return switch (targetRegister) {
       case A -> ByteSource.of(implied1(0b10000000, Registers.r, sourceRegister));
       case IX -> ByteSource.of(0xDD, implied5(0b00001001, Registers.pp, sourceRegister));
-      case IY -> ByteSource.of(0xFD, implied5(0b00001001, Registers.pp, sourceRegister));
+      case IY -> ByteSource.of(0xFD, implied5(0b00001001, Registers.rr, sourceRegister));
       case HL -> ByteSource.of(implied5(0b00001001, Registers.ss, sourceRegister));
       default -> null;
     };
