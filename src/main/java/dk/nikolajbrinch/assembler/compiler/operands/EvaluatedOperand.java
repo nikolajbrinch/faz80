@@ -3,7 +3,6 @@ package dk.nikolajbrinch.assembler.compiler.operands;
 import dk.nikolajbrinch.assembler.compiler.Address;
 import dk.nikolajbrinch.assembler.compiler.instructions.ValueSupplier;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
-import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Register;
 
@@ -27,57 +26,18 @@ public record EvaluatedOperand(
   }
 
   public long displacementE(Address address) {
-    NumberValue number;
-
     if (operand instanceof ValueSupplier valueSupplier) {
-      number = valueSupplier.number();
-    } else {
-      number = asNumberValue();
+      return OperandUtil.displacementE(valueSupplier, address);
     }
 
-    NumberValue relative = number.subtract(address.logicalAddress());
-
-    relative = relative.subtract(NumberValue.create(2));
-
-    if (relative.value() < -126) {
-      throw new IllegalDisplacementException(
-          operand,
-          relative,
-          "Displacement e too low: "
-              + relative
-              + "[current address: "
-              + address.logicalAddress().value()
-              + ", jump address: "
-              + number.value()
-              + "]");
-    }
-    if (relative.value() > 129) {
-      throw new IllegalDisplacementException(
-          operand,
-          relative,
-          "Displacement e too high: "
-              + relative
-              + "[current address: "
-              + address.logicalAddress().value()
-              + ", jump address: "
-              + number.value()
-              + "]");
-    }
-
-    long twosComplement = NumberValue.twosComplement(relative.value()) & 0XFF;
-
-    return new NumberValue(twosComplement, Size.BYTE).value() & 0xFF;
+    return OperandUtil.displacementE(asNumberValue(), address);
   }
 
   public long displacementD() {
-    NumberValue number;
-
     if (displacement instanceof ValueSupplier valueSupplier) {
-      number = valueSupplier.number();
-    } else {
-      number = (NumberValue) displacement;
+      return OperandUtil.displacementD(valueSupplier);
     }
 
-    return (NumberValue.twosComplement(number.value())) & 0xFF;
+    return OperandUtil.displacementD((NumberValue) displacement);
   }
 }
