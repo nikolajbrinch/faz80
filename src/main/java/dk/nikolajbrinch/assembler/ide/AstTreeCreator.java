@@ -16,9 +16,9 @@ import dk.nikolajbrinch.assembler.parser.operands.OperandVisitor;
 import dk.nikolajbrinch.assembler.parser.operands.RegisterOperand;
 import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
@@ -29,7 +29,6 @@ import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
@@ -37,7 +36,6 @@ import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
 import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
-import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import javafx.scene.control.TreeItem;
 
@@ -201,31 +199,20 @@ public class AstTreeCreator
   }
 
   @Override
-  public TreeItem<AstTreeValue> visitConstantStatement(ConstantStatement statement) {
+  public TreeItem<AstTreeValue> visitAssignStatement(AssignStatement statement) {
     TreeItem<AstTreeValue> assign =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Constant"));
+        new TreeItem<>(
+            new AstTreeValue(
+                statement.line().number(),
+                () -> String.format("Assign (%s)", statement.type().name())));
     assign
         .getChildren()
         .add(
             new TreeItem<>(
                 new AstTreeValue(statement.line().number(), () -> statement.identifier().text())));
-    assign.getChildren().add(statement.value().accept(this));
+    assign.getChildren().add(statement.initializer().accept(this));
 
     return assign;
-  }
-
-  @Override
-  public TreeItem<AstTreeValue> visitVariableStatement(VariableStatement statement) {
-    TreeItem<AstTreeValue> veriable =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Variable"));
-    veriable
-        .getChildren()
-        .add(
-            new TreeItem<>(
-                new AstTreeValue(statement.line().number(), () -> statement.identifier().text())));
-    veriable.getChildren().add(statement.intializer().accept(this));
-
-    return veriable;
   }
 
   @Override
@@ -421,20 +408,6 @@ public class AstTreeCreator
     return new TreeItem<>(
         new AstTreeValue(
             statement.identifier().line().number(), () -> statement.identifier().text()));
-  }
-
-  @Override
-  public TreeItem<AstTreeValue> visitLabelStatement(LabelStatement statement) {
-    TreeItem<AstTreeValue> label =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Label"));
-    label
-        .getChildren()
-        .add(
-            new TreeItem<>(
-                new AstTreeValue(
-                    statement.identifier().line().number(), () -> statement.identifier().text())));
-
-    return label;
   }
 
   @Override

@@ -15,9 +15,9 @@ import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
@@ -28,7 +28,6 @@ import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
@@ -38,7 +37,6 @@ import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.parser.statements.ValuesStatement;
-import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -122,26 +120,12 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitConstantStatement(ConstantStatement statement) {
-    try {
-      symbols.assign(
-          statement.identifier().text(),
-          SymbolType.CONSTANT,
-          Optional.ofNullable(evaluate(statement.value())));
-    } catch (EvaluationException e) {
-      reportError(new AssembleException(statement, e.getMessage(), e));
-    }
-
-    return null;
-  }
-
-  @Override
-  public Void visitVariableStatement(VariableStatement statement) {
+  public Void visitAssignStatement(AssignStatement statement) {
     try {
       symbols.assign(
           sanitizeName(statement.identifier().text()),
-          SymbolType.VARIABLE,
-          Optional.of(evaluate(statement.intializer())));
+          statement.type(),
+          Optional.of(evaluate(statement.initializer())));
     } catch (EvaluationException e) {
       reportError(new AssembleException(statement, e.getMessage(), e));
     }
@@ -322,16 +306,6 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitGlobalStatement(GlobalStatement statement) {
-    return null;
-  }
-
-  @Override
-  public Void visitLabelStatement(LabelStatement statement) {
-    symbols.assign(
-        statement.identifier().text(),
-        SymbolType.LABEL,
-        Optional.ofNullable(currentAddress.logicalAddress()));
-
     return null;
   }
 

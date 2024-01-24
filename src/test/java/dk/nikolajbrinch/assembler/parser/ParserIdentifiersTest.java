@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,12 +32,12 @@ class ParserIdentifiersTest {
     List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
 
     Assertions.assertEquals(7, statements.size());
-    Assertions.assertEquals("@id___:", ((LabelStatement) statements.get(0)).identifier().text());
-    Assertions.assertEquals(".id", ((LabelStatement) statements.get(1)).identifier().text());
-    Assertions.assertEquals("id:", ((LabelStatement) statements.get(2)).identifier().text());
-    Assertions.assertEquals("id::", ((LabelStatement) statements.get(3)).identifier().text());
-    Assertions.assertEquals("_id_1::", ((LabelStatement) statements.get(4)).identifier().text());
-    Assertions.assertEquals("exx:", ((LabelStatement) statements.get(5)).identifier().text());
-    Assertions.assertEquals("end:", ((LabelStatement) statements.get(6)).identifier().text());
+    Assertions.assertEquals("@id___:", ((AssignStatement) statements.get(0)).identifier().text());
+    Assertions.assertEquals(".id", ((AssignStatement) statements.get(1)).identifier().text());
+    Assertions.assertEquals("id:", ((AssignStatement) statements.get(2)).identifier().text());
+    Assertions.assertEquals("id::", ((AssignStatement) statements.get(3)).identifier().text());
+    Assertions.assertEquals("_id_1::", ((AssignStatement) statements.get(4)).identifier().text());
+    Assertions.assertEquals("exx:", ((AssignStatement) statements.get(5)).identifier().text());
+    Assertions.assertEquals("end:", ((AssignStatement) statements.get(6)).identifier().text());
   }
 }

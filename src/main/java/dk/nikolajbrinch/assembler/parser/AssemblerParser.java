@@ -24,9 +24,9 @@ import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
@@ -36,7 +36,6 @@ import dk.nikolajbrinch.assembler.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
@@ -44,15 +43,12 @@ import dk.nikolajbrinch.assembler.parser.statements.OriginStatement;
 import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
-import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
 import dk.nikolajbrinch.parser.FileSource;
-import dk.nikolajbrinch.parser.Logger;
 import dk.nikolajbrinch.parser.ParseException;
 import dk.nikolajbrinch.parser.StringSource;
-import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,7 +59,6 @@ import java.util.Set;
 
 public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken> {
 
-  private static final Logger logger = LoggerFactory.getLogger();
   private static final AssemblerTokenType[] EOF_TYPES =
       new AssemblerTokenType[] {AssemblerTokenType.EOF, AssemblerTokenType.END};
   private static final AssemblerTokenType[] COMMENT_TYPES =
@@ -211,11 +206,18 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
       consume(AssemblerTokenType.NEWLINE, "Expect newline after identifier");
     }
 
-    LabelStatement statement = new LabelStatement(identifier);
-
-    currentSymbolTable.define(identifier.text(), SymbolType.LABEL);
-
-    return statement;
+    return defineAndAssign(
+        identifier,
+        SymbolType.LABEL,
+        new AddressExpression(
+            new AssemblerToken(
+                AssemblerTokenType.DOLLAR,
+                identifier.fileInfo(),
+                identifier.position(),
+                identifier.line(),
+                identifier.start(),
+                identifier.end(),
+                "$")));
   }
 
   private Statement constant(AssemblerToken identifier) {
@@ -225,11 +227,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after constant.");
 
-    ConstantStatement statement = new ConstantStatement(identifier, value);
-
-    currentSymbolTable.define(identifier.text(), SymbolType.CONSTANT);
-
-    return statement;
+    return defineAndAssign(identifier, SymbolType.CONSTANT, value);
   }
 
   private Statement variable(AssemblerToken identifier) {
@@ -239,11 +237,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after variable.");
 
-    VariableStatement statement = new VariableStatement(identifier, value);
-
-    currentSymbolTable.define(identifier.text(), SymbolType.VARIABLE);
-
-    return statement;
+    return defineAndAssign(identifier, SymbolType.VARIABLE, value);
   }
 
   private Statement origin() {
@@ -1068,6 +1062,13 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     }
 
     throw error(peek(), "Expect expression");
+  }
+
+  private Statement defineAndAssign(
+      AssemblerToken identifier, SymbolType type, Expression expression) {
+    currentSymbolTable.define(identifier.text(), type);
+
+    return new AssignStatement(identifier, type, expression);
   }
 
   private boolean isGroupingStart() {

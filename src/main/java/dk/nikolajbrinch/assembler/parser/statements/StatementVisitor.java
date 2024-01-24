@@ -6,10 +6,6 @@ public interface StatementVisitor<R> {
 
   R visitInstructionStatement(InstructionStatement opcodeStatement);
 
-  R visitConstantStatement(ConstantStatement constantStatement);
-
-  R visitVariableStatement(VariableStatement variableStatement);
-
   R visitDataByteStatement(DataByteStatement byteStatement);
 
   R visitDataWordStatement(DataWordStatement wordStatement);
@@ -38,8 +34,6 @@ public interface StatementVisitor<R> {
 
   R visitGlobalStatement(GlobalStatement globalStatement);
 
-  R visitLabelStatement(LabelStatement labelStatement);
-
   R visitMacroCallStatement(MacroCallStatement macroCallStatement);
 
   R visitEmptyStatement(EmptyStatement emptyStatement);
@@ -47,4 +41,6 @@ public interface StatementVisitor<R> {
   R visitInsertStatement(InsertStatement insertStatement);
 
   R visitIncludeStatement(IncludeStatement includeStatement);
+
+  R visitAssignStatement(AssignStatement assignStatement);
 }

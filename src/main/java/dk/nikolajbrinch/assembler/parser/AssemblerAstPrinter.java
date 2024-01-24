@@ -21,7 +21,7 @@ import dk.nikolajbrinch.assembler.parser.statements.AlignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.AssertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.assembler.parser.statements.ConditionalStatement;
-import dk.nikolajbrinch.assembler.parser.statements.ConstantStatement;
+import dk.nikolajbrinch.assembler.parser.statements.AssignStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.assembler.parser.statements.DataTextStatement;
@@ -32,7 +32,6 @@ import dk.nikolajbrinch.assembler.parser.statements.GlobalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.IncludeStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InsertStatement;
 import dk.nikolajbrinch.assembler.parser.statements.InstructionStatement;
-import dk.nikolajbrinch.assembler.parser.statements.LabelStatement;
 import dk.nikolajbrinch.assembler.parser.statements.LocalStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroCallStatement;
 import dk.nikolajbrinch.assembler.parser.statements.MacroStatement;
@@ -41,7 +40,6 @@ import dk.nikolajbrinch.assembler.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.assembler.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
-import dk.nikolajbrinch.assembler.parser.statements.VariableStatement;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,13 +102,8 @@ public class AssemblerAstPrinter
   }
 
   @Override
-  public String visitConstantStatement(ConstantStatement statement) {
-    return parenthesize("constant: " + statement.identifier().text(), statement.value());
-  }
-
-  @Override
-  public String visitVariableStatement(VariableStatement statement) {
-    return parenthesize("variable: " + statement.identifier().text(), statement.intializer());
+  public String visitAssignStatement(AssignStatement statement) {
+    return parenthesize("assign: " + statement.identifier().text(), statement.initializer());
   }
 
   @Override
@@ -204,11 +197,6 @@ public class AssemblerAstPrinter
   @Override
   public String visitGlobalStatement(GlobalStatement statement) {
     return "global: " + statement.identifier();
-  }
-
-  @Override
-  public String visitLabelStatement(LabelStatement statement) {
-    return "Labels: " + statement.identifier().text();
   }
 
   @Override
