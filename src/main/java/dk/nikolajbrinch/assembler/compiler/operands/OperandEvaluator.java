@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.assembler.compiler.operands;
 
 import dk.nikolajbrinch.assembler.compiler.Evaluated;
-import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator2;
+import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.instructions.ValueSupplier;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue;
 import dk.nikolajbrinch.assembler.compiler.values.NumberValue.Size;
@@ -22,7 +22,7 @@ public class OperandEvaluator {
   AddressingModeDecoder addressingModeDecoder = new AddressingModeDecoder();
 
   public EvaluatedOperand evaluate(
-      Operand operand, Context context, ExpressionEvaluator2 expressionEvaluator) {
+      Operand operand, Context context, ExpressionEvaluator expressionEvaluator) {
     if (operand == null) {
       return null;
     }

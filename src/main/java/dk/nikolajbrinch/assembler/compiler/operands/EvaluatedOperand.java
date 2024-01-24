@@ -37,7 +37,9 @@ public record EvaluatedOperand(
 
     NumberValue relative = number.subtract(address.logicalAddress());
 
-    if ((relative.value() - 2) < -126) {
+    relative = relative.subtract(NumberValue.create(2));
+
+    if (relative.value() < -126) {
       throw new IllegalDisplacementException(
           operand,
           relative,
@@ -49,7 +51,7 @@ public record EvaluatedOperand(
               + number.value()
               + "]");
     }
-    if ((relative.value() - 2) > 129) {
+    if (relative.value() > 129) {
       throw new IllegalDisplacementException(
           operand,
           relative,
@@ -62,7 +64,7 @@ public record EvaluatedOperand(
               + "]");
     }
 
-    long twosComplement = NumberValue.twosComplement(relative.value() - 2) & 0XFF;
+    long twosComplement = NumberValue.twosComplement(relative.value()) & 0XFF;
 
     return new NumberValue(twosComplement, Size.BYTE).value() & 0xFF;
   }

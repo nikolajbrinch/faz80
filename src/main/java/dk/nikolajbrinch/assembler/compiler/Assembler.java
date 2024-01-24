@@ -51,15 +51,16 @@ public class Assembler implements StatementVisitor<Void> {
   private final InstructionByteSourceFactory instructionByteSourceFactory =
       new InstructionByteSourceFactory();
 
-  private OperandEvaluator operandEvaluator = new OperandEvaluator();
-  private final ExpressionEvaluator2 expressionEvaluator;
+  private final OperandEvaluator operandEvaluator = new OperandEvaluator();
+  private final ExpressionEvaluator expressionEvaluator;
   private final List<ByteSource> bytes = new ArrayList<>();
   private final SymbolTable globals = new SymbolTable();
   private final List<AssembleError> errors = new ArrayList<>();
   private SymbolTable symbols = globals;
-  private Address currentAddress = new Address(NumberValue.create(0), NumberValue.create(0));
+  private Address currentAddress =
+      new Address(NumberValue.createWord(0), NumberValue.createWord(0));
 
-  public Assembler(ExpressionEvaluator2 expressionEvaluator) {
+  public Assembler(ExpressionEvaluator expressionEvaluator) {
     this.expressionEvaluator = expressionEvaluator;
   }
 
@@ -385,7 +386,8 @@ public class Assembler implements StatementVisitor<Void> {
 
           Expression defaultValue = parameter.defaultValue();
 
-          macroEnvironment.define(name, SymbolType.MACRO_ARGUMENT, Optional.empty());
+          macroEnvironment.define(name, SymbolType.MACRO_ARGUMENT);
+          macroEnvironment.assign(name, SymbolType.MACRO_ARGUMENT, Optional.empty());
 
           if (defaultValue != null) {
             macroEnvironment.assign(

@@ -22,7 +22,7 @@ org 0
             endr
             .phase $1000
             ; do this code in phase
-            xor a, a ; zero a
+            xor a ; zero a
 
             .dephase
             ; end

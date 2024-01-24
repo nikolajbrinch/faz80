@@ -7,7 +7,6 @@ import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.BaseException;
 import dk.nikolajbrinch.parser.Line;
 import dk.nikolajbrinch.parser.Logger;
-import dk.nikolajbrinch.parser.ScannerSource;
 import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +64,7 @@ public class Compiler {
   }
 
   public void assemble(BlockStatement block) {
-    assembler = new Assembler(new ExpressionEvaluator2());
+    assembler = new Assembler(new ExpressionEvaluator());
     assembler.assemble(block);
     errors.addAll(assembler.getErrors());
     bytes = assembler.getBytes();

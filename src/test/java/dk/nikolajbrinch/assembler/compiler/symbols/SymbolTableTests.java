@@ -11,7 +11,8 @@ class SymbolTableTests {
   void testSimple() throws Exception {
     SymbolTable symbolTable = new SymbolTable();
 
-    symbolTable.define("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
+    symbolTable.define("symbol", SymbolType.CONSTANT);
+    symbolTable.assign("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
 
     Assertions.assertNotNull(symbolTable.get("symbol"));
     Assertions.assertEquals(100L, ((NumberValue) symbolTable.get("symbol").get()).value());
@@ -29,7 +30,8 @@ class SymbolTableTests {
     SymbolTable parent = new SymbolTable();
     SymbolTable symbolTable = new SymbolTable(parent);
 
-    parent.define("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
+    parent.define("symbol", SymbolType.CONSTANT);
+    parent.assign("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
 
     Assertions.assertNotNull(symbolTable.get("symbol"));
     Assertions.assertEquals(100L, ((NumberValue) symbolTable.get("symbol").get()).value());
@@ -60,7 +62,7 @@ class SymbolTableTests {
   void testWrongSymbolType() throws Exception {
     SymbolTable symbolTable = new SymbolTable();
 
-    symbolTable.define("symbol", SymbolType.CONSTANT, Optional.of(NumberValue.create(100L)));
+    symbolTable.define("symbol", SymbolType.CONSTANT);
 
     Assertions.assertThrows(
         WrongSymbolTypeException.class,

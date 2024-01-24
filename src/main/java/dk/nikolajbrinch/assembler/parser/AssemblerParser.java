@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.compiler.ExpressionEvaluator;
 import dk.nikolajbrinch.assembler.compiler.Macro;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
@@ -75,8 +74,6 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
   private AssemblerTokenType eos = AssemblerTokenType.NEWLINE;
 
   private Mode mode = Mode.NORMAL;
-
-  private final ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
 
   private final Configuration configuration = new Configuration();
 
@@ -230,15 +227,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     ConstantStatement statement = new ConstantStatement(identifier, value);
 
-    Optional<?> optional;
-
-    try {
-      optional = Optional.ofNullable(evaluate(value));
-    } catch (Exception e) {
-      optional = Optional.empty();
-    }
-
-    currentSymbolTable.define(identifier.text(), SymbolType.CONSTANT, optional);
+    currentSymbolTable.define(identifier.text(), SymbolType.CONSTANT);
 
     return statement;
   }
@@ -252,15 +241,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     VariableStatement statement = new VariableStatement(identifier, value);
 
-    Optional<?> optional;
-
-    try {
-      optional = Optional.ofNullable(evaluate(value));
-    } catch (Exception e) {
-      optional = Optional.empty();
-    }
-
-    currentSymbolTable.define(identifier.text(), SymbolType.VARIABLE, optional);
+    currentSymbolTable.define(identifier.text(), SymbolType.VARIABLE);
 
     return statement;
   }
@@ -407,7 +388,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     expectEol("Expect newline or eof after global declaration.");
 
-    globaleSymbolTable.define(identifier.text(), SymbolType.LABEL, Optional.empty());
+    globaleSymbolTable.define(identifier.text(), SymbolType.LABEL);
 
     return null;
   }
@@ -444,11 +425,13 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     SymbolTable macroSymbolTable = new SymbolTable(currentSymbolTable);
     parameters.forEach(
-        parameter ->
-            macroSymbolTable.define(
-                parameter.name().text(),
-                SymbolType.MACRO_ARGUMENT,
-                Optional.ofNullable(parameter.defaultValue())));
+        parameter -> {
+          macroSymbolTable.define(parameter.name().text(), SymbolType.MACRO_ARGUMENT);
+          macroSymbolTable.assign(
+              parameter.name().text(),
+              SymbolType.MACRO_ARGUMENT,
+              Optional.ofNullable(parameter.defaultValue()));
+        });
 
     BlockStatement block = block(macroSymbolTable, AssemblerTokenType.ENDMACRO);
 
@@ -457,7 +440,8 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     MacroStatement statement = new MacroStatement(name, macroSymbolTable, parameters, block);
 
-    currentSymbolTable.define(
+    currentSymbolTable.define(name.text(), SymbolType.MACRO);
+    currentSymbolTable.assign(
         name.text(), SymbolType.MACRO, Optional.of(new Macro(name.text(), parameters, block)));
 
     return statement;
@@ -1084,10 +1068,6 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     }
 
     throw error(peek(), "Expect expression");
-  }
-
-  private Object evaluate(Expression expression) {
-    return expressionEvaluator.evaluate(expression, currentSymbolTable);
   }
 
   private boolean isGroupingStart() {

@@ -29,7 +29,9 @@ public class SymbolTable {
     if (symbolTypes.containsKey(normalizedName)) {
       List<Optional<?>> values = symbols.get(normalizedName);
 
-      return values == null ? null : values.getFirst();
+      if (values != null) {
+        return values.getFirst();
+      }
     }
 
     if (parent != null) {
@@ -92,14 +94,9 @@ public class SymbolTable {
   }
 
   public void define(String name, SymbolType type) {
-    define(name, type, null);
-  }
-
-  public void define(String name, SymbolType type, Optional<?> symbol) {
     String normalizedName = normalize(name);
 
     symbolTypes.put(normalizedName, type);
-    addSymbol(normalizedName, symbol);
   }
 
   public Map<String, List<Optional<?>>> getSymbols() {

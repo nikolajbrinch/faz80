@@ -6,44 +6,60 @@ import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 
 public record NumberValue(long value, Size size) implements Value<NumberValue> {
 
-  public static NumberValue create(long value) {
-    return fromDecimal(value);
+  public static NumberValue create(final long value) {
+    return create(value, null);
   }
 
-  public static NumberValue create(AssemblerToken token) {
+  public static NumberValue createWord(final long value) {
+    return create(value, Size.WORD);
+  }
+
+  public static NumberValue create(final AssemblerToken token) {
+    return create(token, null);
+  }
+
+  public static NumberValue createWord(final AssemblerToken token) {
+    return create(token, Size.WORD);
+  }
+
+  private static NumberValue create(final long value, final Size size) {
+    return fromDecimal(value, size);
+  }
+
+  private static NumberValue create(final AssemblerToken token, final Size size) {
     return switch (token.type()) {
-      case DECIMAL_NUMBER -> fromDecimal(token);
-      case HEX_NUMBER -> fromHex(token);
-      case OCTAL_NUMBER -> fromOctal(token);
-      case BINARY_NUMBER -> fromBinary(token);
+      case DECIMAL_NUMBER -> fromDecimal(token, size);
+      case HEX_NUMBER -> fromHex(token, size);
+      case OCTAL_NUMBER -> fromOctal(token, size);
+      case BINARY_NUMBER -> fromBinary(token, size);
       default -> null;
     };
   }
 
-  private static NumberValue fromDecimal(AssemblerToken token) {
-    return fromDecimal(Long.parseLong(token.text()));
+  private static NumberValue fromDecimal(final AssemblerToken token, final Size size) {
+    return fromDecimal(Long.parseLong(token.text()), size);
   }
 
-  private static NumberValue fromDecimal(long value) {
+  private static NumberValue fromDecimal(final long value, final Size size) {
     if (value <= 0xFFL && value >= Byte.MIN_VALUE) {
-      return new NumberValue(value, Size.BYTE);
+      return newNumber(value, Size.BYTE, size);
     }
 
     if (value <= 0xFFFFL && value >= Short.MIN_VALUE) {
-      return new NumberValue(value, Size.WORD);
+      return newNumber(value, Size.WORD, size);
     }
 
     if (value <= 0xFFFFFFFFL && value >= Integer.MIN_VALUE) {
-      return new NumberValue(value, Size.WORD);
+      return newNumber(value, Size.WORD, size);
     }
 
     throw new IllegalStateException("Decimal number too large");
   }
 
-  private static NumberValue fromHex(AssemblerToken token) {
+  private static NumberValue fromHex(final AssemblerToken token, final Size size) {
     String text = token.text();
 
-    Size size =
+    Size actualSize =
         switch (text.length()) {
           case 1, 2 -> Size.BYTE;
           case 3 -> text.charAt(0) == '0' ? Size.BYTE : Size.WORD;
@@ -53,54 +69,54 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
           default -> null;
         };
 
-    if (size != null) {
-      return new NumberValue(Long.parseLong(token.text(), 16), size);
+    if (actualSize != null) {
+      return newNumber(Long.parseLong(token.text(), 16), actualSize, size);
     }
 
     throw new IllegalStateException("Hexadecimal number too large");
   }
 
-  private static NumberValue fromOctal(AssemblerToken token) {
+  private static NumberValue fromOctal(final AssemblerToken token, final Size size) {
     int length = token.text().length();
     long value = Long.parseLong(token.text());
 
     if (length <= 3) {
       if (value <= 0xFFL && value >= Byte.MIN_VALUE) {
-        return new NumberValue(value, Size.BYTE);
+        return newNumber(value, Size.BYTE, size);
       }
 
-      return new NumberValue(value, Size.WORD);
+      return newNumber(value, Size.WORD, size);
     }
 
     if (length <= 6) {
       if (value <= 0xFFFFL && value >= Short.MIN_VALUE) {
-        return new NumberValue(value, Size.WORD);
+        return newNumber(value, Size.WORD, size);
       }
 
-      return new NumberValue(value, Size.LONG);
+      return newNumber(value, Size.LONG, size);
     }
 
     if (length <= 11 && (value <= 0xFFFFFFFFL && value >= Integer.MIN_VALUE)) {
-      return new NumberValue(value, Size.WORD);
+      return newNumber(value, Size.WORD, size);
     }
 
     throw new IllegalStateException("Octal number too large");
   }
 
-  private static NumberValue fromBinary(AssemblerToken token) {
+  private static NumberValue fromBinary(final AssemblerToken token, final Size size) {
     int length = token.text().length();
     long value = Long.parseLong(token.text());
 
     if (length <= 8) {
-      return new NumberValue(value, Size.BYTE);
+      return newNumber(value, Size.BYTE, size);
     }
 
     if (length <= 16) {
-      return new NumberValue(value, Size.WORD);
+      return newNumber(value, Size.WORD, size);
     }
 
     if (length <= 32) {
-      return new NumberValue(value, Size.LONG);
+      return newNumber(value, Size.LONG, size);
     }
 
     throw new IllegalStateException("Binary number too large");
@@ -185,8 +201,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   public NumberValue msb() {
     return switch (size()) {
       case UNKNOWN -> throw new IllegalSizeException("Number has unknown size!");
-      case BYTE -> lsb();
-      case WORD -> new NumberValue((value() >> 8) & 0xFFL, Size.BYTE);
+      case BYTE, WORD -> new NumberValue((value() >> 8) & 0xFFL, Size.BYTE);
       case LONG -> new NumberValue((value() >> 24) & 0xFFL, Size.BYTE);
     };
   }
@@ -227,5 +242,18 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
     BYTE,
     WORD,
     LONG
+  }
+
+  private static NumberValue newNumber(long value, final Size size, final Size sizeOverride) {
+    Size actualSize = sizeOverride == null ? size : sizeOverride;
+
+    return new NumberValue(
+        switch (actualSize) {
+          case BYTE -> value & 0xFFL;
+          case WORD -> value & 0xFFFFL;
+          case LONG -> value & 0xFFFFFFFFL;
+          default -> value;
+        },
+        actualSize);
   }
 }
