@@ -2,6 +2,7 @@ package dk.nikolajbrinch.assembler.ide;
 
 import dk.nikolajbrinch.assembler.compiler.AssembleException;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
+import dk.nikolajbrinch.assembler.compiler.Linked;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.ide.AstTreeValue.Type;
 import dk.nikolajbrinch.parser.BaseError;
@@ -129,7 +130,7 @@ public class IdeController {
     updateErrors(controller.getErrors());
 
     if (!controller.hasErrors()) {
-      updateOutput(controller.getAssembleResult());
+      updateOutput(controller.getLinkResult());
     }
   }
 
@@ -225,25 +226,19 @@ public class IdeController {
     errorTableView.setItems(data);
   }
 
-  private void updateOutput(List<ByteSource> bytes) {
-    List<String> values =
-        bytes.stream()
-            .flatMapToLong(source -> Arrays.stream(source.getBytes()))
-            .mapToObj(value -> String.format("%02X", value & 0xFF))
-            .toList();
-
-    int address = 0;
+  private void updateOutput(Linked linked) {
+    int address = linked.origin();
 
     StringBuilder builder = new StringBuilder(String.format("%04X: ", address & 0xFFFF));
 
-    for (int i = 0; i < values.size(); i++) {
+    for (int i = 0; i < linked.linked().length; i++) {
       if (i > 0 && i % 16 == 0) {
         address += 16;
         builder.append("\n");
         builder.append(String.format("%04X: ", address & 0xFFFF));
       }
 
-      builder.append(values.get(i));
+      builder.append(String.format("%02X", linked.linked()[i]));
       builder.append(" ");
     }
 

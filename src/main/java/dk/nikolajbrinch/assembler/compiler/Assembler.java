@@ -53,7 +53,7 @@ public class Assembler implements StatementVisitor<Void> {
 
   private final OperandEvaluator operandEvaluator = new OperandEvaluator();
   private final ExpressionEvaluator expressionEvaluator;
-  private final List<ByteSource> bytes = new ArrayList<>();
+  private final Assembled assembled = new Assembled();
   private final SymbolTable globals = new SymbolTable();
   private final List<AssembleError> errors = new ArrayList<>();
   private SymbolTable symbols = globals;
@@ -68,16 +68,14 @@ public class Assembler implements StatementVisitor<Void> {
     return errors;
   }
 
-  public void assemble(BlockStatement block) {
+  public Assembled assemble(BlockStatement block) {
     block.accept(this);
+
+    return assembled;
   }
 
   public boolean hasErrors() {
     return !errors.isEmpty();
-  }
-
-  public List<ByteSource> getBytes() {
-    return bytes;
   }
 
   @Override
@@ -106,7 +104,7 @@ public class Assembler implements StatementVisitor<Void> {
           instructionByteSourceFactory.generateByteSource(
               statement.mnemonic(), currentAddress, operands);
 
-      bytes.add(byteSource);
+      assembled.add(byteSource);
 
       if (byteSource == null) {
         reportError(
@@ -198,6 +196,7 @@ public class Assembler implements StatementVisitor<Void> {
 
       if (location instanceof NumberValue value) {
         currentAddress = new Address(value.asWord(), value.asWord());
+        assembled.setOrigin(currentAddress.physicalAddress());
       } else {
         throw new IllegalStateException("Origin is not a number");
       }
@@ -444,7 +443,7 @@ public class Assembler implements StatementVisitor<Void> {
     }
 
     if (byteSuppliers != null) {
-      bytes.add(ByteSource.of(byteSuppliers));
+      assembled.add(ByteSource.of(byteSuppliers));
       currentAddress = currentAddress.add(NumberValue.create(byteSuppliers.size()));
     }
   }

@@ -1,6 +1,8 @@
 package dk.nikolajbrinch.assembler.ide;
 
+import dk.nikolajbrinch.assembler.compiler.Assembled;
 import dk.nikolajbrinch.assembler.compiler.ByteSource;
+import dk.nikolajbrinch.assembler.compiler.Linked;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
 import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.BaseException;
@@ -20,26 +22,29 @@ public class CompileResultProperty {
 
   private final SimpleObjectProperty<BlockStatement> parseResult = new SimpleObjectProperty<>(null);
 
-  private final SimpleListProperty<ByteSource> assembleResult =
-      new SimpleListProperty<>(FXCollections.emptyObservableList());
+  private final SimpleObjectProperty<Assembled> assembleResult = new SimpleObjectProperty<>(null);
+
+  private final SimpleObjectProperty<Linked> linkResult = new SimpleObjectProperty<>(null);
 
   private final SimpleObjectProperty<TreeItem<AstTreeValue>> astTree =
       new SimpleObjectProperty<>(null);
 
   public CompileResultProperty() {
-    this(false, List.of(), null, List.of(), null);
+    this(false, List.of(), null, null, null, null);
   }
 
   public CompileResultProperty(
       boolean hasErrors,
       List<BaseError<?>> errors,
       BlockStatement parseResult,
-      List<ByteSource> assembleResult,
+      Assembled assembleResult,
+      Linked linkResult,
       TreeItem<AstTreeValue> astTree) {
     setHasErrors(hasErrors);
     setErrors(errors);
     setParseResult(parseResult);
     setAssembleResult(assembleResult);
+    setLinkResult(linkResult);
     setAstTree(astTree);
   }
 
@@ -79,15 +84,27 @@ public class CompileResultProperty {
     return parseResult;
   }
 
-  public List<ByteSource> getAssembleResult() {
+  public Assembled getAssembleResult() {
     return assembleResult.get();
   }
 
-  public void setAssembleResult(List<ByteSource> value) {
-    assembleResult.set(FXCollections.observableList(value));
+  public void setAssembleResult(Assembled value) {
+    assembleResult.set(value);
   }
 
-  public SimpleListProperty<ByteSource> parseAssembleProperty() {
+  public SimpleObjectProperty<Linked> assemblResulteProperty() {
+    return linkResult;
+  }
+
+  public Linked getLinkResult() {
+    return linkResult.get();
+  }
+
+  public void setLinkResult(Linked value) {
+    linkResult.set(value);
+  }
+
+  public SimpleObjectProperty<Assembled> linkResultProperty() {
     return assembleResult;
   }
 

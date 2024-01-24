@@ -1,15 +1,16 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.compiler.ByteSource;
+import dk.nikolajbrinch.assembler.compiler.Assembled;
 import dk.nikolajbrinch.assembler.compiler.Compiler;
+import dk.nikolajbrinch.assembler.compiler.Linked;
 import dk.nikolajbrinch.assembler.parser.Condition;
 import dk.nikolajbrinch.assembler.parser.Register;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerScanner;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.assembler.parser.scanner.Directive;
-import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.FileSource;
 import dk.nikolajbrinch.parser.ParseException;
@@ -91,6 +92,7 @@ public class TabController {
     compileResultProperty.setErrors(compiler.getErrors());
     compileResultProperty.setParseResult(compiler.getParseResult());
     compileResultProperty.setAssembleResult(compiler.getAssembleResult());
+    compileResultProperty.setLinkResult(compiler.getLinkResult());
 
     if (compiler.getParseResult() != null) {
       compileResultProperty.setAstTree(new AstTreeCreator().createTree(compiler.getParseResult()));
@@ -239,7 +241,11 @@ public class TabController {
     return compileResultProperty.astTreeProperty();
   }
 
-  public List<ByteSource> getAssembleResult() {
+  public Assembled getAssembleResult() {
     return compileResultProperty.getAssembleResult();
+  }
+
+  public Linked getLinkResult() {
+    return compileResultProperty.getLinkResult();
   }
 }

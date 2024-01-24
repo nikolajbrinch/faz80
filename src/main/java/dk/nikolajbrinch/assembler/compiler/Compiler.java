@@ -22,8 +22,12 @@ public class Compiler {
   private AssemblerParser parser;
   private Assembler assembler;
 
+  private Linker linker;
+
   private BlockStatement block;
-  private List<ByteSource> bytes;
+  private Assembled assembled;
+
+  private Linked linked;
 
   private File directory;
 
@@ -37,6 +41,10 @@ public class Compiler {
     if (!parser.hasErrors()) {
       assemble(block);
     }
+
+    if (!assembler.hasErrors()) {
+      link(assembled);
+    }
   }
 
   public void compile(File file) throws IOException {
@@ -44,6 +52,10 @@ public class Compiler {
 
     if (!parser.hasErrors()) {
       assemble(block);
+    }
+
+    if (!assembler.hasErrors()) {
+      link(assembled);
     }
   }
 
@@ -65,9 +77,8 @@ public class Compiler {
 
   public void assemble(BlockStatement block) {
     assembler = new Assembler(new ExpressionEvaluator());
-    assembler.assemble(block);
+    assembled = assembler.assemble(block);
     errors.addAll(assembler.getErrors());
-    bytes = assembler.getBytes();
 
     if (assembler.hasErrors()) {
       assembler
@@ -85,12 +96,22 @@ public class Compiler {
     }
   }
 
+  public void link(Assembled assembled) {
+    linker = new Linker();
+    Linked linked = linker.link(assembled);
+
+    this.linked = linked;
+  }
   public BlockStatement getParseResult() {
     return block;
   }
 
-  public List<ByteSource> getAssembleResult() {
-    return bytes;
+  public Assembled getAssembleResult() {
+    return assembled;
+  }
+
+  public Linked getLinkResult() {
+    return linked;
   }
 
   public boolean hasErrors() {
