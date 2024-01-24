@@ -25,8 +25,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '21'
-        java-package: jdk+fx
-        distribution: 'temurin'
+        distribution: 'liberica'
         cache: maven
     - name: Build with Maven
       run: ./mvnw -B clean package --file pom.xml
