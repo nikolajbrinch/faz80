@@ -44,9 +44,9 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   @Override
   protected AssemblerToken createEofToken(
-      SourceInfo fileInfo, Position position, Line line, int linePosition) {
+      SourceInfo sourceInfo, Position position, Line line, int linePosition) {
     return new AssemblerToken(
-        AssemblerTokenType.EOF, fileInfo, position, line, linePosition, linePosition, "");
+        AssemblerTokenType.EOF, sourceInfo, position, line, linePosition, linePosition, "");
   }
 
   @Override
@@ -96,13 +96,13 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   @Override
   protected AssemblerToken createToken(
       AssemblerTokenType tokenType,
-      SourceInfo fileInfo,
+      SourceInfo sourceInfo,
       Position position,
       Line line,
       int start,
       int end,
       String text) {
-    return new AssemblerToken(tokenType, fileInfo, position, line, start, end, text);
+    return new AssemblerToken(tokenType, sourceInfo, position, line, start, end, text);
   }
 
   @Override

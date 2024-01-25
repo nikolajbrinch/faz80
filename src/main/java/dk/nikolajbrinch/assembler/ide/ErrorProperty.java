@@ -4,20 +4,34 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class ErrorProperty {
+  private final SimpleStringProperty source = new SimpleStringProperty("");
   private final SimpleIntegerProperty line = new SimpleIntegerProperty(-1);
   private final SimpleStringProperty type = new SimpleStringProperty("");
   private final SimpleStringProperty token = new SimpleStringProperty("");
   private final SimpleStringProperty description = new SimpleStringProperty("");
 
   public ErrorProperty() {
-    this(-1, "", "", "");
+    this("", -1, "", "", "");
   }
 
-  public ErrorProperty(int line, String type, String token, String description) {
+  public ErrorProperty(String source, int line, String type, String token, String description) {
+    setSource(source);
     setLine(line);
     setType(type);
     setToken(token);
     setDescription(description);
+  }
+
+  public String getSource() {
+    return source.get();
+  }
+
+  public void setSource(String t) {
+    source.set(t);
+  }
+
+  public SimpleStringProperty sourceProperty() {
+    return source;
   }
 
   public int getLine() {

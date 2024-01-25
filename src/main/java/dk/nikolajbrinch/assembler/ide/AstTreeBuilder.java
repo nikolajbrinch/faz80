@@ -40,7 +40,7 @@ import dk.nikolajbrinch.assembler.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import javafx.scene.control.TreeItem;
 
-public class AstTreeCreator
+public class AstTreeBuilder
     implements StatementVisitor<TreeItem<AstTreeValue>>,
         ExpressionVisitor<TreeItem<AstTreeValue>>,
         OperandVisitor<TreeItem<AstTreeValue>> {
@@ -194,10 +194,12 @@ public class AstTreeCreator
                 statement.line().number(),
                 () ->
                     String.format("Instruction: %s", Mnemonic.find(statement.mnemonic().text()))));
-    TreeItem<AstTreeValue> operands =
-        new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Operands"));
-    instruction.getChildren().add(operands);
-    statement.operands().forEach(operand -> operands.getChildren().add(operand.accept(this)));
+    if (!statement.operands().isEmpty()) {
+      TreeItem<AstTreeValue> operands =
+          new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Operands"));
+      instruction.getChildren().add(operands);
+      statement.operands().forEach(operand -> operands.getChildren().add(operand.accept(this)));
+    }
 
     return instruction;
   }
@@ -292,7 +294,7 @@ public class AstTreeCreator
     TreeItem<AstTreeValue> block =
         new TreeItem<>(new AstTreeValue(statement.line().number(), () -> "Block"));
 
-    block.getChildren().add(new SymbolTableTreeItem(statement.symbolTable()));
+    block.getChildren().add(new SymbolTableTreeItem(statement.symbols()));
 
     statement.statements().forEach(s -> block.getChildren().add(s.accept(this)));
 
@@ -473,7 +475,7 @@ public class AstTreeCreator
     return insert;
   }
 
-  public TreeItem<AstTreeValue> createTree(BlockStatement block) {
+  public TreeItem<AstTreeValue> build(BlockStatement block) {
     return block.accept(this);
   }
 }

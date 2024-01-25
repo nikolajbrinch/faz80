@@ -79,29 +79,14 @@ public class Compiler {
     assembler = new Assembler(new ExpressionEvaluator());
     assembled = assembler.assemble(block);
     errors.addAll(assembler.getErrors());
-
-    if (assembler.hasErrors()) {
-      assembler
-          .getErrors()
-          .forEach(
-              error -> {
-                AssembleException exception = error.exception();
-                Statement statement = exception.getStatement();
-
-                Line line = statement.line();
-                logger.error(
-                    "Compilation error in line %d: %s", line.number(), exception.getMessage());
-                logger.error("    %s%n", line.content().strip());
-              });
-    }
   }
 
   public void link(Assembled assembled) {
     linker = new Linker();
-    Linked linked = linker.link(assembled);
-
-    this.linked = linked;
+    linked = linker.link(assembled);
+    errors.addAll(linker.getErrors());
   }
+
   public BlockStatement getParseResult() {
     return block;
   }

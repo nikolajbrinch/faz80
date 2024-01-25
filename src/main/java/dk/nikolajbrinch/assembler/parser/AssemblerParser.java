@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.assembler.parser;
 
+import dk.nikolajbrinch.assembler.compiler.ErrorProducer;
 import dk.nikolajbrinch.assembler.compiler.Macro;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
@@ -47,6 +48,7 @@ import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
 import dk.nikolajbrinch.parser.FileSource;
+import dk.nikolajbrinch.parser.ParseError;
 import dk.nikolajbrinch.parser.ParseException;
 import dk.nikolajbrinch.parser.StringSource;
 import java.io.File;
@@ -57,7 +59,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken> {
+public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken>
+    implements ErrorProducer<ParseException, ParseError> {
 
   private static final AssemblerTokenType[] EOF_TYPES =
       new AssemblerTokenType[] {AssemblerTokenType.EOF, AssemblerTokenType.END};
@@ -212,7 +215,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
         new AddressExpression(
             new AssemblerToken(
                 AssemblerTokenType.DOLLAR,
-                identifier.fileInfo(),
+                identifier.sourceInfo(),
                 identifier.position(),
                 identifier.line(),
                 identifier.start(),
@@ -520,7 +523,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
               consume(AssemblerTokenType.LESS, "Expect < before macro call argument");
           eos = AssemblerTokenType.GREATER;
           if (checkType(eos)) {
-            arguments.add(new EmptyStatement(start.line()));
+            arguments.add(new EmptyStatement(start.sourceInfo(), start.line()));
             expectEol("Expect > after macro call argument");
           } else if (checkType(AssemblerTokenType.GREATER_GREATER)) {
             AssemblerToken token =

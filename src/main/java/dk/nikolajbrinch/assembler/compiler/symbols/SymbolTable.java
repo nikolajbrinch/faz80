@@ -2,6 +2,7 @@ package dk.nikolajbrinch.assembler.compiler.symbols;
 
 import dk.nikolajbrinch.assembler.parser.IdentifierUtil;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,6 +23,12 @@ public class SymbolTable {
 
   public SymbolTable(SymbolTable parent) {
     this.parent = parent;
+  }
+
+  private SymbolTable(SymbolTable source, SymbolTable parent) {
+    this(parent);
+    symbolTypes.putAll(source.symbolTypes);
+    symbols.putAll(source.symbols);
   }
 
   public Optional<?> get(String name) {
@@ -100,8 +107,12 @@ public class SymbolTable {
     symbolTypes.put(normalizedName, type);
   }
 
-  public Map<String, List<Optional<?>>> getSymbols() {
-    return symbols;
+  public Map<String, SymbolType> getSymbolTypes() {
+    return symbolTypes;
+  }
+
+  public List<Optional<?>> getValues(String name) {
+    return symbols.get(name) == null ? Collections.emptyList() : symbols.get(name);
   }
 
   @Override
@@ -122,4 +133,11 @@ public class SymbolTable {
     }
   }
 
+  public SymbolTable copy() {
+    return new SymbolTable(this, this.parent);
+  }
+
+  public SymbolTable copy(SymbolTable parent) {
+    return new SymbolTable(this, parent);
+  }
 }

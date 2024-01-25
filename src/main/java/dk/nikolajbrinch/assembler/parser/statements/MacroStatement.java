@@ -4,6 +4,7 @@ import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.parser.Parameter;
 import dk.nikolajbrinch.assembler.parser.scanner.AssemblerToken;
 import dk.nikolajbrinch.parser.Line;
+import dk.nikolajbrinch.parser.SourceInfo;
 import java.util.List;
 
 public record MacroStatement(
@@ -14,6 +15,9 @@ public record MacroStatement(
   public <R> R accept(StatementVisitor<R> visitor) {
     return visitor.visitMacroStatement(this);
   }
+
+  @Override
+  public SourceInfo sourceInfo() { return name.sourceInfo(); }
 
   @Override
   public Line line() {

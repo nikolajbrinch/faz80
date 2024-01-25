@@ -10,19 +10,30 @@ import dk.nikolajbrinch.assembler.parser.Register;
 public class Cp implements InstructionGenerator {
 
   @Override
-  public ByteSource generate(
-      Address currentAddress, EvaluatedOperand targetOperand, EvaluatedOperand sourceOperand, EvaluatedOperand extraOperand) {
-    return switch (targetOperand.addressingMode()) {
-      case REGISTER -> ByteSource.of(0b10111000 | Registers.r.get(targetOperand.asRegister()));
-      case REGISTER_INDIRECT -> {
-        if (targetOperand.asRegister() == Register.HL) {
-          yield ByteSource.of(0xBE);
-        }
+  public ByteSource generateRegister(Address currentAddress, Register register) {
+    return ByteSource.of(0b10111000 | Registers.r.get(register));
+  }
 
-        yield null;
-      }
-      case IMMEDIATE ->
-          ByteSource.of(0xFE, ByteSupplier.of(() -> targetOperand.asValue().number().value()));
+  @Override
+  public ByteSource generateRegisterIndirect(Address currentAddress, Register register) {
+    if (register == Register.HL) {
+      return ByteSource.of(0xBE);
+    }
+
+    return null;
+  }
+
+  @Override
+  public ByteSource generateImmediate(Address numberValue, ValueSupplier value) {
+    return ByteSource.of(0xFE, ByteSupplier.of(() -> value.number().value()));
+  }
+
+  @Override
+  public ByteSource generateIndexed(
+      Address currentAddress, Register register, ByteSupplier displacement) {
+    return switch (register) {
+      case IX -> ByteSource.of(0xDD, 0xBE, displacement);
+      case IY -> ByteSource.of(0xFD, 0xBE, displacement);
       default -> null;
     };
   }

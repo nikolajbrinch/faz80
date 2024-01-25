@@ -3,6 +3,7 @@
 <?import dk.nikolajbrinch.assembler.ide.CodeEditor?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.layout.VBox?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <Tab xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="dk.nikolajbrinch.assembler.ide.TabController">
   <userData>
@@ -10,7 +11,11 @@
   </userData>
   <VBox>
     <children>
-      <CodeEditor fx:id="editor" styleClass="code-editor" VBox.vgrow="ALWAYS"/>
+      <VirtualizedScrollPane VBox.vgrow="ALWAYS">
+        <content>
+          <CodeEditor fx:id="editor" styleClass="code-editor" VBox.vgrow="ALWAYS"/>
+        </content>
+      </VirtualizedScrollPane>
     </children>
   </VBox>
 </Tab>

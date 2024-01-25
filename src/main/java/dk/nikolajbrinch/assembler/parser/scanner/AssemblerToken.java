@@ -6,7 +6,7 @@ import dk.nikolajbrinch.parser.SourceInfo;
 import dk.nikolajbrinch.parser.Token;
 
 public record AssemblerToken(
-    AssemblerTokenType type, SourceInfo fileInfo, Position position, Line line, int start, int end, String text)
+    AssemblerTokenType type, SourceInfo sourceInfo, Position position, Line line, int start, int end, String text)
     implements Token {
 
   @Override

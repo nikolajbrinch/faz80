@@ -8,11 +8,16 @@ import java.util.stream.Stream;
 
 public class ByteSource {
 
-  private final Stream<ByteSupplier> bytes;
+  private final List<ByteSupplier> bytes;
   private final long length;
 
-  private ByteSource(Stream<ByteSupplier> bytes, long length) {
+  private ByteSource(List<ByteSupplier> bytes, long length) {
     this.bytes = bytes;
+    this.length = length;
+  }
+
+  private ByteSource(Stream<ByteSupplier> bytes, long length) {
+    this.bytes = bytes.toList();
     this.length = length;
   }
 
@@ -170,11 +175,12 @@ public class ByteSource {
   }
 
   public ByteSource append(ByteSource other) {
-    return new ByteSource(Stream.concat(bytes, other.bytes), this.length + other.length());
+    return new ByteSource(
+        Stream.concat(bytes.stream(), other.bytes.stream()), this.length + other.length());
   }
 
   public long[] getBytes() {
-    return bytes.mapToLong(LongSupplier::getAsLong).toArray();
+    return bytes.stream().mapToLong(LongSupplier::getAsLong).toArray();
   }
 
   public long length() {

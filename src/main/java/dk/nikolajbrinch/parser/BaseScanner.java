@@ -69,11 +69,11 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
   protected abstract T createToken() throws IOException;
 
   protected abstract T createEofToken(
-      SourceInfo fileInfo, Position position, Line line, int linePosition) throws IOException;
+      SourceInfo sourceInfo, Position position, Line line, int linePosition) throws IOException;
 
   protected abstract T createToken(
       E tokenType,
-      SourceInfo fileInfo,
+      SourceInfo sourceInfo,
       Position position,
       Line line,
       int start,

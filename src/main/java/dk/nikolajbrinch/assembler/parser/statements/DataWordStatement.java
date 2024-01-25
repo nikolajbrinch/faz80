@@ -2,6 +2,7 @@ package dk.nikolajbrinch.assembler.parser.statements;
 
 import dk.nikolajbrinch.assembler.parser.expressions.Expression;
 import dk.nikolajbrinch.parser.Line;
+import dk.nikolajbrinch.parser.SourceInfo;
 import java.util.List;
 
 public record DataWordStatement(List<Expression> values) implements ValuesStatement {
@@ -9,6 +10,10 @@ public record DataWordStatement(List<Expression> values) implements ValuesStatem
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {
     return visitor.visitDataWordStatement(this);
+  }
+  @Override
+  public SourceInfo sourceInfo() {
+    return values.isEmpty() ? null : values.get(0).sourceInfo();
   }
 
   @Override

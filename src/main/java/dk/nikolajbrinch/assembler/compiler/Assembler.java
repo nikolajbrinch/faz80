@@ -44,7 +44,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class Assembler implements StatementVisitor<Void> {
+public class Assembler implements StatementVisitor<Void>, ErrorProducer<AssembleException, AssembleError> {
 
   private final InstructionByteSourceFactory instructionByteSourceFactory =
       new InstructionByteSourceFactory();
@@ -52,9 +52,9 @@ public class Assembler implements StatementVisitor<Void> {
   private final OperandEvaluator operandEvaluator = new OperandEvaluator();
   private final ExpressionEvaluator expressionEvaluator;
   private final Assembled assembled = new Assembled();
-  private final SymbolTable globals = new SymbolTable();
-  private final List<AssembleError> errors = new ArrayList<>();
+  private SymbolTable globals;
   private SymbolTable symbols = globals;
+  private final List<AssembleError> errors = new ArrayList<>();
   private Address currentAddress =
       new Address(NumberValue.createWord(0), NumberValue.createWord(0));
 
@@ -67,6 +67,9 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   public Assembled assemble(BlockStatement block) {
+    globals = new SymbolTable();
+    symbols = block.symbols().copy(globals);
+
     block.accept(this);
 
     return assembled;
@@ -198,7 +201,7 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitBlockStatement(BlockStatement statement) {
-    withSymbols(statement.symbolTable(), () -> statement.statements().forEach(this::execute));
+    withSymbols(statement.symbols().copy(), () -> statement.statements().forEach(this::execute));
 
     return null;
   }

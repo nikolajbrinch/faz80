@@ -73,20 +73,27 @@
           <children>
             <TabPane VBox.vgrow="ALWAYS" fx:id="statusTabPane">
               <Tab text="Output" fx:id="outputTab">
-                <TextArea fx:id="output" styleClass="output" VBox.vgrow="ALWAYS"/>
+                <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.25">
+                  <items>
+                    <VBox styleClass="container">
+                      <Label styleClass="header-label" text="Binary"/>
+                      <TextArea fx:id="output" styleClass="output" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    <VBox styleClass="container">
+                      <Label styleClass="header-label" text="Listing"/>
+                      <TextArea fx:id="listing" styleClass="output" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                  </items>
+                </SplitPane>
               </Tab>
               <Tab text="Errors" fx:id="errorsTab">
-                <TableView fx:id="errorTableView" styleClass="status-table" VBox.vgrow="ALWAYS">
+                <TableView fx:id="errorTableView" VBox.vgrow="ALWAYS">
                   <columns>
-                    <TableColumn fx:id="errorLine" minWidth="50.0" prefWidth="50.0" maxWidth="50.0"
-                      text="Line"/>
-                    <TableColumn fx:id="errorTyoe" minWidth="70.0" prefWidth="70.0" maxWidth="70.0"
-                      text="Task"/>
-                    <TableColumn fx:id="errorToken" minWidth="120.0" prefWidth="120.0"
-                      maxWidth="120.0"
-                      text="Token"/>
-                    <TableColumn fx:id="errorDescription" minWidth="500.0" prefWidth="500.0"
-                      maxWidth="Infinity" text="Description"/>
+                    <TableColumn fx:id="errorSource" prefWidth="150.0" text="Source"/>
+                    <TableColumn fx:id="errorLine" prefWidth="50.0" text="Line"/>
+                    <TableColumn fx:id="errorTyoe" prefWidth="70.0" text="Task"/>
+                    <TableColumn fx:id="errorToken" prefWidth="120.0" text="Token"/>
+                    <TableColumn fx:id="errorDescription" prefWidth="500.0" text="Description"/>
                   </columns>
                 </TableView>
               </Tab>
@@ -100,32 +107,31 @@
     <menus>
       <Menu mnemonicParsing="false" text="File">
         <items>
-          <MenuItem mnemonicParsing="false" text="New"/>
+          <MenuItem mnemonicParsing="false" onAction="#newFile" text="New"
+            accelerator="Shortcut+N"/>
           <MenuItem mnemonicParsing="false" onAction="#openFile" text="Open…"/>
+
           <Menu mnemonicParsing="false" text="Open Recent"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
           <MenuItem mnemonicParsing="false" text="Close"/>
-          <MenuItem mnemonicParsing="false" text="Save"/>
+          <MenuItem mnemonicParsing="false" text="Save" accelerator="Shortcut+S"/>
           <MenuItem mnemonicParsing="false" text="Save As…"/>
           <MenuItem mnemonicParsing="false" text="Revert"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
           <MenuItem mnemonicParsing="false" text="Preferences…"/>
-          <SeparatorMenuItem mnemonicParsing="false"/>
-          <MenuItem mnemonicParsing="false" text="Quit"/>
         </items>
       </Menu>
       <Menu mnemonicParsing="false" text="Edit">
         <items>
-          <MenuItem mnemonicParsing="false" text="Undo"/>
-          <MenuItem mnemonicParsing="false" text="Redo"/>
+          <MenuItem mnemonicParsing="false" text="Undo" accelerator="Shortcut+Z"/>
+          <MenuItem mnemonicParsing="false" text="Redo" accelerator="Shift+Shortcut+Z"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
-          <MenuItem mnemonicParsing="false" text="Cut"/>
-          <MenuItem mnemonicParsing="false" text="Copy"/>
-          <MenuItem mnemonicParsing="false" text="Paste"/>
-          <MenuItem mnemonicParsing="false" text="Delete"/>
+          <MenuItem mnemonicParsing="false" text="Cut" accelerator="Shortcut+X"/>
+          <MenuItem mnemonicParsing="false" text="Copy" accelerator="Shortcut+C"/>
+          <MenuItem mnemonicParsing="false" text="Paste" accelerator="Shortcut+V"/>
+          <MenuItem mnemonicParsing="false" text="Delete" accelerator="Delete"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
-          <MenuItem mnemonicParsing="false" text="Select All"/>
-          <MenuItem mnemonicParsing="false" text="Unselect All"/>
+          <MenuItem mnemonicParsing="false" text="Select All" accelerator="Shortcut+A"/>
         </items>
       </Menu>
       <Menu mnemonicParsing="false" text="Help">
