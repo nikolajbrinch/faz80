@@ -1,5 +1,7 @@
-package dk.nikolajbrinch.parser;
+package dk.nikolajbrinch.parser.impl;
 
+import dk.nikolajbrinch.parser.BaseScannerSource;
+import dk.nikolajbrinch.parser.SourceInfo;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

@@ -2,7 +2,7 @@ package dk.nikolajbrinch.reader;
 
 import dk.nikolajbrinch.parser.Char;
 import dk.nikolajbrinch.parser.CharReader;
-import dk.nikolajbrinch.parser.impl.CharReaderImpl;
+import dk.nikolajbrinch.parser.impl.BufferedCharReaderImpl;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -20,7 +20,7 @@ class CharReaderImplTests {
   """;
 
     try (CharReader charReader =
-        new CharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+        new BufferedCharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       Assertions.assertTrue(charReader.hasNext());
 
       Assertions.assertEquals('t', charReader.peek().character());
@@ -57,7 +57,7 @@ class CharReaderImplTests {
   """;
 
     try (CharReader charReader =
-        new CharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+        new BufferedCharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       Iterator<Char> iterator = charReader.iterator();
 
       Char last = null;
@@ -80,8 +80,8 @@ class CharReaderImplTests {
   second line
   """;
 
-    try (CharReaderImpl charReader =
-        new CharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
+    try (BufferedCharReaderImpl charReader =
+        new BufferedCharReaderImpl(new ByteArrayInputStream(textToScan.getBytes(StandardCharsets.UTF_8)))) {
       StringBuilder builder = new StringBuilder();
 
       charReader.stream().map(read -> read.character()).forEach(read -> builder.append(read));

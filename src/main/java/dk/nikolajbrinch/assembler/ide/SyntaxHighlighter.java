@@ -11,7 +11,7 @@ import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.BaseException;
 import dk.nikolajbrinch.parser.ParseException;
 import dk.nikolajbrinch.parser.SourceInfo;
-import dk.nikolajbrinch.parser.StringSource;
+import dk.nikolajbrinch.parser.impl.StringSource;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;

@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.parser;
 
+import dk.nikolajbrinch.parser.impl.FileSource;
 import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;

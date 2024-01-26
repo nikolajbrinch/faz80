@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.parser.scanner;
 
-import dk.nikolajbrinch.parser.UrlSource;
+import dk.nikolajbrinch.parser.impl.UrlSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

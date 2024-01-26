@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
 /** A simple Char Scanner that implements look ahead */
-public class CharReaderImpl extends BaseReader<Char> implements CharReader {
+public class BufferedCharReaderImpl extends BaseReader<Char> implements CharReader {
 
   private final BufferedReader reader;
   private int lineCount = 1;
@@ -24,11 +24,11 @@ public class CharReaderImpl extends BaseReader<Char> implements CharReader {
 
   private int linePosition = 1;
 
-  public CharReaderImpl(InputStream inputStream) {
+  public BufferedCharReaderImpl(InputStream inputStream) {
     this(inputStream, UTF_8);
   }
 
-  public CharReaderImpl(InputStream inputStream, Charset charset) {
+  public BufferedCharReaderImpl(InputStream inputStream, Charset charset) {
     this.reader = new BufferedReader(new InputStreamReader(inputStream, charset));
   }
 

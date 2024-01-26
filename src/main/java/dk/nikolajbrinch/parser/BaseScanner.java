@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.parser.impl.CharReaderImpl;
+import dk.nikolajbrinch.parser.impl.BufferedCharReaderImpl;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -23,7 +23,7 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
   public BaseScanner(ScannerSource source) {
     this.sourceInfo = source.getSourceInfo();
     try {
-      this.charReader = new CharReaderImpl(source.openStream());
+      this.charReader = new BufferedCharReaderImpl(source.openStream());
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
