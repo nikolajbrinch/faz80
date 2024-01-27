@@ -1,21 +1,18 @@
 package dk.nikolajbrinch.assembler.compiler;
 
+import dk.nikolajbrinch.assembler.linker.LinkResult;
+import dk.nikolajbrinch.assembler.linker.Linker;
+import dk.nikolajbrinch.assembler.parser.AssemblerParseResult;
 import dk.nikolajbrinch.assembler.parser.AssemblerParser;
 import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
-import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.BaseException;
-import dk.nikolajbrinch.parser.Line;
-import dk.nikolajbrinch.parser.Logger;
-import dk.nikolajbrinch.parser.impl.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Compiler {
-
-  private final Logger logger = LoggerFactory.getLogger();
 
   private final List<BaseError<? extends BaseException>> errors = new ArrayList<>();
 
@@ -24,10 +21,10 @@ public class Compiler {
 
   private Linker linker;
 
-  private BlockStatement block;
-  private Assembled assembled;
+  private AssemblerParseResult parseResult;
+  private AssembleResult assembleResult;
 
-  private Linked linked;
+  private LinkResult linkResult;
 
   private File directory;
 
@@ -38,30 +35,30 @@ public class Compiler {
   public void compile(String source) throws IOException {
     parse(source);
 
-    if (!parser.hasErrors()) {
-      assemble(block);
+    if (!parseResult.hasErrors()) {
+      assemble(parseResult.block());
     }
 
-    if (!assembler.hasErrors()) {
-      link(assembled);
+    if (!assembleResult.hasErrors()) {
+      link(assembleResult.assembled());
     }
   }
 
   public void compile(File file) throws IOException {
     parse(file);
 
-    if (!parser.hasErrors()) {
-      assemble(block);
+    if (!parseResult.hasErrors()) {
+      assemble(parseResult.block());
     }
 
-    if (!assembler.hasErrors()) {
-      link(assembled);
+    if (!assembleResult.hasErrors()) {
+      link(assembleResult.assembled());
     }
   }
 
   public void parse(String source) throws IOException {
     parser = new AssemblerParser(directory);
-    block = parser.parse(source);
+    parseResult = parser.parse(source);
 
     errors.clear();
     errors.addAll(parser.getErrors());
@@ -69,7 +66,7 @@ public class Compiler {
 
   public void parse(File file) throws IOException {
     parser = new AssemblerParser(file.getParentFile());
-    block = parser.parse(file);
+    parseResult = parser.parse(file);
 
     errors.clear();
     errors.addAll(parser.getErrors());
@@ -77,26 +74,26 @@ public class Compiler {
 
   public void assemble(BlockStatement block) {
     assembler = new Assembler(new ExpressionEvaluator());
-    assembled = assembler.assemble(block);
-    errors.addAll(assembler.getErrors());
+    assembleResult = assembler.assemble(block);
+    errors.addAll(assembleResult.errors());
   }
 
   public void link(Assembled assembled) {
     linker = new Linker();
-    linked = linker.link(assembled);
-    errors.addAll(linker.getErrors());
+    linkResult = linker.link(assembled);
+    errors.addAll(linkResult.errors());
   }
 
-  public BlockStatement getParseResult() {
-    return block;
+  public AssemblerParseResult getParseResult() {
+    return parseResult;
   }
 
-  public Assembled getAssembleResult() {
-    return assembled;
+  public AssembleResult getAssembleResult() {
+    return assembleResult;
   }
 
-  public Linked getLinkResult() {
-    return linked;
+  public LinkResult getLinkResult() {
+    return linkResult;
   }
 
   public boolean hasErrors() {

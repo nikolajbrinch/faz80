@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.compiler.Assembled;
-import dk.nikolajbrinch.assembler.compiler.Linked;
+import dk.nikolajbrinch.assembler.compiler.AssembleResult;
+import dk.nikolajbrinch.assembler.linker.LinkResult;
 import dk.nikolajbrinch.parser.BaseError;
 import java.io.File;
 import java.io.IOException;
@@ -177,16 +177,20 @@ public class IdeController {
         });
   }
 
-  private void updateOutput(Linked linked) {
-    Platform.runLater(
-        () -> {
-          output.setText(outputBuilder.build(linked));
-          statusTabPane.getSelectionModel().select(outputTab);
-        });
+  private void updateOutput(LinkResult linkResult) {
+    if (linkResult != null) {
+      Platform.runLater(
+          () -> {
+            output.setText(outputBuilder.build(linkResult.linked()));
+            statusTabPane.getSelectionModel().select(outputTab);
+          });
+    }
   }
 
-  private void updateListing(Assembled assembled) {
-    Platform.runLater(() -> listing.setText(listingBuilder.build(assembled)));
+  private void updateListing(AssembleResult assembleResult) {
+    if (assembleResult != null) {
+      Platform.runLater(() -> listing.setText(listingBuilder.build(assembleResult.assembled())));
+    }
   }
 
   private TabController createTab() throws IOException {

@@ -20,7 +20,7 @@ class ParseIndexedTests {
         xor (ix+d)
         """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     for (Statement statement : statements) {
       System.out.println(new AssemblerAstPrinter().print(statement));

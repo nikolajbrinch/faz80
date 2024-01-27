@@ -22,7 +22,7 @@ class ParseSetTests {
             label1: set 4, a
             """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     for (Statement statement : statements) {
       System.out.println(new AssemblerAstPrinter().print(statement));

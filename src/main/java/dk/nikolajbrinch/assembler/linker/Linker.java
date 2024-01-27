@@ -1,15 +1,16 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.linker;
 
+import dk.nikolajbrinch.assembler.compiler.Assembled;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Linker implements ErrorProducer<LinkException, LinkError> {
+public class Linker {
 
   private List<LinkError> errors = new ArrayList<>();
 
-  public Linked link(Assembled assembled) {
+  public LinkResult link(Assembled assembled) {
     errors.clear();
 
     List<Integer> bytes = null;
@@ -33,7 +34,7 @@ public class Linker implements ErrorProducer<LinkException, LinkError> {
       linked[i] = bytes.get(i).byteValue();
     }
 
-    return new Linked((int) assembled.getOrigin(), linked);
+    return new LinkResult(new Linked((int) assembled.getOrigin(), linked), errors);
   }
 
   private void reportError(Exception e) {
@@ -44,15 +45,5 @@ public class Linker implements ErrorProducer<LinkException, LinkError> {
     }
 
     errors.add(new LinkError(new LinkException(cause.getMessage(), cause)));
-  }
-
-  @Override
-  public boolean hasErrors() {
-    return !errors.isEmpty();
-  }
-
-  @Override
-  public List<LinkError> getErrors() {
-    return errors;
   }
 }

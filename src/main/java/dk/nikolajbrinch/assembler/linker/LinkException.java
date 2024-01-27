@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.linker;
 
 import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.parser.BaseException;

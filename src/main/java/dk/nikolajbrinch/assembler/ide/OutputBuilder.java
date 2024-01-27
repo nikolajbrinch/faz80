@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.compiler.Linked;
+import dk.nikolajbrinch.assembler.linker.Linked;
 
 public class OutputBuilder {
 

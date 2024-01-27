@@ -28,7 +28,7 @@ class ParseMacroCallSpecialTests {
         macro1 <label>, <>, <<>, <>>
         """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     System.out.println("-----");
 

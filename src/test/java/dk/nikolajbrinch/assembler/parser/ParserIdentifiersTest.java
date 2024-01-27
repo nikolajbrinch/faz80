@@ -29,7 +29,7 @@ class ParserIdentifiersTest {
           end:
           """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(7, statements.size());
     Assertions.assertEquals("@id___:", ((AssignStatement) statements.get(0)).identifier().text());

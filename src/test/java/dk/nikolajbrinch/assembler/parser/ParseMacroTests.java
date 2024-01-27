@@ -34,7 +34,7 @@ class ParseMacroTests {
             macro1(1, 2, 4+3)
             """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
     for (Statement statement : statements) {
       System.out.println(new AssemblerAstPrinter().print(statement));
     }

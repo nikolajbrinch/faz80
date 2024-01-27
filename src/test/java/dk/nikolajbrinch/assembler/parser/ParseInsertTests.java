@@ -21,7 +21,7 @@ class ParseInsertTests {
 incbin "/Users/neko/somefile.z80"
 """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(1, statements.size());
 

@@ -23,7 +23,7 @@ class ParseRegistersTests {
         ex af, af'
         """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     InstructionStatement instruction = (InstructionStatement) statements.get(0);
     Assertions.assertEquals(Mnemonic.EX, Mnemonic.find(instruction.mnemonic().text()));

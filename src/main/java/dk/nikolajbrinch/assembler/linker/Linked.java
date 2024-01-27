@@ -1,3 +1,3 @@
-package dk.nikolajbrinch.assembler.compiler;
+package dk.nikolajbrinch.assembler.linker;
 
 public record Linked(int origin, byte[] linked) {}

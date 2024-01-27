@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.assembler.ide;
 
 import dk.nikolajbrinch.assembler.compiler.AssembleException;
-import dk.nikolajbrinch.assembler.compiler.LinkException;
+import dk.nikolajbrinch.assembler.linker.LinkException;
 import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.ParseException;
 import dk.nikolajbrinch.parser.SourceInfo;

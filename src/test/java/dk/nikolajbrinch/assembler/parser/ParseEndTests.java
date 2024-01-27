@@ -29,7 +29,7 @@ class ParseEndTests {
         ld a, b
         """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(1, statements.size());
 

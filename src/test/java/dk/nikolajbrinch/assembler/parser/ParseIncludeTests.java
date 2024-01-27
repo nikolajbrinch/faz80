@@ -31,7 +31,7 @@ class ParseIncludeTests {
     .include "include.z80"
     """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(2, statements.size());
   }
@@ -65,7 +65,7 @@ class ParseIncludeTests {
     ld d, constant2
     """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(6, statements.size());
     statements.forEach(statement -> System.out.println(statement));

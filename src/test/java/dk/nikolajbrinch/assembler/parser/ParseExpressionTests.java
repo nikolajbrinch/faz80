@@ -21,7 +21,7 @@ class ParseExpressionTests {
         """
             0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9""");
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(
         "(expression (| (^ (== (+ 10011001 (/ (* (* (- 8) 207) (group (+ 304 4))) 5a)) (* 6 (group (+ identifier: a (+ identifier: b::))))) (& (>>> (group (<< 4f 1111111)) 3) 7)) 9))",

@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.assembler.parser;
 
-import dk.nikolajbrinch.assembler.compiler.ErrorProducer;
 import dk.nikolajbrinch.assembler.compiler.Macro;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
@@ -47,9 +46,8 @@ import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
-import dk.nikolajbrinch.parser.impl.FileSource;
-import dk.nikolajbrinch.parser.ParseError;
 import dk.nikolajbrinch.parser.ParseException;
+import dk.nikolajbrinch.parser.impl.FileSource;
 import dk.nikolajbrinch.parser.impl.StringSource;
 import java.io.File;
 import java.io.IOException;
@@ -59,8 +57,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, AssemblerToken>
-    implements ErrorProducer<ParseException, ParseError> {
+public class AssemblerParser
+    extends BaseParser<
+        Statement,
+        AssemblerParserConfiguration,
+        AssemblerTokenType,
+        AssemblerToken,
+        AssemblerParseResult> {
 
   private static final AssemblerTokenType[] EOF_TYPES =
       new AssemblerTokenType[] {AssemblerTokenType.EOF, AssemblerTokenType.END};
@@ -73,8 +76,6 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
   private Mode mode = Mode.NORMAL;
 
-  private final Configuration configuration = new Configuration();
-
   private final SymbolTable globaleSymbolTable = new SymbolTable();
 
   private SymbolTable currentSymbolTable = globaleSymbolTable;
@@ -83,23 +84,31 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
     this(null);
   }
 
-  public AssemblerParser(File directory) {
-    super(new AssemblerTokenProducer(directory), true);
+  public AssemblerParser(AssemblerParserConfiguration configuration) {
+    super(configuration, null);
   }
 
-  public BlockStatement parse(File file) throws IOException {
+  public AssemblerParser(File directory) {
+    this(new AssemblerParserConfiguration(), null);
+  }
+
+  public AssemblerParser(AssemblerParserConfiguration configuration, File directory) {
+    super(configuration, new AssemblerTokenProducer(directory));
+  }
+
+  public AssemblerParseResult parse(File file) throws IOException {
     newSource(new FileSource(file));
 
     return parse();
   }
 
-  public BlockStatement parse(String source) throws IOException {
+  public AssemblerParseResult parse(String source) throws IOException {
     newSource(new StringSource(source));
 
     return parse();
   }
 
-  private BlockStatement parse() {
+  private AssemblerParseResult parse() {
     List<Statement> statements = new ArrayList<>();
 
     while (!isEof()) {
@@ -114,7 +123,8 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
       }
     }
 
-    return new BlockStatement(currentSymbolTable, statements);
+    return new AssemblerParseResult(
+        new BlockStatement(currentSymbolTable, statements), getErrors());
   }
 
   private Statement declaration() {
@@ -280,7 +290,7 @@ public class AssemblerParser extends BaseParser<Statement, AssemblerTokenType, A
 
     AssemblerToken string = consume(AssemblerTokenType.STRING, "Expect string after include");
 
-    if (configuration.isResolveIncludes()) {
+    if (getConfiguration().isResolveIncludes()) {
       try {
         newSource(StringUtil.unquote(string.text()));
       } catch (IOException e) {

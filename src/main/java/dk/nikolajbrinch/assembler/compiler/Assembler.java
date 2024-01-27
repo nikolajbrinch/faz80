@@ -44,7 +44,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class Assembler implements StatementVisitor<Void>, ErrorProducer<AssembleException, AssembleError> {
+public class Assembler implements StatementVisitor<Void> {
 
   private final InstructionByteSourceFactory instructionByteSourceFactory =
       new InstructionByteSourceFactory();
@@ -62,21 +62,13 @@ public class Assembler implements StatementVisitor<Void>, ErrorProducer<Assemble
     this.expressionEvaluator = expressionEvaluator;
   }
 
-  public List<AssembleError> getErrors() {
-    return errors;
-  }
-
-  public Assembled assemble(BlockStatement block) {
+  public AssembleResult assemble(BlockStatement block) {
     globals = new SymbolTable();
     symbols = block.symbols().copy(globals);
 
     block.accept(this);
 
-    return assembled;
-  }
-
-  public boolean hasErrors() {
-    return !errors.isEmpty();
+    return new AssembleResult(assembled, errors);
   }
 
   @Override

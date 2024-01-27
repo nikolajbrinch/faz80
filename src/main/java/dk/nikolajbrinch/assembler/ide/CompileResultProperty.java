@@ -1,8 +1,8 @@
 package dk.nikolajbrinch.assembler.ide;
 
-import dk.nikolajbrinch.assembler.compiler.Assembled;
-import dk.nikolajbrinch.assembler.compiler.Linked;
-import dk.nikolajbrinch.assembler.parser.statements.BlockStatement;
+import dk.nikolajbrinch.assembler.compiler.AssembleResult;
+import dk.nikolajbrinch.assembler.linker.LinkResult;
+import dk.nikolajbrinch.assembler.parser.AssemblerParseResult;
 import dk.nikolajbrinch.parser.BaseError;
 import dk.nikolajbrinch.parser.BaseException;
 import java.util.List;
@@ -19,11 +19,11 @@ public class CompileResultProperty {
   private final SimpleListProperty<BaseError<?>> errors =
       new SimpleListProperty<>(FXCollections.emptyObservableList());
 
-  private final SimpleObjectProperty<BlockStatement> parseResult = new SimpleObjectProperty<>(null);
+  private final SimpleObjectProperty<AssemblerParseResult> parseResult = new SimpleObjectProperty<>(null);
 
-  private final SimpleObjectProperty<Assembled> assembleResult = new SimpleObjectProperty<>(null);
+  private final SimpleObjectProperty<AssembleResult> assembleResult = new SimpleObjectProperty<>(null);
 
-  private final SimpleObjectProperty<Linked> linkResult = new SimpleObjectProperty<>(null);
+  private final SimpleObjectProperty<LinkResult> linkResult = new SimpleObjectProperty<>(null);
 
   private final SimpleObjectProperty<TreeItem<AstTreeValue>> astTree =
       new SimpleObjectProperty<>(null);
@@ -35,9 +35,9 @@ public class CompileResultProperty {
   public CompileResultProperty(
       boolean hasErrors,
       List<BaseError<?>> errors,
-      BlockStatement parseResult,
-      Assembled assembleResult,
-      Linked linkResult,
+      AssemblerParseResult parseResult,
+      AssembleResult assembleResult,
+      LinkResult linkResult,
       TreeItem<AstTreeValue> astTree) {
     setHasErrors(hasErrors);
     setErrors(errors);
@@ -71,39 +71,39 @@ public class CompileResultProperty {
     return errors;
   }
 
-  public BlockStatement getParseResult() {
+  public AssemblerParseResult getParseResult() {
     return parseResult.get();
   }
 
-  public void setParseResult(BlockStatement value) {
+  public void setParseResult(AssemblerParseResult value) {
     parseResult.set(value);
   }
 
-  public SimpleObjectProperty<BlockStatement> parseResultProperty() {
+  public SimpleObjectProperty<AssemblerParseResult> parseResultProperty() {
     return parseResult;
   }
 
-  public Assembled getAssembleResult() {
+  public AssembleResult getAssembleResult() {
     return assembleResult.get();
   }
 
-  public void setAssembleResult(Assembled value) {
+  public void setAssembleResult(AssembleResult value) {
     assembleResult.set(value);
   }
 
-  public SimpleObjectProperty<Linked> assemblResulteProperty() {
+  public SimpleObjectProperty<LinkResult> linkResultProperty() {
     return linkResult;
   }
 
-  public Linked getLinkResult() {
+  public LinkResult getLinkResult() {
     return linkResult.get();
   }
 
-  public void setLinkResult(Linked value) {
+  public void setLinkResult(LinkResult value) {
     linkResult.set(value);
   }
 
-  public SimpleObjectProperty<Assembled> linkResultProperty() {
+  public SimpleObjectProperty<AssembleResult> assemblResulteProperty() {
     return assembleResult;
   }
 

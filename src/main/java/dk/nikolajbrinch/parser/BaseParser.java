@@ -5,23 +5,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseParser<S, E extends TokenType, T extends Token> implements Parser<S> {
+public abstract class BaseParser<S, C extends BaseParserConfiguration, E extends TokenType, T extends Token, R extends TaskResult>
+    implements Parser<S, R> {
 
   private final Logger logger = LoggerFactory.getLogger();
-
+  private final C configuration;
   private final TokenProducer<T> tokenProducer;
-  private final boolean debug = false;
-  private final boolean isIgnoreComments;
-
   private final List<ParseError> errors = new ArrayList<>();
 
-  protected BaseParser(TokenProducer<T> tokenProducer, boolean ignoreComments) {
+  protected BaseParser(C configuration, TokenProducer<T> tokenProducer) {
     this.tokenProducer = tokenProducer;
-    this.isIgnoreComments = ignoreComments;
+    this.configuration = configuration;
   }
 
-  public boolean hasErrors() {
-    return !errors.isEmpty();
+  public C getConfiguration() {
+    return configuration;
   }
 
   public List<ParseError> getErrors() {
@@ -84,7 +82,7 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
    * @return
    */
   protected T nextToken() {
-    if (isIgnoreComments) {
+    if (configuration.isIgnoreComments()) {
       ignoreComments();
     }
 
@@ -101,7 +99,7 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
    * @return
    */
   protected T peek() {
-    if (isIgnoreComments) {
+    if (configuration.isIgnoreComments()) {
       ignoreComments();
     }
 
@@ -114,14 +112,14 @@ public abstract class BaseParser<S, E extends TokenType, T extends Token> implem
    * @return
    */
   protected T peek(int position) {
-    if (isIgnoreComments) {
+    if (configuration.isIgnoreComments()) {
       ignoreComments();
     }
     return tokenProducer.peek(position);
   }
 
   protected T search(E... types) {
-    if (isIgnoreComments) {
+    if (configuration.isIgnoreComments()) {
       ignoreComments();
     }
 

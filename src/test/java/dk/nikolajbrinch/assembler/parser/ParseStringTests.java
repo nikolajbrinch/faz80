@@ -20,7 +20,7 @@ class ParseStringTests {
             "Hej" + 'ø' + "med dig"
             """);
 
-    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).statements();
+    List<Statement> statements = new AssemblerParser().parse(tempFile.toFile()).block().statements();
 
     Assertions.assertEquals(
         "(expression (+ (+ \"Hej\" 'ø') \"med dig\"))",
