@@ -37,7 +37,7 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   }
 
   private static NumberValue fromDecimal(final AssemblerToken token, final Size size) {
-    return fromDecimal(Long.parseLong(token.text()), size);
+    return fromDecimal(Long.parseLong(filterNumber(token.text())), size);
   }
 
   private static NumberValue fromDecimal(final long value, final Size size) {
@@ -57,28 +57,29 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   }
 
   private static NumberValue fromHex(final AssemblerToken token, final Size size) {
-    String text = token.text();
+    String number = filterHex(token.text());
 
     Size actualSize =
-        switch (text.length()) {
+        switch (number.length()) {
           case 1, 2 -> Size.BYTE;
-          case 3 -> text.charAt(0) == '0' ? Size.BYTE : Size.WORD;
+          case 3 -> number.charAt(0) == '0' ? Size.BYTE : Size.WORD;
           case 4 -> Size.WORD;
-          case 5 -> text.charAt(0) == '0' ? Size.WORD : Size.LONG;
+          case 5 -> number.charAt(0) == '0' ? Size.WORD : Size.LONG;
           case 6, 7, 8 -> Size.LONG;
           default -> null;
         };
 
     if (actualSize != null) {
-      return newNumber(Long.parseLong(token.text(), 16), actualSize, size);
+      return newNumber(Long.parseLong(number, 16), actualSize, size);
     }
 
     throw new IllegalStateException("Hexadecimal number too large");
   }
 
   private static NumberValue fromOctal(final AssemblerToken token, final Size size) {
-    int length = token.text().length();
-    long value = Long.parseLong(token.text());
+    String number = filterNumber(token.text());
+    int length = number.length();
+    long value = Long.parseLong(number);
 
     if (length <= 3) {
       if (value <= 0xFFL && value >= Byte.MIN_VALUE) {
@@ -104,8 +105,9 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
   }
 
   private static NumberValue fromBinary(final AssemblerToken token, final Size size) {
-    int length = token.text().length();
-    long value = Long.parseLong(token.text());
+    String number = filterNumber(token.text());
+    int length = number.length();
+    long value = Long.parseLong(number, 2);
 
     if (length <= 8) {
       return newNumber(value, Size.BYTE, size);
@@ -255,5 +257,41 @@ public record NumberValue(long value, Size size) implements Value<NumberValue> {
           default -> value;
         },
         actualSize);
+  }
+
+  private static String filterNumber(String text) {
+    StringBuilder builder = new StringBuilder();
+
+    for (int i = 0; i < text.length(); i++) {
+      if (Character.isDigit(text.charAt(i))) {
+        builder.append(text.charAt(i));
+      }
+    }
+
+    return builder.toString();
+  }
+
+  private static String filterHex(String text) {
+    StringBuilder builder = new StringBuilder();
+
+    for (int i = 0; i < text.length(); i++) {
+      if (Character.isDigit(text.charAt(i))
+          || text.charAt(i) == 'a'
+          || text.charAt(i) == 'A'
+          || text.charAt(i) == 'b'
+          || text.charAt(i) == 'B'
+          || text.charAt(i) == 'c'
+          || text.charAt(i) == 'C'
+          || text.charAt(i) == 'd'
+          || text.charAt(i) == 'D'
+          || text.charAt(i) == 'e'
+          || text.charAt(i) == 'E'
+          || text.charAt(i) == 'f'
+          || text.charAt(i) == 'F') {
+        builder.append(text.charAt(i));
+      }
+    }
+
+    return builder.toString();
   }
 }

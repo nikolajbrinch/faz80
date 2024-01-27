@@ -9,6 +9,7 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,7 +25,6 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import org.fxmisc.richtext.model.PlainTextChange;
 
 public class IdeController {
 
@@ -208,10 +208,6 @@ public class IdeController {
 
     tab.setText(title);
     controller.getAstTreeProperty().addListener((v, oldValue, newValue) -> treeChanged(newValue));
-    controller
-        .textChanges()
-        .filter(ch -> !ch.getInserted().equals(ch.getRemoved()))
-        .subscribe(change -> taskManager.submitTask(() -> textChanged(change)));
 
     if (file != null) {
       controller.setFile(file);
@@ -221,14 +217,6 @@ public class IdeController {
     editorTabPane.getSelectionModel().select(tab);
 
     return fxmlLoader.getController();
-  }
-
-  private void textChanged(PlainTextChange plainTextChange) {
-    try {
-      getTabController().parse();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 
   private void treeChanged(TreeItem<AstTreeValue> astTree) {

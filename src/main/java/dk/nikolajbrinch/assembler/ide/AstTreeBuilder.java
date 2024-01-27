@@ -80,15 +80,7 @@ public class AstTreeBuilder
   @Override
   public TreeItem<AstTreeValue> visitNumberExpression(NumberExpression expression) {
     return new TreeItem<>(
-        new AstTreeValue(
-            expression.line().number(),
-            () ->
-                switch (expression.token().type()) {
-                  case HEX_NUMBER -> String.format("0x%s", expression.token().text());
-                  case BINARY_NUMBER -> String.format("0b%s", expression.token().text());
-                  case OCTAL_NUMBER -> String.format("0%s", expression.token().text());
-                  default -> expression.token().text();
-                }));
+        new AstTreeValue(expression.line().number(), () -> expression.token().text()));
   }
 
   @Override

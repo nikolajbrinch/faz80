@@ -81,11 +81,11 @@ public class AssemblerParser
   private SymbolTable currentSymbolTable = globaleSymbolTable;
 
   public AssemblerParser() {
-    this(null);
+    this(new AssemblerParserConfiguration());
   }
 
   public AssemblerParser(AssemblerParserConfiguration configuration) {
-    super(configuration, null);
+    this(configuration, null);
   }
 
   public AssemblerParser(File directory) {

@@ -327,19 +327,21 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createHexHumberToken(Char ch) throws IOException {
-    return createHexHumberToken(ch, false);
-  }
-
-  private AssemblerToken createHexHumberToken(Char ch, boolean addInitialChar) throws IOException {
-    StringBuilder builder = addInitialChar ? new StringBuilder(ch.toString()) : new StringBuilder();
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
+
+    boolean prefix = (checkNextChar('x') || checkNextChar('X') || checkNextChar('$'));
+
+    if (prefix) {
+      last = appendChar(builder);
+    }
 
     while (checkNextChar(AssemblerScanner::isHexDigit)) {
       last = appendChar(builder);
     }
 
-    if (checkNextChar('h') || checkNextChar('H')) {
-      last = peekChar();
+    if (!prefix && (checkNextChar('h') || checkNextChar('H'))) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
@@ -355,20 +357,21 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createBinaryNumberToken(Char ch) throws IOException {
-    return createBinaryNumberToken(ch, false);
-  }
-
-  private AssemblerToken createBinaryNumberToken(Char ch, boolean addInitialChar)
-      throws IOException {
-    StringBuilder builder = addInitialChar ? new StringBuilder(ch.toString()) : new StringBuilder();
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
+
+    boolean prefix = (checkNextChar('b') || checkNextChar('B') || checkNextChar('%'));
+
+    if (prefix) {
+      last = appendChar(builder);
+    }
 
     while (checkNextChar(AssemblerScanner::isBinaryDigit)) {
       last = appendChar(builder);
     }
 
-    if (checkNextChar('b') || checkNextChar('B')) {
-      last = peekChar();
+    if (!prefix && (checkNextChar('b') || checkNextChar('B'))) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
@@ -384,13 +387,14 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createOctalHumberToken(Char ch) throws IOException {
-    return createOctalHumberToken(ch, false);
-  }
-
-  private AssemblerToken createOctalHumberToken(Char ch, boolean addInitialChar)
-      throws IOException {
-    StringBuilder builder = addInitialChar ? new StringBuilder(ch.toString()) : new StringBuilder();
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
+
+    boolean prefix = (checkNextChar('o') || checkNextChar('O'));
+
+    if (prefix) {
+      last = appendChar(builder);
+    }
 
     while (checkNextChar(this::isOctalDigit)) {
       last = appendChar(builder);
@@ -409,8 +413,8 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
           builder.toString());
     }
 
-    if (checkNextChar('o') || checkNextChar('O') || checkNextChar('q') || checkNextChar('Q')) {
-      last = peekChar();
+    if (!prefix && (checkNextChar('o') || checkNextChar('O') || checkNextChar('q') || checkNextChar('Q'))) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
@@ -425,9 +429,8 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
             builder.toString());
   }
 
-  private AssemblerToken createDecimalNumberToken(Char ch, boolean addInitialChar)
-      throws IOException {
-    StringBuilder builder = addInitialChar ? new StringBuilder(ch.toString()) : new StringBuilder();
+  private AssemblerToken createDecimalNumberToken(Char ch) throws IOException {
+    StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
     while (checkNextChar(AssemblerScanner::isDecimalDigit)) {
@@ -435,7 +438,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     }
 
     if (checkNextChar('d') || checkNextChar('D')) {
-      last = peekChar();
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
@@ -459,38 +462,35 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       if (nextChar != null) {
         number =
             switch (nextChar.character()) {
-              case 'x', 'X' -> {
-                nextChar();
-                yield createHexHumberToken(ch);
-              }
+              case 'x', 'X' -> createHexHumberToken(ch);
               case 'b', 'B' -> {
                 if (checkHexNumber()) {
-                  AssemblerToken hexNumber = createHexHumberToken(ch, true);
-                  nextChar();
+                  AssemblerToken hexNumber = createHexHumberToken(ch);
                   yield hexNumber;
                 }
 
-                nextChar();
                 yield createBinaryNumberToken(ch);
               }
               case 'o', 'O', '0', '1', '2', '3', '4', '5', '6', '7' -> {
                 if (checkHexNumber()) {
-                  AssemblerToken hexNumber = createHexHumberToken(ch, true);
-                  nextChar();
-                  yield hexNumber;
+                  yield createHexHumberToken(ch);
                 }
 
-                if (nextChar.character() == 'o' || nextChar.character() == 'O') {
-                  nextChar();
+                if (checkBinaryNumber()) {
+                  yield createBinaryNumberToken(ch);
                 }
+
+                if (checkDecimalNumber()) {
+                  yield createDecimalNumberToken(ch);
+                }
+
                 yield createOctalHumberToken(ch);
               }
               default -> {
                 AssemblerToken hexNumber = null;
 
                 if (checkHexNumber()) {
-                  hexNumber = createHexHumberToken(ch, true);
-                  nextChar();
+                  hexNumber = createHexHumberToken(ch);
                 }
 
                 yield hexNumber;
@@ -501,17 +501,13 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
     if (number == null) {
       if (checkHexNumber()) {
-        number = createHexHumberToken(ch, true);
-        nextChar();
+        number = createHexHumberToken(ch);
       } else if (checkBinaryNumber()) {
-        number = createBinaryNumberToken(ch, true);
-        nextChar();
+        number = createBinaryNumberToken(ch);
       } else if (checkOctalNumber()) {
-        number = createOctalHumberToken(ch, true);
-        nextChar();
+        number = createOctalHumberToken(ch);
       } else if (checkDecimalNumber()) {
-        number = createDecimalNumberToken(ch, true);
-        nextChar();
+        number = createDecimalNumberToken(ch);
       }
     }
 

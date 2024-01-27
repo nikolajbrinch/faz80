@@ -9,12 +9,13 @@ import dk.nikolajbrinch.parser.ScannerSource;
 import dk.nikolajbrinch.parser.impl.StringSource;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.TreeItem;
 import org.fxmisc.richtext.model.PlainTextChange;
-import org.reactfx.EventStream;
 
 public class TabController {
 
@@ -30,18 +31,26 @@ public class TabController {
     return editor;
   }
 
+  public SimpleObjectProperty<PlainTextChange> textChange = new SimpleObjectProperty<>(null);
+
   public void initialize() {
     editor
-        .richChanges()
+        .plainTextChanges()
         .filter(ch -> !ch.getInserted().equals(ch.getRemoved()))
-        .subscribe(
-            richTextChange ->
-                editor.setStyleSpans(
-                    0,
-                    syntaxHighlighter.createStyleSpans(
-                        editor.getText(),
-                        compileResultProperty.getErrors(),
-                        source.getSourceInfo())));
+        .subscribe(this::textChanged);
+  }
+
+  private void textChanged(PlainTextChange textChange) {
+    try {
+      parse();
+      editor.setStyleSpans(
+          0,
+          syntaxHighlighter.createStyleSpans(
+              editor.getText(), compileResultProperty.getErrors(), source.getSourceInfo()));
+      this.textChange.set(textChange);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   public ScannerSource getSource() {
@@ -54,10 +63,6 @@ public class TabController {
     editor.newText(file);
   }
 
-  public EventStream<PlainTextChange> textChanges() {
-    return editor.plainTextChanges();
-  }
-
   void parse() throws IOException {
     compiler.parse(editor.getText());
     compileResultProperty.setHasErrors(compiler.hasErrors());
@@ -65,7 +70,8 @@ public class TabController {
     compileResultProperty.setParseResult(compiler.getParseResult());
 
     if (compiler.getParseResult() != null) {
-      compileResultProperty.setAstTree(new AstTreeBuilder().build(compiler.getParseResult().block()));
+      compileResultProperty.setAstTree(
+          new AstTreeBuilder().build(compiler.getParseResult().block()));
     }
   }
 
@@ -79,7 +85,8 @@ public class TabController {
     compileResultProperty.setLinkResult(compiler.getLinkResult());
 
     if (compiler.getParseResult() != null) {
-      compileResultProperty.setAstTree(new AstTreeBuilder().build(compiler.getParseResult().block()));
+      compileResultProperty.setAstTree(
+          new AstTreeBuilder().build(compiler.getParseResult().block()));
     }
   }
 
@@ -111,5 +118,9 @@ public class TabController {
     if (lineNumber != -1) {
       editor.highlightLine(lineNumber);
     }
+  }
+
+  public SimpleObjectProperty<PlainTextChange> plainTextChange() {
+    return textChange;
   }
 }
