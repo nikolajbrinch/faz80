@@ -39,7 +39,7 @@ public class Compiler {
       assemble(parseResult.block());
     }
 
-    if (!assembleResult.hasErrors()) {
+    if (assembleResult != null && !assembleResult.hasErrors()) {
       link(assembleResult.assembled());
     }
   }
@@ -51,7 +51,7 @@ public class Compiler {
       assemble(parseResult.block());
     }
 
-    if (!assembleResult.hasErrors()) {
+    if (assembleResult != null && !assembleResult.hasErrors()) {
       link(assembleResult.assembled());
     }
   }
@@ -103,5 +103,4 @@ public class Compiler {
   public List<BaseError<? extends BaseException>> getErrors() {
     return errors;
   }
-
 }

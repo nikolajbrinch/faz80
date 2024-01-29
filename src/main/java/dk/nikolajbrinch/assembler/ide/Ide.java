@@ -20,7 +20,7 @@ public class Ide extends Application {
 
     size(stage);
     Scene scene = new Scene(root);
-    stage.setTitle("FZA80");
+    stage.setTitle("FAZ80");
     stage.setScene(scene);
     stage.show();
   }

@@ -1,6 +1,10 @@
 package dk.nikolajbrinch.assembler.ide;
 
 import dk.nikolajbrinch.assembler.compiler.AssembleResult;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeUtil;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeValue;
+import dk.nikolajbrinch.assembler.ide.symbols.SymbolProperty;
+import dk.nikolajbrinch.assembler.ide.symbols.SymbolTableBuilder;
 import dk.nikolajbrinch.assembler.linker.LinkResult;
 import dk.nikolajbrinch.parser.BaseError;
 import java.io.File;
@@ -9,7 +13,6 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -32,6 +35,7 @@ public class IdeController {
   private final ListingBuilder listingBuilder = new ListingBuilder();
   private final ErrorListBuilder errorListBuilder = new ErrorListBuilder();
   private final SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder();
+  private final Formatter formatter = new Formatter();
   private final TaskManager taskManager = new TaskManager();
 
   @FXML private VBox rootLayout;
@@ -120,6 +124,12 @@ public class IdeController {
     }
   }
 
+  public void closeFile(ActionEvent actionEvent) throws IOException {
+    getTabController().dispose();
+    Tab tab = editorTabPane.getSelectionModel().getSelectedItem();
+    editorTabPane.getTabs().remove(tab);
+  }
+
   public void compile(ActionEvent actionEvent) throws IOException {
     TabController controller = getTabController();
     controller.compile();
@@ -132,6 +142,12 @@ public class IdeController {
       updateOutput(controller.getLinkResult());
       updateListing(controller.getAssembleResult());
     }
+  }
+
+  public void format(ActionEvent actionEvent) throws IOException {
+    String text = getTabController().getEditor().getText();
+    formatter.format(text);
+    getTabController().getEditor().replaceText(text);
   }
 
   private void updateSymbols(TreeItem<AstTreeValue> node) {
@@ -207,7 +223,8 @@ public class IdeController {
     TabController controller = getTabController(tab);
 
     tab.setText(title);
-    controller.getAstTreeProperty().addListener((v, oldValue, newValue) -> treeChanged(newValue));
+    controller.astTreeProperty().addListener((v, oldValue, newValue) -> treeChanged(newValue));
+    controller.errorsProperty().addListener((v, oldValue, newValue) -> updateErrors(newValue));
 
     if (file != null) {
       controller.setFile(file);

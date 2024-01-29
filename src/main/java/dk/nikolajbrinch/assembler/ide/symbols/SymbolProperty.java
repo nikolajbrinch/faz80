@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.assembler.ide;
+package dk.nikolajbrinch.assembler.ide.symbols;
 
 import javafx.beans.property.SimpleStringProperty;
 

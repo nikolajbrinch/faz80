@@ -2,8 +2,11 @@ package dk.nikolajbrinch.assembler.ide;
 
 import dk.nikolajbrinch.assembler.compiler.AssembleResult;
 import dk.nikolajbrinch.assembler.compiler.Compiler;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeBuilder;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeValue;
 import dk.nikolajbrinch.assembler.linker.LinkResult;
 import dk.nikolajbrinch.parser.BaseError;
+import dk.nikolajbrinch.parser.BaseException;
 import dk.nikolajbrinch.parser.impl.FileSource;
 import dk.nikolajbrinch.parser.ScannerSource;
 import dk.nikolajbrinch.parser.impl.StringSource;
@@ -11,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
@@ -102,8 +106,12 @@ public class TabController {
     return compileResultProperty.getAstTree();
   }
 
-  public Property<TreeItem<AstTreeValue>> getAstTreeProperty() {
+  public Property<TreeItem<AstTreeValue>> astTreeProperty() {
     return compileResultProperty.astTreeProperty();
+  }
+
+  public ListProperty<BaseError<? extends BaseException>> errorsProperty() {
+    return compileResultProperty.errorsProperty();
   }
 
   public AssembleResult getAssembleResult() {
@@ -123,4 +131,6 @@ public class TabController {
   public SimpleObjectProperty<PlainTextChange> plainTextChange() {
     return textChange;
   }
+
+  public void dispose() {}
 }

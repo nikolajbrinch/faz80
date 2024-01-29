@@ -14,7 +14,10 @@ public class Formatter {
   }
 
   private AssemblerParseResult parse(String text) throws IOException {
-    AssemblerParser parser = new AssemblerParser(new AssemblerParserConfiguration(false, false));
-    return parser.parse(text);
+    return newParser().parse(text);
+  }
+
+  private AssemblerParser newParser() {
+    return new AssemblerParser(new AssemblerParserConfiguration(false, false));
   }
 }

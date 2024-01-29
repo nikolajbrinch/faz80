@@ -109,13 +109,14 @@
         <items>
           <MenuItem mnemonicParsing="false" onAction="#newFile" text="New"
             accelerator="Shortcut+N"/>
-          <MenuItem mnemonicParsing="false" onAction="#openFile" text="Open…"/>
+          <MenuItem mnemonicParsing="false" onAction="#openFile" text="Open…"
+            accelerator="Shortcut+O"/>
 
           <Menu mnemonicParsing="false" text="Open Recent"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
-          <MenuItem mnemonicParsing="false" text="Close"/>
+          <MenuItem mnemonicParsing="false" text="Close" onAction="#closeFile" accelerator="Shortcut+W"/>
           <MenuItem mnemonicParsing="false" text="Save" accelerator="Shortcut+S"/>
-          <MenuItem mnemonicParsing="false" text="Save As…"/>
+          <MenuItem mnemonicParsing="false" text="Save As…" accelerator="Shift+Shortcut+S"/>
           <MenuItem mnemonicParsing="false" text="Revert"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
           <MenuItem mnemonicParsing="false" text="Preferences…"/>
@@ -136,7 +137,8 @@
       </Menu>
       <Menu mnemonicParsing="false" text="Tools">
         <items>
-          <MenuItem mnemonicParsing="false" text="Format" accelerator="Shift+Shortcut+F"/>
+          <MenuItem mnemonicParsing="false" text="Format" onAction="#format"
+            accelerator="Shift+Shortcut+F"/>
         </items>
       </Menu>
       <Menu mnemonicParsing="false" text="Help">

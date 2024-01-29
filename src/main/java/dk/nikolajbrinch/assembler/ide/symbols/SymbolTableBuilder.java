@@ -1,8 +1,10 @@
-package dk.nikolajbrinch.assembler.ide;
+package dk.nikolajbrinch.assembler.ide.symbols;
 
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolTable;
 import dk.nikolajbrinch.assembler.compiler.symbols.SymbolType;
-import dk.nikolajbrinch.assembler.ide.AstTreeValue.Type;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeUtil;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeValue;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeValue.Type;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;

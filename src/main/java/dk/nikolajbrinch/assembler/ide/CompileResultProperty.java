@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.assembler.ide;
 
 import dk.nikolajbrinch.assembler.compiler.AssembleResult;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeValue;
 import dk.nikolajbrinch.assembler.linker.LinkResult;
 import dk.nikolajbrinch.assembler.parser.AssemblerParseResult;
 import dk.nikolajbrinch.parser.BaseError;

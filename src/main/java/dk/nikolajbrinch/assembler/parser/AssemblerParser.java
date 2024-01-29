@@ -46,12 +46,15 @@ import dk.nikolajbrinch.assembler.parser.statements.Statement;
 import dk.nikolajbrinch.assembler.util.StringUtil;
 import dk.nikolajbrinch.assembler.z80.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
+import dk.nikolajbrinch.parser.ParseError;
 import dk.nikolajbrinch.parser.ParseException;
 import dk.nikolajbrinch.parser.impl.FileSource;
 import dk.nikolajbrinch.parser.impl.StringSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,6 +78,8 @@ public class AssemblerParser
   private AssemblerTokenType eos = AssemblerTokenType.NEWLINE;
 
   private Mode mode = Mode.NORMAL;
+
+  private Set<AssemblerToken> missingIdentifiers = new HashSet<>();
 
   private final SymbolTable globaleSymbolTable = new SymbolTable();
 
@@ -120,6 +125,16 @@ public class AssemblerParser
         if (declaration != null) {
           statements.add(declaration);
         }
+      }
+    }
+
+    Iterator<AssemblerToken> iterator = missingIdentifiers.iterator();
+    while (iterator.hasNext()) {
+      AssemblerToken token = iterator.next();
+      if (currentSymbolTable.exists(token.text())) {
+        iterator.remove();
+      } else {
+        getErrors().add(new ParseError(new ParseException(token, "Undefined identifier.")));
       }
     }
 
@@ -197,13 +212,20 @@ public class AssemblerParser
       return instruction(identifier);
     }
 
-    return switch (peek().type()) {
-      case CONSTANT -> constant(identifier);
-      case ASSIGN, EQUAL -> variable(identifier);
-      case SET -> set(identifier);
-      case MACRO -> macro(identifier);
-      default -> label(identifier);
-    };
+    Statement statement =
+        switch (peek().type()) {
+          case CONSTANT -> constant(identifier);
+          case ASSIGN, EQUAL -> variable(identifier);
+          case SET -> set(identifier);
+          case MACRO -> macro(identifier);
+          default -> label(identifier);
+        };
+
+    if (statement != null) {
+      missingIdentifiers.remove(identifier);
+    }
+
+    return statement;
   }
 
   private Statement set(AssemblerToken identifier) {
@@ -809,6 +831,7 @@ public class AssemblerParser
 
         if (condition != null) {
           operand = new ConditionOperand(token.line(), condition);
+          missingIdentifiers.remove(token);
         }
       }
 
@@ -1050,6 +1073,8 @@ public class AssemblerParser
         } catch (UndefinedSymbolException e) {
           throw new ParseException(identifier, e.getMessage(), e);
         }
+      } else {
+        missingIdentifiers.add(identifier);
       }
 
       return new IdentifierExpression(identifier);

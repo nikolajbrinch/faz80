@@ -1,10 +1,10 @@
-package dk.nikolajbrinch.assembler.ide;
+package dk.nikolajbrinch.assembler.ide.ast;
 
 import java.util.function.Supplier;
 
 public record AstTreeValue(int lineNumber, Type type, Supplier<Object> valueSupplier) {
 
-  enum Type {
+  public enum Type {
     SYMBOL_TABLE,
     NODE
   }

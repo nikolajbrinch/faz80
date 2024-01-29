@@ -1,5 +1,6 @@
-package dk.nikolajbrinch.assembler.ide;
+package dk.nikolajbrinch.assembler.ide.ast;
 
+import dk.nikolajbrinch.assembler.ide.symbols.SymbolTableTreeItem;
 import dk.nikolajbrinch.assembler.parser.IdentifierUtil;
 import dk.nikolajbrinch.assembler.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.assembler.parser.expressions.BinaryExpression;

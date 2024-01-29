@@ -1,6 +1,6 @@
-package dk.nikolajbrinch.assembler.ide;
+package dk.nikolajbrinch.assembler.ide.ast;
 
-import dk.nikolajbrinch.assembler.ide.AstTreeValue.Type;
+import dk.nikolajbrinch.assembler.ide.ast.AstTreeValue.Type;
 import javafx.scene.control.TreeItem;
 
 public class AstTreeUtil {
