@@ -30,7 +30,6 @@ public class SyntaxHighlighter {
     StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
 
     try (AssemblerScanner scanner = new AssemblerScanner(new StringSource(sourceInfo, text))) {
-
       int lastPos = 0;
 
       for (AssemblerToken token : scanner) {

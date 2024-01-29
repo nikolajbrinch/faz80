@@ -60,11 +60,13 @@ public class IdeController {
 
   @FXML private TableView<ErrorProperty> errorTableView;
 
-  @FXML private TableColumn<ErrorProperty, String> errorSource;
+  @FXML private TableColumn<ErrorProperty, String> errorLocation;
+
+  @FXML private TableColumn<ErrorProperty, String> errorType;
 
   @FXML private TableColumn<ErrorProperty, Integer> errorLine;
 
-  @FXML private TableColumn<ErrorProperty, String> errorTyoe;
+  @FXML private TableColumn<ErrorProperty, String> errorTask;
 
   @FXML private TableColumn<ErrorProperty, String> errorToken;
 
@@ -268,9 +270,10 @@ public class IdeController {
   }
 
   private void setupErrorsTab() {
-    errorSource.setCellValueFactory(cellData -> cellData.getValue().sourceProperty());
+    errorLocation.setCellValueFactory(cellData -> cellData.getValue().locationProperty());
+    errorType.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
     errorLine.setCellValueFactory(cellData -> cellData.getValue().lineProperty().asObject());
-    errorTyoe.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
+    errorTask.setCellValueFactory(cellData -> cellData.getValue().taskProperty());
     errorToken.setCellValueFactory(cellData -> cellData.getValue().tokenProperty());
     errorDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
     errorTableView.setPlaceholder(new Label(""));

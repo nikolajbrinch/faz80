@@ -23,6 +23,7 @@ public class ErrorListBuilder {
                 case ParseException parseException ->
                     new ErrorProperty(
                         errorFile(file, parseException.getToken().sourceInfo()),
+                        "Error",
                         parseException.getToken().line().number(),
                         "Parse",
                         parseException.getToken().text(),
@@ -30,12 +31,13 @@ public class ErrorListBuilder {
                 case AssembleException assembleException ->
                     new ErrorProperty(
                         errorFile(file, assembleException.getStatement().sourceInfo()),
+                        "Error",
                         assembleException.getStatement().line().number(),
                         "Assemble",
                         "",
                         assembleException.getMessage());
                 case LinkException linkException ->
-                    new ErrorProperty("", -1, "Link", "", linkException.getMessage());
+                    new ErrorProperty("", "Error", -1, "Link", "", linkException.getMessage());
                 default -> null;
               });
         });

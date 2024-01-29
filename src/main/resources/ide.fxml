@@ -89,9 +89,10 @@
               <Tab text="Errors" fx:id="errorsTab">
                 <TableView fx:id="errorTableView" VBox.vgrow="ALWAYS">
                   <columns>
-                    <TableColumn fx:id="errorSource" prefWidth="150.0" text="Source"/>
+                    <TableColumn fx:id="errorLocation" prefWidth="150.0" text="Location"/>
+                    <TableColumn fx:id="errorType" prefWidth="70.0" text="Type"/>
                     <TableColumn fx:id="errorLine" prefWidth="50.0" text="Line"/>
-                    <TableColumn fx:id="errorTyoe" prefWidth="70.0" text="Task"/>
+                    <TableColumn fx:id="errorTask" prefWidth="70.0" text="Task"/>
                     <TableColumn fx:id="errorToken" prefWidth="120.0" text="Token"/>
                     <TableColumn fx:id="errorDescription" prefWidth="500.0" text="Description"/>
                   </columns>
