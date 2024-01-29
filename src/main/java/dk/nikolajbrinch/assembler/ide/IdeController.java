@@ -168,9 +168,12 @@ public class IdeController {
   }
 
   private void tabSelected(Tab tab) throws IOException {
+    if (tab == null) {
+      return;
+    }
+
     astTreeView.setRoot(null);
     statusTabPane.getSelectionModel().select(errorsTab);
-
     TabController controller = getTabController(tab);
     controller.parse();
 
