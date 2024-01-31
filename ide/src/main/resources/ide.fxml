@@ -17,7 +17,7 @@
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.VBox?>
 <VBox fx:id="rootLayout" minHeight="-Infinity" prefWidth="900.0"
-  fx:controller="ide.IdeController" xmlns:fx="http://javafx.com/fxml">
+  fx:controller="dk.nikolajbrinch.assembler.ide.IdeController" xmlns:fx="http://javafx.com/fxml">
   <children>
     <ToolBar>
       <items>
@@ -115,7 +115,8 @@
 
           <Menu mnemonicParsing="false" text="Open Recent"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
-          <MenuItem mnemonicParsing="false" text="Close" onAction="#closeFile" accelerator="Shortcut+W"/>
+          <MenuItem mnemonicParsing="false" text="Close" onAction="#closeFile"
+            accelerator="Shortcut+W"/>
           <MenuItem mnemonicParsing="false" text="Save" accelerator="Shortcut+S"/>
           <MenuItem mnemonicParsing="false" text="Save As…" accelerator="Shift+Shortcut+S"/>
           <MenuItem mnemonicParsing="false" text="Revert"/>
