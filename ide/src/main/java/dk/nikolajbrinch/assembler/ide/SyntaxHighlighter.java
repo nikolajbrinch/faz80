@@ -104,37 +104,37 @@ public class SyntaxHighlighter {
     }
 
     return switch (token.type()) {
-      case IDENTIFIER -> "identifier-class";
-      case HEX_NUMBER, OCTAL_NUMBER, BINARY_NUMBER, DECIMAL_NUMBER -> "number-class";
-      case DOLLAR, DOLLAR_DOLLAR -> "dollar-class";
-      case PLUS,
-              MINUS,
-              SLASH,
-              STAR,
-              AND,
-              AND_AND,
-              EQUAL,
-              EQUAL_EQUAL,
-              BANG,
-              BANG_EQUAL,
-              LESS,
-              LESS_LESS,
-              LESS_EQUAL,
-              GREATER,
-              GREATER_GREATER,
-              GREATER_GREATER_GREATER,
-              GREATER_EQUAL,
-              CARET,
-              CARET_CARET,
-              TILDE,
-              PIPE,
-              PIPE_PIPE ->
+      case AssemblerTokenType.IDENTIFIER -> "identifier-class";
+      case AssemblerTokenType.HEX_NUMBER, AssemblerTokenType.OCTAL_NUMBER, AssemblerTokenType.BINARY_NUMBER, AssemblerTokenType.DECIMAL_NUMBER -> "number-class";
+      case AssemblerTokenType.DOLLAR, AssemblerTokenType.DOLLAR_DOLLAR -> "dollar-class";
+      case AssemblerTokenType.PLUS,
+              AssemblerTokenType.MINUS,
+              AssemblerTokenType.SLASH,
+              AssemblerTokenType.STAR,
+              AssemblerTokenType.AND,
+              AssemblerTokenType.AND_AND,
+              AssemblerTokenType.EQUAL,
+              AssemblerTokenType.EQUAL_EQUAL,
+              AssemblerTokenType.BANG,
+              AssemblerTokenType.BANG_EQUAL,
+              AssemblerTokenType.LESS,
+              AssemblerTokenType.LESS_LESS,
+              AssemblerTokenType.LESS_EQUAL,
+              AssemblerTokenType.GREATER,
+              AssemblerTokenType.GREATER_GREATER,
+              AssemblerTokenType.GREATER_GREATER_GREATER,
+              AssemblerTokenType.GREATER_EQUAL,
+              AssemblerTokenType.CARET,
+              AssemblerTokenType.CARET_CARET,
+              AssemblerTokenType.TILDE,
+              AssemblerTokenType.PIPE,
+              AssemblerTokenType.PIPE_PIPE ->
           "operator-class";
-      case LEFT_BRACE, LEFT_BRACKET, LEFT_PAREN, RIGHT_BRACE, RIGHT_BRACKET, RIGHT_PAREN ->
+      case AssemblerTokenType.LEFT_BRACE, AssemblerTokenType.LEFT_BRACKET, AssemblerTokenType.LEFT_PAREN, AssemblerTokenType.RIGHT_BRACE, AssemblerTokenType.RIGHT_BRACKET, AssemblerTokenType.RIGHT_PAREN ->
           "paren-class";
-      case STRING, CHAR -> "string-class";
-      case COMMENT -> "comment-class";
-      case DIRECTIVE -> "error-class";
+      case AssemblerTokenType.STRING, AssemblerTokenType.CHAR -> "string-class";
+      case AssemblerTokenType.COMMENT -> "comment-class";
+      case AssemblerTokenType.DIRECTIVE -> "error-class";
       default -> null;
     };
   }

@@ -17,7 +17,7 @@
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.VBox?>
 <VBox fx:id="rootLayout" minHeight="-Infinity" prefWidth="900.0"
-  fx:controller="dk.nikolajbrinch.assembler.ide.IdeController" xmlns:fx="http://javafx.com/fxml">
+  fx:controller="ide.IdeController" xmlns:fx="http://javafx.com/fxml">
   <children>
     <ToolBar>
       <items>
