@@ -40,7 +40,12 @@
   </build>
 
   <modules>
+    <module>base</module>
+    <module>scanner</module>
+    <module>parser</module>
     <module>assembler</module>
+    <module>linker</module>
+    <module>compiler</module>
     <module>ide</module>
   </modules>
 

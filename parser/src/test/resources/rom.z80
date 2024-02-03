@@ -1,0 +1,65 @@
+            ORG 30000         ; Origin
+
+LASTK       EQU 23560         ; last key press (system variable)
+
+PRINT       EQU 8252          ; This means the label PRINT equates to 8252.
+
+
+            XOR a             ; quick way to load accumulator with zero.
+            LD A, 2           ; set print channel to screen
+
+            CALL 5633         ; Open channel two (ie, write to screen)
+            LD HL, GFX        ; set up UDGs
+            LD (23675), HL    ; where the UDG characters are stored.
+            CALL 3503         ; clear the screen. CLS
+
+
+MAINLP      CALL PRTPLAY      ; print player sprite
+
+            HALT              ; Slow it down three times
+            HALT
+            HALT
+
+            LD BC, $FEFE      ; load port address into BC, scan for right ("X")
+            IN A, (C)         ; load port data into A
+            AND %0000100      ; looking for X
+            JR Z, GORIGHT     ; if Z is press, go right
+
+            JR MAINLP         ; loop back to continue scanning
+
+
+GORIGHT     LD A, (PLAYER+2)  ; if player is at right edge, don't continue
+            CP 31
+            JR Z, MAINLP      ; Jump Relative Zero
+            CALL UNDRAW
+            LD A, (PLAYER+2)  ; get player's X coordinate
+            INC A             ; add 1
+            LD (PLAYER+2), A
+            JR MAINLP
+
+
+PRTPLAY     LD DE, PLAYER           ; print player graphic
+            LD BC, EOPLAYR-PLAYER
+            CALL PRINT
+            RET
+
+
+UNDRAW      LD A, " "            ; change graphic to empty space
+            LD (PLAYER+3), A     ; store it
+            CALL PRTPLAY         ; undraw graphic from screen
+            LD A, 144            ; change graphic back to normal
+            LD (PLAYER+3), A     ; store it
+
+
+            RET ; return to basic!
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+            ; Player x, ys
+PLAYER      DEFB 22, 12, 15, 144 ; print at Y, X, char 144 UDG (A)
+            DEFB 22, 13, 15, 145 ; print at Y+1, X, char 145 UDG (B)
+            EOPLAYR EQU $
+
+            ; Graphics UDG Character
+GFX         DEFB 6, 62, 124, 52, 62, 60, 24, 60
+            DEFB 126, 126, 247, 251, 60, 118, 110, 119

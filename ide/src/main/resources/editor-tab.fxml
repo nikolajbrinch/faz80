@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import dk.nikolajbrinch.faz80.ide.editor.CodeEditor?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
+<Tab xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="dk.nikolajbrinch.faz80.ide.editor.EditorTabController">
+  <userData>
+    <fx:reference source="controller"/>
+  </userData>
+  <VBox>
+    <children>
+      <VirtualizedScrollPane VBox.vgrow="ALWAYS">
+        <content>
+          <CodeEditor fx:id="editor" styleClass="code-editor"
+            VBox.vgrow="ALWAYS"/>
+        </content>
+      </VirtualizedScrollPane>
+    </children>
+  </VBox>
+</Tab>

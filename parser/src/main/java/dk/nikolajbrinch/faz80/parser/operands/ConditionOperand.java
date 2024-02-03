@@ -1,0 +1,12 @@
+package dk.nikolajbrinch.faz80.parser.operands;
+
+import dk.nikolajbrinch.faz80.parser.Condition;
+import dk.nikolajbrinch.scanner.Line;
+
+public record ConditionOperand(Line line, Condition condition) implements Operand {
+
+  @Override
+  public <R> R accept(OperandVisitor<R> visitor) {
+    return visitor.visitConditionOperand(this);
+  }
+}
