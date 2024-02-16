@@ -4,7 +4,7 @@ import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.SourceInfo;
 
-public record InsertStatement(AssemblerToken string) implements Statement {
+public record InsertStatement(AssemblerToken token, AssemblerToken string) implements Statement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

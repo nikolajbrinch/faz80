@@ -12,7 +12,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseParser<S, C extends BaseParserConfiguration, E extends TokenType, T extends Token, R extends TaskResult>
+public abstract class BaseParser<
+        S,
+        E extends TokenType,
+        C extends BaseParserConfiguration<E>,
+        T extends Token,
+        R extends TaskResult>
     implements Parser<S, R> {
 
   private final Logger logger = LoggerFactory.getLogger();
@@ -157,11 +162,11 @@ public abstract class BaseParser<S, C extends BaseParserConfiguration, E extends
    * @return
    */
   protected boolean isEof() {
-    return match(peek(), getEofTypes());
+    return match(peek(), configuration.getEofTypes());
   }
 
   protected boolean isEof(int position) {
-    return match(peek(position), getEofTypes());
+    return match(peek(position), configuration.getEofTypes());
   }
 
   protected boolean isNotType(T token, E type) {
@@ -169,17 +174,13 @@ public abstract class BaseParser<S, C extends BaseParserConfiguration, E extends
   }
 
   private void ignoreComments() {
-    while (!match(tokenProducer.peek(), getEofTypes())
-        && match(tokenProducer.peek(), getCommentTypes())) {
+    while (!match(tokenProducer.peek(), configuration.getEofTypes())
+        && match(tokenProducer.peek(), configuration.getCommentTypes())) {
       tokenProducer.next();
     }
   }
 
   protected abstract boolean isType(T token, E type);
-
-  protected abstract E[] getEofTypes();
-
-  protected abstract E[] getCommentTypes();
 
   protected void reportError(ParseException e) {
     errors.add(new ParseError(e));

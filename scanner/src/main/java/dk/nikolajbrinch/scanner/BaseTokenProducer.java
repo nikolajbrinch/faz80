@@ -1,11 +1,13 @@
 package dk.nikolajbrinch.scanner;
 
+import dk.nikolajbrinch.faz80.scanner.Mode;
 import java.io.IOException;
 import java.util.Optional;
 
 public abstract class BaseTokenProducer<T> implements TokenProducer<T> {
 
   private final ScannerRegistry<T> scannerRegistry;
+  private Mode mode;
 
   protected BaseTokenProducer(ScannerRegistry<T> scannerRegistry) {
     this.scannerRegistry = scannerRegistry;
@@ -58,4 +60,14 @@ public abstract class BaseTokenProducer<T> implements TokenProducer<T> {
   }
 
   protected abstract boolean isEof(T token);
+
+  @Override
+  public void setMode(Mode mode) {
+    this.mode = mode;
+    scannerRegistry.setMode(mode);
+  }
+
+  public Mode getMode() {
+    return mode;
+  }
 }

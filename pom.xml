@@ -42,7 +42,9 @@
   <modules>
     <module>base</module>
     <module>scanner</module>
+    <module>parser-base</module>
     <module>parser</module>
+    <module>parser2</module>
     <module>assembler</module>
     <module>linker</module>
     <module>compiler</module>

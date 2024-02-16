@@ -1,9 +1,5 @@
 package dk.nikolajbrinch.faz80.parser.values;
 
-import dk.nikolajbrinch.faz80.parser.values.BooleanValue;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.StringValue;
-import dk.nikolajbrinch.faz80.parser.values.Value;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
@@ -40,7 +36,7 @@ public class MathUtil {
   private static Value<?> convertToNumber(Value<?> value) {
     Value<?> number = value;
 
-    if (value instanceof StringValue stringValue && stringValue.canBeNUmber()) {
+    if (value instanceof StringValue stringValue && stringValue.canBeNumber()) {
       number = stringValue.asNumberValue();
     } else if (value instanceof BooleanValue booleanValue) {
       number = booleanValue.asNumberValue();

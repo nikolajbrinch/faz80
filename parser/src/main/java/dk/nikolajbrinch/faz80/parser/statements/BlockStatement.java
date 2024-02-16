@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.statements;
 
 import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
+import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.SourceInfo;
 import java.util.List;

@@ -3,30 +3,24 @@ package dk.nikolajbrinch.faz80.assembler;
 import dk.nikolajbrinch.faz80.assembler.instructions.IllegalInstructionException;
 import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.faz80.assembler.operands.OperandEvaluator;
+import dk.nikolajbrinch.faz80.parser.Parameter;
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
 import dk.nikolajbrinch.faz80.parser.evaluator.Context;
 import dk.nikolajbrinch.faz80.parser.evaluator.EvaluationException;
 import dk.nikolajbrinch.faz80.parser.evaluator.ExpressionEvaluator;
-import dk.nikolajbrinch.faz80.parser.symbols.Macro;
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolException;
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
-import dk.nikolajbrinch.faz80.parser.values.BooleanValue;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.StringValue;
-import dk.nikolajbrinch.faz80.parser.values.Value;
-import dk.nikolajbrinch.faz80.parser.Parameter;
 import dk.nikolajbrinch.faz80.parser.expressions.Expression;
 import dk.nikolajbrinch.faz80.parser.statements.AlignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssertStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.BlockStatement;
+import dk.nikolajbrinch.faz80.parser.statements.CommentStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ConditionalStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataTextStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataWordStatement;
 import dk.nikolajbrinch.faz80.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.faz80.parser.statements.EndStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.faz80.parser.statements.GlobalStatement;
 import dk.nikolajbrinch.faz80.parser.statements.IncludeStatement;
@@ -41,6 +35,14 @@ import dk.nikolajbrinch.faz80.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.faz80.parser.statements.Statement;
 import dk.nikolajbrinch.faz80.parser.statements.StatementVisitor;
 import dk.nikolajbrinch.faz80.parser.statements.ValuesStatement;
+import dk.nikolajbrinch.faz80.parser.symbols.Macro;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolException;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
+import dk.nikolajbrinch.faz80.parser.values.BooleanValue;
+import dk.nikolajbrinch.faz80.parser.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.values.StringValue;
+import dk.nikolajbrinch.faz80.parser.values.Value;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,6 +134,16 @@ public class Assembler implements StatementVisitor<Void> {
     return null;
   }
 
+  @Override
+  public Void visitCommentStatement(CommentStatement statement) {
+    return null;
+  }
+
+  @Override
+  public Void visitEndStatement(EndStatement endStatement) {
+    return null;
+  }
+
   private String sanitizeName(String text) {
     while (text.startsWith(".")) {
       text = text.substring(1);
@@ -197,7 +209,13 @@ public class Assembler implements StatementVisitor<Void> {
 
   @Override
   public Void visitBlockStatement(BlockStatement statement) {
-    withSymbols(statement.symbols().copy(), () -> statement.statements().forEach(this::execute));
+    withSymbols(
+        statement.symbols().copy(),
+        () ->
+            statement.statements().stream()
+                .filter(s -> !(s instanceof EmptyStatement))
+                .filter(s -> !(s instanceof CommentStatement))
+                .forEach(this::execute));
 
     return null;
   }
@@ -248,7 +266,7 @@ public class Assembler implements StatementVisitor<Void> {
         }
 
         for (int i = 0; i < count; i++) {
-          statement.blockStatement().accept(this);
+          statement.block().accept(this);
         }
       } else {
         reportError(new AssembleException(statement, "Count is not a number"));
@@ -326,7 +344,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitIncludeStatement(IncludeStatement includeStatement) {
+  public Void visitIncludeStatement(IncludeStatement statement) {
     return null;
   }
 
@@ -423,7 +441,7 @@ public class Assembler implements StatementVisitor<Void> {
 
   private static Stream<ByteSupplier> byteToByteSuppliers(Value<?> value) {
     if (value instanceof StringValue stringValue) {
-      if (stringValue.canBeNUmber()) {
+      if (stringValue.canBeNumber()) {
         return Stream.of(ByteSupplier.of(stringValue.asNumberValue().value()));
       }
 

@@ -93,7 +93,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
 
   @Override
   public Evaluated visitStringExpression(StringExpression expression) {
-    if (expression.stringValue().canBeNUmber()) {
+    if (expression.stringValue().canBeNumber()) {
       return Evaluated.of(
           expression.stringValue().asNumberValue(),
           expression.stringValue().asNumberValue().size());
@@ -147,7 +147,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
   }
 
   @Override
-  public Evaluated visitMacroCallExpression(MacroCallExpression macroCallExpression) {
+  public Evaluated visitMacroCallExpression(MacroCallExpression expression) {
     return null;
   }
 

@@ -1,11 +1,6 @@
 package dk.nikolajbrinch.faz80.parser;
 
-import dk.nikolajbrinch.faz80.parser.symbols.Macro;
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
-import dk.nikolajbrinch.faz80.parser.symbols.UndefinedSymbolException;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.StringValue;
+import dk.nikolajbrinch.faz80.base.util.StringUtil;
 import dk.nikolajbrinch.faz80.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.Expression;
@@ -20,18 +15,18 @@ import dk.nikolajbrinch.faz80.parser.operands.ExpressionOperand;
 import dk.nikolajbrinch.faz80.parser.operands.GroupingOperand;
 import dk.nikolajbrinch.faz80.parser.operands.Operand;
 import dk.nikolajbrinch.faz80.parser.operands.RegisterOperand;
-import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
-import dk.nikolajbrinch.faz80.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.faz80.parser.statements.AlignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssertStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.BlockStatement;
+import dk.nikolajbrinch.faz80.parser.statements.CommentStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ConditionalStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataTextStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataWordStatement;
 import dk.nikolajbrinch.faz80.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.faz80.parser.statements.EndStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.faz80.parser.statements.IncludeStatement;
 import dk.nikolajbrinch.faz80.parser.statements.InsertStatement;
@@ -43,7 +38,14 @@ import dk.nikolajbrinch.faz80.parser.statements.OriginStatement;
 import dk.nikolajbrinch.faz80.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.faz80.parser.statements.RepeatStatement;
 import dk.nikolajbrinch.faz80.parser.statements.Statement;
-import dk.nikolajbrinch.faz80.base.util.StringUtil;
+import dk.nikolajbrinch.faz80.parser.symbols.Macro;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
+import dk.nikolajbrinch.faz80.parser.symbols.UndefinedSymbolException;
+import dk.nikolajbrinch.faz80.parser.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.values.StringValue;
+import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
+import dk.nikolajbrinch.faz80.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.faz80.scanner.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
 import dk.nikolajbrinch.parser.ParseError;
@@ -63,15 +65,10 @@ import java.util.Set;
 public class AssemblerParser
     extends BaseParser<
         Statement,
-        AssemblerParserConfiguration,
         AssemblerTokenType,
+        AssemblerParserConfiguration,
         AssemblerToken,
         AssemblerParseResult> {
-
-  private static final AssemblerTokenType[] EOF_TYPES =
-      new AssemblerTokenType[] {AssemblerTokenType.EOF, AssemblerTokenType.END};
-  private static final AssemblerTokenType[] COMMENT_TYPES =
-      new AssemblerTokenType[] {AssemblerTokenType.COMMENT};
 
   private final Set<Mnemonic> conditionalInstructions =
       Set.of(Mnemonic.JR, Mnemonic.JP, Mnemonic.CALL, Mnemonic.RET);
@@ -166,6 +163,7 @@ public class AssemblerParser
         case GLOBAL -> global();
         case SET -> instruction(nextToken());
         case DIRECTIVE -> directive();
+        case END -> end();
         default -> statement();
       };
     } catch (ParseException e) {
@@ -175,6 +173,15 @@ public class AssemblerParser
 
       return null;
     }
+  }
+
+
+  private Statement end() {
+    AssemblerToken end = consume(AssemblerTokenType.END, "Expect end");
+
+    AssemblerToken eol = expectEol("Expect newline or eof after end.");
+
+    return new EndStatement(end);
   }
 
   private Statement directive() {
@@ -242,6 +249,7 @@ public class AssemblerParser
     }
 
     return defineAndAssign(
+        null,
         identifier,
         SymbolType.LABEL,
         new AddressExpression(
@@ -256,27 +264,27 @@ public class AssemblerParser
   }
 
   private Statement constant(AssemblerToken identifier) {
-    nextToken();
+    AssemblerToken token = nextToken();
 
     Expression value = expression();
 
-    expectEol("Expect newline or eof after constant.");
+    AssemblerToken eol = expectEol("Expect newline or eof after constant.");
 
-    return defineAndAssign(identifier, SymbolType.CONSTANT, value);
+    return defineAndAssign(token, identifier, SymbolType.CONSTANT, value);
   }
 
   private Statement variable(AssemblerToken identifier) {
-    nextToken();
+    AssemblerToken token = nextToken();
 
     Expression value = expression();
 
-    expectEol("Expect newline or eof after variable.");
+    AssemblerToken eol = expectEol("Expect newline or eof after variable.");
 
-    return defineAndAssign(identifier, SymbolType.VARIABLE, value);
+    return defineAndAssign(token, identifier, SymbolType.VARIABLE, value);
   }
 
   private Statement origin() {
-    consume(AssemblerTokenType.ORIGIN, "Expect origin");
+    AssemblerToken token = consume(AssemblerTokenType.ORIGIN, "Expect origin");
 
     Expression location = expression();
     Expression fillByte = null;
@@ -286,13 +294,13 @@ public class AssemblerParser
       fillByte = expression();
     }
 
-    expectEol("Expect newline or eof after origin declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after origin declaration.");
 
-    return new OriginStatement(location, fillByte);
+    return new OriginStatement(token, location, fillByte);
   }
 
   private Statement align() {
-    consume(AssemblerTokenType.ALIGN, "Expect align");
+    AssemblerToken token = consume(AssemblerTokenType.ALIGN, "Expect align");
 
     Expression alignment = expression();
     Expression fillByte = null;
@@ -302,13 +310,13 @@ public class AssemblerParser
       fillByte = expression();
     }
 
-    expectEol("Expect newline or eof after origin declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after origin declaration.");
 
-    return new AlignStatement(alignment, fillByte);
+    return new AlignStatement(token, alignment, fillByte);
   }
 
   private Statement include() {
-    consume(AssemblerTokenType.INCLUDE, "Expect include");
+    AssemblerToken token = consume(AssemblerTokenType.INCLUDE, "Expect include");
 
     AssemblerToken string = consume(AssemblerTokenType.STRING, "Expect string after include");
 
@@ -319,22 +327,23 @@ public class AssemblerParser
         throw new ParseException(string, e.getMessage(), e);
       }
     } else {
-      return new IncludeStatement(string);
+      return new IncludeStatement(token, string);
     }
 
     return null;
   }
 
   private Statement insert() {
-    consume(AssemblerTokenType.INSERT, "Expect insert");
+    AssemblerToken token = consume(AssemblerTokenType.INSERT, "Expect insert");
 
     AssemblerToken string = consume(AssemblerTokenType.STRING, "Expect string after insert");
 
-    return new InsertStatement(string);
+
+    return new InsertStatement(token, string);
   }
 
   private Statement dataByte() {
-    consume(AssemblerTokenType.DATA_BYTE, "Expect byte");
+    AssemblerToken token = consume(AssemblerTokenType.DATA_BYTE, "Expect byte");
 
     List<Expression> values = new ArrayList<>();
     values.add(expression());
@@ -344,13 +353,13 @@ public class AssemblerParser
       values.add(expression());
     }
 
-    expectEol("Expect newline or eof after byte declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after byte declaration.");
 
-    return new DataByteStatement(values);
+    return new DataByteStatement(token, values);
   }
 
   private Statement dataWord() {
-    consume(AssemblerTokenType.DATA_WORD, "Expect word");
+    AssemblerToken token = consume(AssemblerTokenType.DATA_WORD, "Expect word");
 
     List<Expression> values = new ArrayList<>();
     values.add(expression());
@@ -360,13 +369,13 @@ public class AssemblerParser
       values.add(expression());
     }
 
-    expectEol("Expect newline or eof after word declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after word declaration.");
 
-    return new DataWordStatement(values);
+    return new DataWordStatement(token, values);
   }
 
   private Statement dataLong() {
-    consume(AssemblerTokenType.DATA_LONG, "Expect long");
+    AssemblerToken token = consume(AssemblerTokenType.DATA_LONG, "Expect long");
 
     List<Expression> values = new ArrayList<>();
     values.add(expression());
@@ -376,13 +385,13 @@ public class AssemblerParser
       values.add(expression());
     }
 
-    expectEol("Expect newline or eof after long declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after long declaration.");
 
-    return new DataLongStatement(values);
+    return new DataLongStatement(token, values);
   }
 
   private Statement dataText() {
-    consume(AssemblerTokenType.DATA_TEXT, "Expect text");
+    AssemblerToken token = consume(AssemblerTokenType.DATA_TEXT, "Expect text");
 
     List<Expression> values = new ArrayList<>();
     values.add(expression());
@@ -392,9 +401,9 @@ public class AssemblerParser
       values.add(expression());
     }
 
-    expectEol("Expect newline or eof after long declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after long declaration.");
 
-    return new DataTextStatement(values);
+    return new DataTextStatement(token, values);
   }
 
   private Statement dataBlock() {
@@ -423,19 +432,19 @@ public class AssemblerParser
   }
 
   private Statement assertion() {
-    consume(AssemblerTokenType.ASSERT, "Expect assert");
+    AssemblerToken token = consume(AssemblerTokenType.ASSERT, "Expect assert");
 
     Expression expression = expression();
 
-    expectEol("Expect newline or eof after assert declaration.");
+    AssemblerToken eol = expectEol("Expect newline or eof after assert declaration.");
 
-    return new AssertStatement(expression);
+    return new AssertStatement(token, expression);
   }
 
   private Statement macro(AssemblerToken identifier) {
     AssemblerToken name = identifier;
 
-    consume(AssemblerTokenType.MACRO, "Expect macro");
+    AssemblerToken startToken = consume(AssemblerTokenType.MACRO, "Expect macro");
 
     if (name == null) {
       name = consume(AssemblerTokenType.IDENTIFIER, "Expect identifier for macro name after macro");
@@ -464,10 +473,11 @@ public class AssemblerParser
 
     BlockStatement block = block(macroSymbolTable, AssemblerTokenType.ENDMACRO);
 
-    consume(AssemblerTokenType.ENDMACRO, "Expect endmacro after body!");
+    AssemblerToken endToken = consume(AssemblerTokenType.ENDMACRO, "Expect endmacro after body!");
     expectEol("Expect newline or eof after endmacro.");
 
-    MacroStatement statement = new MacroStatement(name, macroSymbolTable, parameters, block);
+    MacroStatement statement =
+        new MacroStatement(startToken, endToken, name, macroSymbolTable, parameters, block);
 
     currentSymbolTable.define(name.text(), SymbolType.MACRO);
     currentSymbolTable.assign(
@@ -527,14 +537,16 @@ public class AssemblerParser
 
       List<Statement> arguments = parseArgs(stop);
 
+      AssemblerToken eol;
+
       if (stop == AssemblerTokenType.RIGHT_PAREN) {
         consume(AssemblerTokenType.RIGHT_PAREN, "Expect ) after macro call arguments");
-        consume(AssemblerTokenType.NEWLINE, "Expect newline after macro.");
+        eol = consume(AssemblerTokenType.NEWLINE, "Expect newline after macro.");
 
         return new MacroCallStatement(name, arguments);
       }
 
-      consume(AssemblerTokenType.NEWLINE, "Expect newline after macro.");
+      eol = consume(AssemblerTokenType.NEWLINE, "Expect newline after macro.");
 
       return new MacroCallStatement(name, arguments);
     } finally {
@@ -555,7 +567,7 @@ public class AssemblerParser
               consume(AssemblerTokenType.LESS, "Expect < before macro call argument");
           eos = AssemblerTokenType.GREATER;
           if (checkType(eos)) {
-            arguments.add(new EmptyStatement(start.sourceInfo(), start.line()));
+            arguments.add(new EmptyStatement(start));
             expectEol("Expect > after macro call argument");
           } else if (checkType(AssemblerTokenType.GREATER_GREATER)) {
             AssemblerToken token =
@@ -622,7 +634,7 @@ public class AssemblerParser
   }
 
   private Statement repeat() {
-    consume(AssemblerTokenType.REPEAT, "Expect repeat");
+    AssemblerToken startToken = consume(AssemblerTokenType.REPEAT, "Expect repeat");
 
     Expression expression = expression();
 
@@ -630,14 +642,14 @@ public class AssemblerParser
 
     Statement block = block(AssemblerTokenType.ENDREPEAT);
 
-    consume(AssemblerTokenType.ENDREPEAT, "Expect endr after body!");
+    AssemblerToken endToken = consume(AssemblerTokenType.ENDREPEAT, "Expect endr after body!");
     expectEol("Expect newline or eof after endr.");
 
-    return new RepeatStatement(expression, block);
+    return new RepeatStatement(startToken, endToken, expression, block);
   }
 
   private Statement duplicate() {
-    consume(AssemblerTokenType.DUPLICATE, "Expect duplicate");
+    AssemblerToken startToken = consume(AssemblerTokenType.DUPLICATE, "Expect duplicate");
 
     Expression expression = expression();
 
@@ -645,45 +657,49 @@ public class AssemblerParser
 
     Statement block = block(AssemblerTokenType.ENDDUPLICATE);
 
-    consume(AssemblerTokenType.ENDDUPLICATE, "Expect edup after body!");
+    AssemblerToken endToken = consume(AssemblerTokenType.ENDDUPLICATE, "Expect edup after body!");
     expectEol("Expect newline or eof after edup.");
 
-    return new RepeatStatement(expression, block);
+    return new RepeatStatement(startToken, endToken, expression, block);
   }
 
   private Statement local() {
-    consume(AssemblerTokenType.LOCAL, "Expect local");
+    AssemblerToken startToken = consume(AssemblerTokenType.LOCAL, "Expect local");
     consume(AssemblerTokenType.NEWLINE, "Expect newline after local.");
 
     BlockStatement block = block(AssemblerTokenType.ENDLOCAL);
 
-    consume(AssemblerTokenType.ENDLOCAL, "Expect endlocal after body!");
-    expectEol("Expect newline or eof after endlocal.");
+    AssemblerToken endToken = consume(AssemblerTokenType.ENDLOCAL, "Expect endlocal after body!");
+    AssemblerToken eol = expectEol("Expect newline or eof after endlocal.");
 
-    return new LocalStatement(block);
+    return new LocalStatement(startToken, endToken, block);
   }
 
   private Statement phase() {
-    consume(AssemblerTokenType.PHASE, "Expect phase");
+    AssemblerToken startToken = consume(AssemblerTokenType.PHASE, "Expect phase");
     Expression expression = expression();
 
     consume(AssemblerTokenType.NEWLINE, "Expect newline after phase.");
 
     Statement block = block(AssemblerTokenType.DEPHASE);
 
-    consume(AssemblerTokenType.DEPHASE, "Expect dephase after body!");
+    AssemblerToken endToken = consume(AssemblerTokenType.DEPHASE, "Expect dephase after body!");
     expectEol("Expect newline or eof after dephase.");
 
-    return new PhaseStatement(expression, block);
+    return new PhaseStatement(startToken, endToken, expression, block);
   }
 
   private Statement condition() {
     boolean error = false;
 
+    AssemblerToken ifToken = null;
+    AssemblerToken elseToken = null;
+    AssemblerToken endToken = null;
+
     if (match(AssemblerTokenType.IF)) {
-      consume(AssemblerTokenType.IF, "Expect if");
+      ifToken = consume(AssemblerTokenType.IF, "Expect if");
     } else if (match(AssemblerTokenType.ELSE_IF)) {
-      consume(AssemblerTokenType.ELSE_IF, "Expect else if");
+      ifToken = consume(AssemblerTokenType.ELSE_IF, "Expect else if");
     } else {
       error = true;
     }
@@ -696,6 +712,9 @@ public class AssemblerParser
       consume(AssemblerTokenType.NEWLINE, "Expect newline after if.");
     }
 
+    /*
+     * Search for the next token that can end a block start by if
+     */
     AssemblerToken token =
         search(AssemblerTokenType.ELSE, AssemblerTokenType.ELSE_IF, AssemblerTokenType.ENDIF);
 
@@ -706,30 +725,45 @@ public class AssemblerParser
 
     if (token != null) {
       if (token.type() == AssemblerTokenType.ENDIF) {
+        /*
+         * Then branch up until End If
+         */
         thenBranch = block(AssemblerTokenType.ENDIF);
-        AssemblerToken temp = consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
+        endToken = consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
         if (error) {
-          errors.add(new ParseException(temp, "Missing #if or #elif"));
+          errors.add(new ParseException(endToken, "Missing #if or #elif"));
         }
         expectEol("Expect newline or eof after endif.");
       } else if (token.type() == AssemblerTokenType.ELSE) {
+        /*
+         * Then branch up until Else
+         */
         thenBranch = block(AssemblerTokenType.ELSE);
-        AssemblerToken temp1 = consume(AssemblerTokenType.ELSE, "Expect else after body!");
+        elseToken = consume(AssemblerTokenType.ELSE, "Expect else after body!");
         if (error) {
-          errors.add(new ParseException(temp1, "Missing #if or #elif"));
+          errors.add(new ParseException(elseToken, "Missing #if or #elif"));
         }
         consume(AssemblerTokenType.NEWLINE, "Expect newline after else!");
+        /*
+         * Else branch up until End If
+         */
         elseBranch = block(AssemblerTokenType.ENDIF);
-        AssemblerToken temp2 = consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
+        endToken = consume(AssemblerTokenType.ENDIF, "Expect endif after body!");
         if (error) {
-          errors.add(new ParseException(temp2, "Missing #if or #elif"));
+          errors.add(new ParseException(endToken, "Missing #if or #elif"));
         }
         expectEol("Expect newline or eof after endif.");
       } else if (token.type() == AssemblerTokenType.ELSE_IF) {
+        /*
+         * Then branch up until Else If
+         */
         thenBranch = block(AssemblerTokenType.ELSE_IF);
         if (error) {
           errors.add(new ParseException(nextToken(), "Missing #if or #elif"));
         } else {
+          /*
+           * Else If branch
+           */
           elseBranch = condition();
         }
       }
@@ -742,7 +776,8 @@ public class AssemblerParser
       throw exception;
     }
 
-    return new ConditionalStatement(expression, thenBranch, elseBranch);
+    return new ConditionalStatement(
+        ifToken, elseToken, endToken, expression, thenBranch, elseBranch);
   }
 
   private BlockStatement block(AssemblerTokenType endToken) {
@@ -787,7 +822,7 @@ public class AssemblerParser
       }
     }
 
-    expectEol("Expect newline or eof after instruction.");
+    AssemblerToken eol = expectEol("Expect newline or eof after instruction.");
 
     Mnemonic instruction = Mnemonic.find(mnemonic.text());
 
@@ -830,7 +865,7 @@ public class AssemblerParser
         condition = Condition.find(token.text());
 
         if (condition != null) {
-          operand = new ConditionOperand(token.line(), condition);
+          operand = new ConditionOperand(token, token.line(), condition);
           missingIdentifiers.remove(token);
         }
       }
@@ -857,7 +892,8 @@ public class AssemblerParser
             displacement = expression();
           }
 
-          operand = new RegisterOperand(registerToken.line(), register, displacement);
+          operand =
+              new RegisterOperand(registerToken, registerToken.line(), register, displacement);
         }
       }
 
@@ -1103,10 +1139,10 @@ public class AssemblerParser
   }
 
   private Statement defineAndAssign(
-      AssemblerToken identifier, SymbolType type, Expression expression) {
+      AssemblerToken token, AssemblerToken identifier, SymbolType type, Expression expression) {
     currentSymbolTable.define(identifier.text(), type);
 
-    return new AssignStatement(identifier, type, expression);
+    return new AssignStatement(token, identifier, type, expression);
   }
 
   private boolean isGroupingStart() {
@@ -1130,14 +1166,16 @@ public class AssemblerParser
     mode = Mode.NORMAL;
   }
 
-  private void expectEol(String message) {
+  private AssemblerToken expectEol(String message) {
     if (eos == AssemblerTokenType.NEWLINE) {
       if (!isEof()) {
-        consume(eos, message);
+        return consume(eos, message);
       }
     } else {
-      consume(eos, message);
+      return consume(eos, message);
     }
+
+    return null;
   }
 
   protected AssemblerToken consume(AssemblerTokenType type, String message) {
@@ -1177,16 +1215,6 @@ public class AssemblerParser
   @Override
   protected boolean isType(AssemblerToken token, AssemblerTokenType type) {
     return token.type() == type;
-  }
-
-  @Override
-  protected AssemblerTokenType[] getEofTypes() {
-    return EOF_TYPES;
-  }
-
-  @Override
-  protected AssemblerTokenType[] getCommentTypes() {
-    return COMMENT_TYPES;
   }
 
   protected boolean isEol() {

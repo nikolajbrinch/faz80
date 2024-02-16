@@ -4,6 +4,7 @@ import dk.nikolajbrinch.faz80.assembler.AssembleResult;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeUtil;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeValue;
 import dk.nikolajbrinch.faz80.ide.editor.EditorTabController;
+import dk.nikolajbrinch.faz80.ide.format.Formatter;
 import dk.nikolajbrinch.faz80.ide.symbols.SymbolProperty;
 import dk.nikolajbrinch.faz80.ide.symbols.SymbolTableBuilder;
 import dk.nikolajbrinch.faz80.linker.LinkResult;
@@ -148,9 +149,11 @@ public class IdeController {
   }
 
   public void format(ActionEvent actionEvent) throws IOException {
-    String text = getTabController().getEditor().getText();
-    formatter.format(text);
-    getTabController().getEditor().replaceText(text);
+    EditorTabController controller = getTabController();
+    String text = controller.getEditor().getText();
+    String formattedText = formatter.format(controller.getTabStop(), text);
+    Platform.runLater(
+        () -> getTabController().getEditor().replaceText(formattedText));
   }
 
   private void updateSymbols(TreeItem<AstTreeValue> node) {

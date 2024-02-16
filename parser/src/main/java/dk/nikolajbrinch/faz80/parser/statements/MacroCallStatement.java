@@ -14,7 +14,9 @@ public record MacroCallStatement(AssemblerToken name, List<Statement> arguments)
   }
 
   @Override
-  public SourceInfo sourceInfo() { return name.sourceInfo(); }
+  public SourceInfo sourceInfo() {
+    return name.sourceInfo();
+  }
 
   @Override
   public Line line() {

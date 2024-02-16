@@ -1,11 +1,12 @@
 package dk.nikolajbrinch.faz80.parser.statements;
 
 import dk.nikolajbrinch.faz80.parser.expressions.Expression;
+import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.SourceInfo;
 import java.util.List;
 
-public record DataByteStatement(List<Expression> values) implements ValuesStatement {
+public record DataByteStatement(AssemblerToken token, List<Expression> values) implements ValuesStatement {
 
   @Override
   public <R> R accept(StatementVisitor<R> visitor) {

@@ -58,7 +58,7 @@ public record StringValue(String value, Type type) implements Value<StringValue>
     return new BooleanValue(value().equals(other.value()));
   }
 
-  public boolean canBeNUmber() {
+  public boolean canBeNumber() {
     return type() == Type.CHAR;
   }
 

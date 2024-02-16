@@ -8,7 +8,6 @@ import dk.nikolajbrinch.scanner.BaseTokenProducer;
 import dk.nikolajbrinch.scanner.Scanner;
 import dk.nikolajbrinch.scanner.ScannerSource;
 import java.io.File;
-import java.io.IOException;
 
 public class AssemblerTokenProducer extends BaseTokenProducer<AssemblerToken> {
 
@@ -16,7 +15,7 @@ public class AssemblerTokenProducer extends BaseTokenProducer<AssemblerToken> {
     super(
         new BaseScannerRegistry<>(directory) {
           @Override
-          protected Scanner<AssemblerToken> createScanner(ScannerSource source) throws IOException {
+          protected Scanner<AssemblerToken> createScanner(ScannerSource source) {
             return new AssemblerScanner(source);
           }
         });
@@ -26,4 +25,5 @@ public class AssemblerTokenProducer extends BaseTokenProducer<AssemblerToken> {
   protected boolean isEof(AssemblerToken token) {
     return token.type() == AssemblerTokenType.EOF;
   }
+
 }

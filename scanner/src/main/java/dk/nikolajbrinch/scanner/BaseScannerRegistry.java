@@ -2,6 +2,7 @@ package dk.nikolajbrinch.scanner;
 
 import dk.nikolajbrinch.faz80.base.logging.Logger;
 import dk.nikolajbrinch.faz80.base.logging.LoggerFactory;
+import dk.nikolajbrinch.faz80.scanner.Mode;
 import dk.nikolajbrinch.scanner.impl.FileSource;
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +80,11 @@ public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
 
   public Scanner<T> getCurrentScanner() {
     return currentScanner;
+  }
+
+  @Override
+  public void setMode(Mode mode) {
+    scanners.forEach(scanner -> scanner.setMode(mode));
   }
 
   public boolean isBaseScanner() {

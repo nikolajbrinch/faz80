@@ -48,6 +48,10 @@ public class CodeEditor extends CodeArea {
     Nodes.addInputMap(this, consume(keyPressed(DOWN, SHIFT_DOWN, META_DOWN), event -> keyboardHandlerDelegate.selectToDocumentEnd()));
   }
 
+  public void setTabStop(int tabStop) {
+    this.tabStop = tabStop;
+  }
+
   public void highlightLine(int lineNumber) {
     moveTo(position(lineNumber - 1, 0).toOffset());
     requestFollowCaret();
@@ -66,6 +70,5 @@ public class CodeEditor extends CodeArea {
     moveTo(0);
     requestFollowCaret();
   }
-
 
 }

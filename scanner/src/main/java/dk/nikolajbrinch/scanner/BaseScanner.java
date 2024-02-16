@@ -84,19 +84,19 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     return charReader.next();
   }
 
-  protected Char peekChar() throws IOException {
+  public Char peekChar() throws IOException {
     return charReader.peek();
   }
 
-  protected Char peekChar(int position) throws IOException {
+  public Char peekChar(int position) throws IOException {
     return charReader.peek(position);
   }
 
-  protected Char appendChar(StringBuilder buffer) throws IOException {
+  public Char appendChar(StringBuilder buffer) throws IOException {
     return appendChar(buffer, charReader.next());
   }
 
-  protected Char appendChar(StringBuilder buffer, Char ch) {
+  public Char appendChar(StringBuilder buffer, Char ch) {
     buffer.append(ch.toString());
 
     return ch;
@@ -121,11 +121,11 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
         new String(charArray));
   }
 
-  protected boolean checkNextChar(char ch) throws IOException {
+  public boolean checkNextChar(char ch) throws IOException {
     return checkNextChar(nextChar -> nextChar == ch);
   }
 
-  protected boolean checkNextChar(Predicate<Character> predicate) throws IOException {
+  public boolean checkNextChar(Predicate<Character> predicate) throws IOException {
     Char nextChar = charReader.peek();
 
     return nextChar != null && predicate.test(nextChar.character());

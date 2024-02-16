@@ -10,11 +10,11 @@ public interface ExpressionVisitor<R> {
 
   R visitIdentifierExpression(IdentifierExpression expression);
 
-  R visitAddressExpression(AddressExpression addressExpression);
+  R visitAddressExpression(AddressExpression expression);
 
-  R visitMacroCallExpression(MacroCallExpression macroCallExpression);
+  R visitMacroCallExpression(MacroCallExpression expression);
 
-  R visitNumberExpression(NumberExpression numberExpression);
+  R visitNumberExpression(NumberExpression expression);
 
-  R visitStringExpression(StringExpression stringExpression);
+  R visitStringExpression(StringExpression expression);
 }

@@ -1,9 +1,5 @@
 package dk.nikolajbrinch.faz80.parser.values;
 
-import dk.nikolajbrinch.faz80.parser.values.BooleanValue;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.StringValue;
-import dk.nikolajbrinch.faz80.parser.values.Value;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
@@ -40,7 +36,7 @@ public class LogicUtil {
   private static Value<?> convertToBoolean(Value<?> value) {
     Value<?> number = null;
 
-    if (value instanceof StringValue stringValue && stringValue.canBeNUmber()) {
+    if (value instanceof StringValue stringValue && stringValue.canBeNumber()) {
       number = stringValue.asNumberValue().asBooleanValue();
     } else if (value instanceof NumberValue numberValue) {
       number = numberValue.asNumberValue();

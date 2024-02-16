@@ -4,43 +4,47 @@ public interface StatementVisitor<R> {
 
   R visitExpressionStatement(ExpressionStatement statement);
 
-  R visitInstructionStatement(InstructionStatement opcodeStatement);
+  R visitInstructionStatement(InstructionStatement statement);
 
-  R visitDataByteStatement(DataByteStatement byteStatement);
+  R visitDataByteStatement(DataByteStatement statement);
 
-  R visitDataWordStatement(DataWordStatement wordStatement);
+  R visitDataWordStatement(DataWordStatement statement);
 
-  R visitDataLongStatement(DataLongStatement longStatement);
+  R visitDataLongStatement(DataLongStatement statement);
 
   R visitDataTextStatement(DataTextStatement statement);
 
-  R visitOriginStatement(OriginStatement originStatement);
+  R visitOriginStatement(OriginStatement statement);
 
-  R visitAlignStatement(AlignStatement alignStatement);
+  R visitAlignStatement(AlignStatement statement);
 
-  R visitBlockStatement(BlockStatement blockStatement);
+  R visitBlockStatement(BlockStatement statement);
 
-  R visitLocalStatement(LocalStatement localStatement);
+  R visitLocalStatement(LocalStatement statement);
 
-  R visitMacroStatement(MacroStatement macroStatement);
+  R visitMacroStatement(MacroStatement statement);
 
-  R visitPhaseStatement(PhaseStatement phaseStatement);
+  R visitPhaseStatement(PhaseStatement statement);
 
-  R visitRepeatStatement(RepeatStatement repeatStatement);
+  R visitRepeatStatement(RepeatStatement statement);
 
-  R visitConditionalStatement(ConditionalStatement conditionalStatement);
+  R visitConditionalStatement(ConditionalStatement statement);
 
-  R visitAssertStatement(AssertStatement assertStatement);
+  R visitAssertStatement(AssertStatement statement);
 
-  R visitGlobalStatement(GlobalStatement globalStatement);
+  R visitGlobalStatement(GlobalStatement statement);
 
-  R visitMacroCallStatement(MacroCallStatement macroCallStatement);
+  R visitMacroCallStatement(MacroCallStatement statement);
 
-  R visitEmptyStatement(EmptyStatement emptyStatement);
+  R visitEmptyStatement(EmptyStatement statement);
 
-  R visitInsertStatement(InsertStatement insertStatement);
+  R visitInsertStatement(InsertStatement statement);
 
-  R visitIncludeStatement(IncludeStatement includeStatement);
+  R visitIncludeStatement(IncludeStatement statement);
 
-  R visitAssignStatement(AssignStatement assignStatement);
+  R visitAssignStatement(AssignStatement statement);
+
+  R visitCommentStatement(CommentStatement statement);
+
+  R visitEndStatement(EndStatement endStatement);
 }

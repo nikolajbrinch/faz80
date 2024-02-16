@@ -21,12 +21,14 @@ import dk.nikolajbrinch.faz80.parser.statements.AlignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssertStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.BlockStatement;
+import dk.nikolajbrinch.faz80.parser.statements.CommentStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ConditionalStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataLongStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataTextStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataWordStatement;
 import dk.nikolajbrinch.faz80.parser.statements.EmptyStatement;
+import dk.nikolajbrinch.faz80.parser.statements.EndStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ExpressionStatement;
 import dk.nikolajbrinch.faz80.parser.statements.GlobalStatement;
 import dk.nikolajbrinch.faz80.parser.statements.IncludeStatement;
@@ -107,6 +109,16 @@ public class AssemblerAstPrinter
   }
 
   @Override
+  public String visitCommentStatement(CommentStatement statement) {
+    return "comment: " + statement.comment().text();
+  }
+
+  @Override
+  public String visitEndStatement(EndStatement statement) {
+    return statement.token().text();
+  }
+
+  @Override
   public String visitDataByteStatement(DataByteStatement statement) {
     return parenthesize("byte: ", statement.values().toArray(new Expression[0]));
   }
@@ -178,7 +190,7 @@ public class AssemblerAstPrinter
 
   @Override
   public String visitRepeatStatement(RepeatStatement statement) {
-    return parenthesize("repeat: " + statement.blockStatement().accept(this), statement.count());
+    return parenthesize("repeat: " + statement.block().accept(this), statement.count());
   }
 
   @Override

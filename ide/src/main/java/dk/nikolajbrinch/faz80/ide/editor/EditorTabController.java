@@ -1,15 +1,15 @@
 package dk.nikolajbrinch.faz80.ide.editor;
 
 import dk.nikolajbrinch.faz80.assembler.AssembleResult;
+import dk.nikolajbrinch.faz80.base.errors.BaseError;
+import dk.nikolajbrinch.faz80.base.errors.BaseException;
+import dk.nikolajbrinch.faz80.compiler.Compiler;
 import dk.nikolajbrinch.faz80.ide.CompileResultProperty;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeBuilder;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeValue;
-import dk.nikolajbrinch.faz80.compiler.Compiler;
 import dk.nikolajbrinch.faz80.linker.LinkResult;
-import dk.nikolajbrinch.faz80.base.errors.BaseError;
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
-import dk.nikolajbrinch.scanner.impl.FileSource;
 import dk.nikolajbrinch.scanner.ScannerSource;
+import dk.nikolajbrinch.scanner.impl.FileSource;
 import dk.nikolajbrinch.scanner.impl.StringSource;
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +32,14 @@ public class EditorTabController {
   @FXML private CodeEditor editor;
   private ScannerSource source = new StringSource("");
 
+  private int tabStop = 2;
+
   public CodeEditor getEditor() {
     return editor;
+  }
+
+  public int getTabStop() {
+    return tabStop;
   }
 
   public SimpleObjectProperty<PlainTextChange> textChange = new SimpleObjectProperty<>(null);
@@ -43,6 +49,7 @@ public class EditorTabController {
         .plainTextChanges()
         .filter(ch -> !ch.getInserted().equals(ch.getRemoved()))
         .subscribe(this::textChanged);
+    editor.setTabStop(tabStop);
   }
 
   private void textChanged(PlainTextChange textChange) {

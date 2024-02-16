@@ -2,7 +2,6 @@ package dk.nikolajbrinch.faz80.ide.editor;
 
 import static org.fxmisc.richtext.model.TwoDimensional.Bias.Forward;
 
-import dk.nikolajbrinch.faz80.ide.editor.CodeEditor;
 import org.fxmisc.richtext.model.TwoDimensional;
 
 public class KeyboardHandlerDelegate {

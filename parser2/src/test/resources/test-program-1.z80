@@ -1,0 +1,16 @@
+;
+; Test Program 1
+;
+
+START: LD A, 45h      ; 23 45
+       LD B, 05h      ; 06 05
+       LD HL, 4000h   ; 21 00 40
+
+LP1:   LD (HL),A      ; 77
+       NOP            ; 00
+       NOP            ; 00
+       NOP            ; 00
+       LD A, (HL)     ; 7E
+       INC HL         ; 23
+       DJNZ LP1       ; 10
+       JP START       ; C3 00 00

@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.scanner;
 
+import dk.nikolajbrinch.faz80.scanner.Mode;
 import java.io.IOException;
 
 public interface ScannerRegistry<T> {
@@ -12,4 +13,6 @@ public interface ScannerRegistry<T> {
   Scanner<T> getCurrentScanner();
 
   boolean isBaseScanner();
+
+  void setMode(Mode mode);
 }
