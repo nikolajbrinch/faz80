@@ -1,26 +1,17 @@
 package dk.nikolajbrinch.faz80.parser.cst.scopes;
 
-import dk.nikolajbrinch.faz80.parser.cst.CstNode;
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
-import dk.nikolajbrinch.faz80.parser.cst.LineNode;
-import dk.nikolajbrinch.faz80.parser.cst.NodeType;
-import dk.nikolajbrinch.faz80.parser.cst.NodesNode;
-import dk.nikolajbrinch.faz80.parser.cst.Symbols;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockType;
+import dk.nikolajbrinch.faz80.parser.cst.symbols.Symbols;
 
-public interface ScopeNode extends CstNode {
+public interface ScopeNode extends BlockNode {
   ScopeType scopeType();
 
   Symbols symbols();
 
-  LineNode startDirective();
-
-  NodesNode nodes();
-
-  LineNode endDirective();
-
   @Override
-  default NodeType type() {
-    return NodeType.SCOPE;
+  default BlockType blockType() {
+    return BlockType.SCOPE;
   }
 
 }

@@ -7,4 +7,8 @@ public record Line(int number, String content) {
 
     return new Char(position, this, linePosition, read);
   }
+
+  public boolean isEmpty(int linePosition) {
+    return (linePosition - 1) >= content.length();
+  }
 }

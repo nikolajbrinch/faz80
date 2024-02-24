@@ -1,9 +1,9 @@
 package dk.nikolajbrinch.faz80.parser.cst.operands;
 
-import dk.nikolajbrinch.faz80.parser.cst.CstNode;
+import dk.nikolajbrinch.faz80.parser.cst.Node;
 import dk.nikolajbrinch.faz80.parser.cst.NodeType;
 
-public interface OperandNode extends CstNode {
+public interface OperandNode extends Node {
 
   OperandType operandType();
 

@@ -19,7 +19,6 @@ import dk.nikolajbrinch.faz80.parser.statements.AlignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssertStatement;
 import dk.nikolajbrinch.faz80.parser.statements.AssignStatement;
 import dk.nikolajbrinch.faz80.parser.statements.BlockStatement;
-import dk.nikolajbrinch.faz80.parser.statements.CommentStatement;
 import dk.nikolajbrinch.faz80.parser.statements.ConditionalStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataByteStatement;
 import dk.nikolajbrinch.faz80.parser.statements.DataLongStatement;
@@ -174,7 +173,6 @@ public class AssemblerParser
       return null;
     }
   }
-
 
   private Statement end() {
     AssemblerToken end = consume(AssemblerTokenType.END, "Expect end");
@@ -337,7 +335,6 @@ public class AssemblerParser
     AssemblerToken token = consume(AssemblerTokenType.INSERT, "Expect insert");
 
     AssemblerToken string = consume(AssemblerTokenType.STRING, "Expect string after insert");
-
 
     return new InsertStatement(token, string);
   }
@@ -852,63 +849,43 @@ public class AssemblerParser
       return null;
     }
 
-    Operand operand = null;
+    if (isGroupingStart()) {
+      AssemblerToken groupStart = nextToken();
+      Grouping grouping = Grouping.findByStartType(groupStart.type());
+      Operand operand = operand(mnemonic);
+      AssemblerTokenType endType = grouping.end();
+      consume(endType, "Expect " + endType.name());
 
-    if (conditionalInstructions.contains(Mnemonic.find(mnemonic.text()))) {
-      Expression expression = expression();
+      return new GroupingOperand(operand);
+    }
 
-      Condition condition = null;
-      AssemblerToken token = null;
+    AssemblerToken token = peek();
 
-      if (expression instanceof IdentifierExpression identifierExpression) {
-        token = identifierExpression.token();
-        condition = Condition.find(token.text());
+    if (token.type() == AssemblerTokenType.IDENTIFIER) {
+      if (conditionalInstructions.contains(Mnemonic.find(mnemonic.text()))) {
+        Condition condition = Condition.find(token.text());
 
         if (condition != null) {
-          operand = new ConditionOperand(token, token.line(), condition);
           missingIdentifiers.remove(token);
+          return new ConditionOperand(nextToken(), token.line(), condition);
         }
       }
 
-      if (operand == null) {
-        operand = new ExpressionOperand(expression);
-      }
-    } else {
-      Grouping grouping = null;
+      Register register = Register.find(token.text());
 
-      if (isGroupingStart()) {
-        grouping = Grouping.findByStartType(nextToken().type());
-      }
+      if (register != null) {
+        AssemblerToken registerToken = nextToken();
+        Expression displacement = null;
 
-      AssemblerToken token = peek();
-      if (token.type() == AssemblerTokenType.IDENTIFIER) {
-        Register register = Register.find(token.text());
-
-        if (register != null) {
-          AssemblerToken registerToken = nextToken();
-          Expression displacement = null;
-
-          if (match(AssemblerTokenType.PLUS, AssemblerTokenType.MINUS)) {
-            displacement = expression();
-          }
-
-          operand =
-              new RegisterOperand(registerToken, registerToken.line(), register, displacement);
+        if (match(AssemblerTokenType.PLUS, AssemblerTokenType.MINUS)) {
+          displacement = expression();
         }
-      }
 
-      if (operand == null) {
-        operand = new ExpressionOperand(expression());
-      }
-
-      if (grouping != null) {
-        operand = new GroupingOperand(operand);
-        AssemblerTokenType endType = grouping.end();
-        consume(endType, "Expect " + endType.name() + " after indirect or indexed expression");
+        return new RegisterOperand(registerToken, registerToken.line(), register, displacement);
       }
     }
 
-    return operand;
+    return new ExpressionOperand(expression());
   }
 
   private Statement statement() {

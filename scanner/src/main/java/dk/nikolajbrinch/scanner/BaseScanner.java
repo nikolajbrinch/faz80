@@ -4,6 +4,7 @@ import dk.nikolajbrinch.scanner.impl.BufferedCharReaderImpl;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,7 +17,9 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     implements Scanner<T>, Iterable<T>, AutoCloseable, Closeable {
 
   private final SourceInfo sourceInfo;
-  final CharReader charReader;
+  private final CharReader charReader;
+
+  private final List<ScanError> errors = new ArrayList<>();
 
   private final List<T> buffer = new LinkedList<>();
 
@@ -27,6 +30,10 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public List<ScanError> getErrors() {
+    return errors;
   }
 
   protected CharReader getCharReader() {
@@ -56,14 +63,6 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     }
 
     return null;
-  }
-
-  private boolean hasNext() {
-    if (ensureBuffer(1)) {
-      return !buffer.isEmpty();
-    }
-
-    return false;
   }
 
   protected abstract T createToken() throws IOException;
@@ -131,6 +130,10 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     return nextChar != null && predicate.test(nextChar.character());
   }
 
+  public Stream<T> stream() {
+    return StreamSupport.stream(spliterator(), false);
+  }
+
   @Override
   public Iterator<T> iterator() {
 
@@ -162,10 +165,6 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
 
   protected abstract boolean isEofToken(T token);
 
-  public Stream<T> stream() {
-    return StreamSupport.stream(spliterator(), false);
-  }
-
   @Override
   public void close() throws IOException {
     charReader.close();
@@ -175,7 +174,7 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
     while (buffer.size() < size) {
       T read = read();
 
-      if (read != null) {
+      if (null != read) {
         buffer.add(read);
       } else {
         break;
@@ -195,16 +194,22 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
               createEofToken(
                   sourceInfo,
                   new Position(charReader.getPosition(), charReader.getPosition()),
-                  charReader.getLine(),
+                  charReader.getLine() != null
+                      ? charReader.getLine()
+                      : new Line(charReader.getLineCount(), null),
                   charReader.getLinePosition());
         } else {
           token = createToken();
         }
       }
     } catch (IOException e) {
-      throw new ScanException(e);
+      throw new UncheckedIOException(e);
     }
 
     return token;
+  }
+
+  protected void reportError(ScanException e) {
+    errors.add(e.getError());
   }
 }

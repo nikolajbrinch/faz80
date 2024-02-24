@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
 import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.RegisterOperandNode;
 import dk.nikolajbrinch.faz80.scanner.Mnemonic;
 import java.io.IOException;
@@ -22,10 +23,10 @@ class ParseRegistersTests {
         ex af, af'
         """);
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
-    LineNode line = (LineNode) nodes.get(0);
-    InstructionNode instruction = (InstructionNode) line.command();
+    BasicLineNode line = (BasicLineNode) nodes.get(0);
+    OpcodeNode instruction = (OpcodeNode) line.instruction();
     Assertions.assertEquals(Mnemonic.EX, Mnemonic.find(instruction.mnemonic().text()));
     Assertions.assertEquals(
         Register.AF,

@@ -30,9 +30,9 @@ class ParseIncludeTests {
     .include "include.z80"
     """);
 
-    System.out.println(new CstPrinter().print(new CstParser().parse(tempFile.toFile())));
+    System.out.println(new NodePrinter().print(new Parser().parse(tempFile.toFile())));
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
     Assertions.assertEquals(2, nodes.size());
   }
@@ -66,9 +66,9 @@ class ParseIncludeTests {
     ld d, constant2
     """);
 
-    System.out.println(new CstPrinter().print(new CstParser().parse(tempFile.toFile())));
+    System.out.println(new NodePrinter().print(new Parser().parse(tempFile.toFile())));
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
     Assertions.assertEquals(7, nodes.size());
   }

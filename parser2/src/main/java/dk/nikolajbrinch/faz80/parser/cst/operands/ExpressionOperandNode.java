@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.parser.cst.operands;
 
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.parser.cst.expression.ExpressionNode;
 
 public record ExpressionOperandNode(ExpressionNode expression) implements OperandNode {
@@ -11,7 +11,7 @@ public record ExpressionOperandNode(ExpressionNode expression) implements Operan
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitExpressionOperandNode(this);
   }
 }

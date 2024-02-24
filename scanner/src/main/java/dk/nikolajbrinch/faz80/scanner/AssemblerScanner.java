@@ -2,8 +2,11 @@ package dk.nikolajbrinch.faz80.scanner;
 
 import dk.nikolajbrinch.scanner.BaseScanner;
 import dk.nikolajbrinch.scanner.Char;
+import dk.nikolajbrinch.scanner.ErrorType;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.Position;
+import dk.nikolajbrinch.scanner.ScanError;
+import dk.nikolajbrinch.scanner.ScanException;
 import dk.nikolajbrinch.scanner.ScannerSource;
 import dk.nikolajbrinch.scanner.SourceInfo;
 import java.io.IOException;
@@ -42,47 +45,66 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   protected AssemblerToken createToken() throws IOException {
     Char ch = nextChar();
 
-    return switch (ch.character()) {
-      case '\n', '\\' -> createCharsToken(AssemblerTokenType.NEWLINE, ch);
-      case '\r' -> createCarriageReturnToken(ch);
-      case ';' -> createCommentToken(ch);
-      case '(' -> createCharsToken(AssemblerTokenType.LEFT_PAREN, ch);
-      case ')' -> createCharsToken(AssemblerTokenType.RIGHT_PAREN, ch);
-      case '[' -> createCharsToken(AssemblerTokenType.LEFT_BRACKET, ch);
-      case ']' -> createCharsToken(AssemblerTokenType.RIGHT_BRACKET, ch);
-      case '{' -> createCharsToken(AssemblerTokenType.LEFT_BRACE, ch);
-      case '}' -> createCharsToken(AssemblerTokenType.RIGHT_BRACE, ch);
-      case '+' -> createCharsToken(AssemblerTokenType.PLUS, ch);
-      case '-' -> createCharsToken(AssemblerTokenType.MINUS, ch);
-      case '*' -> createCharsToken(AssemblerTokenType.STAR, ch);
-      case '/' -> createCharsToken(AssemblerTokenType.SLASH, ch);
-      case '^' -> createCaretBaseToken(ch);
-      case '&' -> createAmpersandBasedToken(ch);
-      case '~' -> createCharsToken(AssemblerTokenType.TILDE, ch);
-      case '|' -> createPipeBasedToken(ch);
-      case '#' -> createHashBasedToken(ch);
-      case ':' -> createColonBasedToken(ch);
-      case '!' -> createBangBasedToken(ch);
-      case '$' -> createDollarBasedToken(ch);
-      case '%' -> createPercentBasedToken(ch);
-      case ',' -> createCharsToken(AssemblerTokenType.COMMA, ch);
-      case '"', '\'' -> createTextToken(ch);
-      case '=' -> createEqualBasedToken(ch);
-      case '<' -> createLessBasedToken(ch);
-      case '>' -> createGreaterBasedToken(ch);
-      default -> {
-        AssemblerToken token =
-            numberScanner.isNumberStart(ch.character())
-                ? numberScanner.createNumberToken(ch)
-                : null;
+    AssemblerToken nextToken = null;
 
-        if (token != null) {
-          yield token;
-        }
+    try {
+      nextToken =
+          switch (ch.character()) {
+            case '\n', '\\' -> createCharsToken(AssemblerTokenType.NEWLINE, ch);
+            case '\r' -> createCarriageReturnToken(ch);
+            case ';' -> createCommentToken(ch);
+            case '(' -> createCharsToken(AssemblerTokenType.LEFT_PAREN, ch);
+            case ')' -> createCharsToken(AssemblerTokenType.RIGHT_PAREN, ch);
+            case '[' -> createCharsToken(AssemblerTokenType.LEFT_BRACKET, ch);
+            case ']' -> createCharsToken(AssemblerTokenType.RIGHT_BRACKET, ch);
+            case '{' -> createCharsToken(AssemblerTokenType.LEFT_BRACE, ch);
+            case '}' -> createCharsToken(AssemblerTokenType.RIGHT_BRACE, ch);
+            case '+' -> createCharsToken(AssemblerTokenType.PLUS, ch);
+            case '-' -> createCharsToken(AssemblerTokenType.MINUS, ch);
+            case '*' -> createCharsToken(AssemblerTokenType.STAR, ch);
+            case '/' -> createCharsToken(AssemblerTokenType.SLASH, ch);
+            case '^' -> createCaretBaseToken(ch);
+            case '&' -> createAmpersandBasedToken(ch);
+            case '~' -> createCharsToken(AssemblerTokenType.TILDE, ch);
+            case '|' -> createPipeBasedToken(ch);
+            case '#' -> createHashBasedToken(ch);
+            case ':' -> createColonBasedToken(ch);
+            case '!' -> createBangBasedToken(ch);
+            case '$' -> createDollarBasedToken(ch);
+            case '%' -> createPercentBasedToken(ch);
+            case ',' -> createCharsToken(AssemblerTokenType.COMMA, ch);
+            case '"', '\'' -> createTextToken(ch);
+            case '=' -> createEqualBasedToken(ch);
+            case '<' -> createLessBasedToken(ch);
+            case '>' -> createGreaterBasedToken(ch);
+            default -> {
+              AssemblerToken token =
+                  numberScanner.isNumberStart(ch.character())
+                      ? numberScanner.createNumberToken(ch)
+                      : null;
 
-        yield isIdentifierStart(ch.character()) ? createIdentifierToken(ch) : null;
-      }
-    };
+              if (token != null) {
+                yield token;
+              }
+
+              yield isIdentifierStart(ch.character()) ? createIdentifierToken(ch) : null;
+            }
+          };
+    } catch (ScanException e) {
+      reportError(e);
+      sync();
+    }
+
+    return nextToken;
+  }
+
+  private void sync() throws IOException {
+    Char ch = peekChar();
+
+    while (ch != null && (ch.character() != '\r' && ch.character() != '\n')) {
+      nextChar();
+      ch = peekChar();
+    }
   }
 
   @Override
@@ -127,7 +149,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createGreaterBasedToken(Char ch) throws IOException {
-    if (mode != Mode.MACRO) {
+    if (mode != Mode.MACRO_ARGUMENT) {
       if (checkNextChar('>')) {
         Char second = nextChar();
 
@@ -148,7 +170,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createLessBasedToken(Char ch) throws IOException {
-    if (mode != Mode.MACRO) {
+    if (mode != Mode.MACRO_ARGUMENT) {
       if (checkNextChar('<')) {
         return createCharsToken(AssemblerTokenType.LESS_LESS, ch, nextChar());
       }
@@ -226,10 +248,16 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     StringBuilder builder = new StringBuilder(ch.toString());
     Char last;
 
+    Char prevChar = ch;
+
     while (true) {
       Char nextChar = peekChar();
 
-      if (nextChar != null) {
+      if (nextChar == null || nextChar.character() == '\r' || nextChar.character() == '\n') {
+        throw new ScanException(
+            new ScanError(
+                ErrorType.UNTERMINATED_STRING, createErrorToken(ch, prevChar, builder.toString())));
+      } else {
         if (nextChar.character() == '\\') {
           last = appendStringChar(builder);
         } else if (Objects.equals(nextChar.character(), ch.character())) {
@@ -239,6 +267,8 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
           last = appendChar(builder);
         }
       }
+
+      prevChar = nextChar;
     }
 
     AssemblerTokenType type = AssemblerTokenType.STRING;
@@ -354,5 +384,16 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     }
 
     return last;
+  }
+
+  private AssemblerToken createErrorToken(Char start, Char end, String text) {
+    return new AssemblerToken(
+        AssemblerTokenType.ERROR,
+        getSourceInfo(),
+        new Position(start.position(), end.position()),
+        start.line(),
+        start.linePosition(),
+        end.linePosition(),
+        text);
   }
 }

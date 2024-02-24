@@ -1,12 +1,12 @@
 package dk.nikolajbrinch.faz80.parser.cst.conditional;
 
-import dk.nikolajbrinch.faz80.parser.cst.CommandNode;
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InstructionNode;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.parser.cst.NodeType;
 import dk.nikolajbrinch.faz80.parser.cst.expression.ExpressionNode;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
-public record IfNode(AssemblerToken token, ExpressionNode expression) implements CommandNode {
+public record IfNode(AssemblerToken token, ExpressionNode expression) implements InstructionNode {
 
   @Override
   public NodeType type() {
@@ -14,7 +14,7 @@ public record IfNode(AssemblerToken token, ExpressionNode expression) implements
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitIfNode(this);
   }
 }

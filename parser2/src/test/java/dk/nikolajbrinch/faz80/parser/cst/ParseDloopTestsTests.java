@@ -25,10 +25,10 @@ class ParseDloopTestsTests {
         new File(tempDir, "struct-macros.z80").toPath(),
         new String(getClass().getResourceAsStream("/struct-macros.z80").readAllBytes()));
 
-    List<CstNode> nodes = new CstParser().parse(file).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(file).node().lines();
 
-    for (CstNode node : nodes) {
-      System.out.print(new CstPrinter().print(node));
+    for (Node node : nodes) {
+      System.out.print(new NodePrinter().print(node));
     }
   }
 }

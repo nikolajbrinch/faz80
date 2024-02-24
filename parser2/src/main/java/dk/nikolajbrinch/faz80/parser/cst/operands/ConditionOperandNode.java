@@ -1,8 +1,6 @@
 package dk.nikolajbrinch.faz80.parser.cst.operands;
 
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
-import dk.nikolajbrinch.faz80.parser.cst.operands.OperandNode;
-import dk.nikolajbrinch.faz80.parser.cst.operands.OperandType;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
 public record ConditionOperandNode(AssemblerToken condition) implements OperandNode {
@@ -13,7 +11,7 @@ public record ConditionOperandNode(AssemblerToken condition) implements OperandN
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitConditionOperandNode(this);
   }
 }

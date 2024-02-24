@@ -31,6 +31,6 @@ class ParseIncludeCyclicErrorTests {
     """);
 
     Assertions.assertThrows(
-        IllegalStateException.class, () -> new CstParser().parse(tempFile.toFile()));
+        IllegalStateException.class, () -> new Parser().parse(tempFile.toFile()));
   }
 }

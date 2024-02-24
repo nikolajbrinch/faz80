@@ -1,12 +1,12 @@
 package dk.nikolajbrinch.faz80.parser.cst.scopes;
 
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
+import dk.nikolajbrinch.faz80.parser.cst.CompositeLineNode;
 import dk.nikolajbrinch.faz80.parser.cst.LineNode;
-import dk.nikolajbrinch.faz80.parser.cst.NodesNode;
-import dk.nikolajbrinch.faz80.parser.cst.Symbols;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
+import dk.nikolajbrinch.faz80.parser.cst.symbols.Symbols;
 
 public record LocalNode(
-    Symbols symbols, LineNode startDirective, NodesNode nodes, LineNode endDirective)
+    Symbols symbols, LineNode startLine, CompositeLineNode body, LineNode endLine)
     implements ScopeNode {
 
   @Override
@@ -15,7 +15,7 @@ public record LocalNode(
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitLocalNode(this);
   }
 }

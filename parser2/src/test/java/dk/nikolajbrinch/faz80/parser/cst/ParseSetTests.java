@@ -22,19 +22,19 @@ class ParseSetTests {
             label1: set 4, a
             """);
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
-    LineNode lineNode = (LineNode) nodes.get(0);
+    BasicLineNode lineNode = (BasicLineNode) nodes.get(0);
     Assertions.assertEquals("var1::", lineNode.label().label().text());
-    Assertions.assertEquals(NodeType.VARIABLE, lineNode.command().type());
+    Assertions.assertEquals(NodeType.VARIABLE, lineNode.instruction().type());
 
-    lineNode = (LineNode) nodes.get(1);
+    lineNode = (BasicLineNode) nodes.get(1);
     Assertions.assertEquals("label1:", lineNode.label().label().text());
-    Assertions.assertEquals(NodeType.INSTRUCTION, lineNode.command().type());
+    Assertions.assertEquals(NodeType.OPCODE, lineNode.instruction().type());
 
 
-    for (CstNode node : nodes) {
-      System.out.print(new CstPrinter().print(node));
+    for (Node node : nodes) {
+      System.out.print(new NodePrinter().print(node));
     }
   }
 }

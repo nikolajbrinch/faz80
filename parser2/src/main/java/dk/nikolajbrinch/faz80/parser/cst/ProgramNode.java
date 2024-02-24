@@ -1,7 +1,9 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
 
-public record ProgramNode(Symbols symbols, NodesNode nodes) implements CstNode {
+import dk.nikolajbrinch.faz80.parser.cst.symbols.Symbols;
+
+public record ProgramNode(Symbols symbols, CompositeLineNode node) implements Node {
 
   @Override
   public NodeType type() {
@@ -9,7 +11,7 @@ public record ProgramNode(Symbols symbols, NodesNode nodes) implements CstNode {
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitProgramNode(this);
   }
 }

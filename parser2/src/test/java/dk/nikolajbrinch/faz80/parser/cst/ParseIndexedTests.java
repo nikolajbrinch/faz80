@@ -19,10 +19,10 @@ class ParseIndexedTests {
         xor (ix+d)
         """);
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
-    for (CstNode node : nodes) {
-      System.out.print(new CstPrinter().print(node));
+    for (LineNode node : nodes) {
+      System.out.print(new NodePrinter().print(node));
     }
   }
 }

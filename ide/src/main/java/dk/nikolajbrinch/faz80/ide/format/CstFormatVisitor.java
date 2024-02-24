@@ -1,24 +1,27 @@
 package dk.nikolajbrinch.faz80.ide.format;
 
 import dk.nikolajbrinch.faz80.base.util.StringUtil;
-import dk.nikolajbrinch.faz80.parser.cst.AlignmentNode;
-import dk.nikolajbrinch.faz80.parser.cst.AssertionNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.AlignmentNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.AssertionNode;
 import dk.nikolajbrinch.faz80.parser.cst.CommentNode;
-import dk.nikolajbrinch.faz80.parser.cst.ConstantNode;
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
-import dk.nikolajbrinch.faz80.parser.cst.EndNode;
-import dk.nikolajbrinch.faz80.parser.cst.GlobalNode;
-import dk.nikolajbrinch.faz80.parser.cst.IncludeNode;
-import dk.nikolajbrinch.faz80.parser.cst.InsertNode;
-import dk.nikolajbrinch.faz80.parser.cst.InstructionNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.ConstantNode;
+import dk.nikolajbrinch.faz80.parser.cst.EmptyNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.EndNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.GlobalNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.IncludeNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InsertNode;
 import dk.nikolajbrinch.faz80.parser.cst.LabelNode;
-import dk.nikolajbrinch.faz80.parser.cst.LineNode;
-import dk.nikolajbrinch.faz80.parser.cst.MacroCallNode;
+import dk.nikolajbrinch.faz80.parser.cst.LinesNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.MacroCallNode;
 import dk.nikolajbrinch.faz80.parser.cst.NewlineNode;
-import dk.nikolajbrinch.faz80.parser.cst.NodesNode;
-import dk.nikolajbrinch.faz80.parser.cst.OriginNode;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.OriginNode;
 import dk.nikolajbrinch.faz80.parser.cst.ProgramNode;
-import dk.nikolajbrinch.faz80.parser.cst.VariableNode;
+import dk.nikolajbrinch.faz80.parser.cst.BasicLineNode;
+import dk.nikolajbrinch.faz80.parser.cst.SpaceNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.VariableNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ConditionalNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ElseIfNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ElseNode;
@@ -36,21 +39,21 @@ import dk.nikolajbrinch.faz80.parser.cst.operands.ConditionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ExpressionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.GroupingOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.RegisterOperandNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.ArgumentsNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.MacroNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.ParameterNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.PhaseEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.PhaseNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.PhaseStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.RepeatEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.RepeatNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.RepeatStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatStartNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.ScopeNode;
 import dk.nikolajbrinch.faz80.parser.statements.AssignStatement;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
@@ -60,15 +63,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CstFormatVisitor implements CstVisitor<String> {
-  private final int indentSize;
-  private final String indent;
-
+public class CstFormatVisitor implements NodeVisitor<String> {
+  private final String opcodeFormat;
+  private final String directiveFormat;
+  private final String lineFormat;
   private AssignStatement lastLabel = null;
 
-  public CstFormatVisitor(int indentSize) {
-    this.indentSize = indentSize;
-    this.indent = " ".repeat(indentSize);
+  public CstFormatVisitor(int indentSize, int opcodeSize, int directiveSize, int instructionSize) {
+    this.opcodeFormat = "%-" + opcodeSize + "s";
+    this.directiveFormat = "%-" + directiveSize + "s";
+    this.lineFormat = "%-" + indentSize + "s" + "%-" + instructionSize + "s%s%s";
   }
 
   public String format(ProgramNode programNode) {
@@ -112,23 +116,31 @@ public class CstFormatVisitor implements CstVisitor<String> {
   }
 
   @Override
-  public String visitInstructionNode(InstructionNode node) {
-    return String.format(
-        "%s %s",
-        node.mnemonic().text(),
-        node.operands().stream()
-            .map(operand -> operand.accept(this))
-            .collect(Collectors.joining(", ")));
+  public String visitOpcodeNode(OpcodeNode node) {
+    String string =
+        String.format(
+            "%s %s",
+            opcode(node.mnemonic()),
+            node.operands().stream()
+                .map(operand -> operand.accept(this))
+                .collect(Collectors.joining(", ")));
+
+    return string;
   }
 
   @Override
   public String visitEndNode(EndNode node) {
-    return node.token().text();
+    return opcode(node.token());
+  }
+
+  @Override
+  public String visitBlockNode(BlockNode node) {
+    return node.body().accept(this);
   }
 
   @Override
   public String visitScopeNode(ScopeNode node) {
-    return node.nodes().accept(this);
+    return node.body().accept(this);
   }
 
   @Override
@@ -166,46 +178,58 @@ public class CstFormatVisitor implements CstVisitor<String> {
   }
 
   @Override
-  public String visitLineNode(LineNode node) {
-    StringBuilder builder = new StringBuilder();
+  public String visitSingleLineNode(BasicLineNode node) {
+    //    StringBuilder builder = new StringBuilder();
+    //
+    //    if (node.label() != null) {
+    //      String labelText = node.label().accept(this);
+    //
+    //      builder.append(labelText);
+    //
+    //      if (labelText.length() >= indentSize) {
+    //        builder.append(node.newline().accept(this));
+    //        builder.append(indent);
+    //      } else {
+    //        builder.append(indent.substring(labelText.length()));
+    //      }
+    //    } else {
+    //      if (!(node.comment() != null
+    //          && node.instruction().type() == NodeType.EMPTY
+    //          && node.comment().comment().start() == 1)) {
+    //        builder.append(indent);
+    //      }
+    //    }
+    //
+    //    if (node.instruction() != null) {
+    //      builder.append(node.instruction().accept(this));
+    //    }
+    //
+    //    if (node.comment() != null) {
+    //      builder.append(" ");
+    //      builder.append(node.comment().accept(this));
+    //      builder.append(" ");
+    //    }
+    //
+    //    builder.append(node.newline().accept(this));
 
-    if (node.label() != null) {
-      String labelText = node.label().accept(this);
+    String labelText = node.label() == null ? "" : node.label().accept(this);
+    ;
+    String instructionText = node.instruction() == null ? "" : node.instruction().accept(this);
+    String commentText = node.comment() == null ? "" : node.comment().accept(this);
+    String newlineText = node.newline() == null ? "" : node.newline().accept(this);
 
-      builder.append(labelText);
-
-      if (labelText.length() >= indentSize) {
-        builder.append(node.newline().accept(this));
-        builder.append(indent);
-      } else {
-        builder.append(indent.substring(labelText.length()));
-      }
-    } else {
-      if (!(node.comment() != null
-          && node.command() == null
-          && node.comment().comment().start() == 1)) {
-        builder.append(indent);
-      }
+    if (node.comment() != null && node.comment().comment().start() == 1) {
+      return String.format("%s%s", commentText, newlineText);
     }
 
-    if (node.command() != null) {
-      builder.append(node.command().accept(this));
-    }
+    return String.format(lineFormat, labelText, instructionText, commentText, newlineText);
 
-    if (node.comment() != null) {
-      builder.append(" ");
-      builder.append(node.comment().accept(this));
-      builder.append(" ");
-    }
-
-    builder.append(node.newline().accept(this));
-
-    return builder.toString();
+    //    return builder.toString();
   }
 
   @Override
   public String visitProgramNode(ProgramNode node) {
-    return node.nodes().accept(this);
+    return node.node().accept(this);
   }
 
   @Override
@@ -221,19 +245,19 @@ public class CstFormatVisitor implements CstVisitor<String> {
 
   @Override
   public String visitVariableNode(VariableNode node) {
-    return String.format("%s %s", node.operator().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.operator()), node.expression().accept(this));
   }
 
   @Override
   public String visitConstantNode(ConstantNode node) {
-    return String.format("%s %s", node.operator().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.operator()), node.expression().accept(this));
   }
 
   @Override
   public String visitDataNode(DataNode node) {
     return String.format(
         "%s %s",
-        node.token().text(),
+        opcode(node.token()),
         node.expressions().stream()
             .map(expression -> expression.accept(this))
             .collect(Collectors.joining(", ")));
@@ -243,7 +267,7 @@ public class CstFormatVisitor implements CstVisitor<String> {
   public String visitOriginNode(OriginNode node) {
     return String.format(
         "%s %s",
-        node.token().text(),
+        opcode(node.token()),
         Stream.of(node.location(), node.fillByte())
             .filter(Objects::nonNull)
             .map(expression -> expression.accept(this))
@@ -254,7 +278,7 @@ public class CstFormatVisitor implements CstVisitor<String> {
   public String visitAlignmentNode(AlignmentNode node) {
     return String.format(
         "%s %s",
-        node.token().text(),
+        opcode(node.token()),
         Stream.of(node.alignment(), node.fillByte())
             .filter(Objects::nonNull)
             .map(expression -> expression.accept(this))
@@ -263,68 +287,62 @@ public class CstFormatVisitor implements CstVisitor<String> {
 
   @Override
   public String visitRepeatStartNode(RepeatStartNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
   public String visitRepeatNode(RepeatNode node) {
-    return node.startDirective().accept(this)
-        + node.nodes().accept(this)
-        + node.endDirective().accept(this);
+    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
   }
 
   @Override
   public String visitRepeatEndNode(RepeatEndNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
   public String visitGlobalNode(GlobalNode node) {
-    return String.format("%s %s", node.token().text(), node.identifier().text());
+    return String.format("%s %s", opcode(node.token()), node.identifier().text());
   }
 
   @Override
   public String visitAssertionNode(AssertionNode node) {
-    return String.format("%s %S", node.token().text(), node.expression().accept(this));
+    return String.format("%s %S", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
   public String visitLocalEndNode(LocalEndNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
   public String visitLocalStartNode(LocalStartNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
   public String visitLocalNode(LocalNode node) {
-    return node.startDirective().accept(this)
-        + node.nodes().accept(this)
-        + node.endDirective().accept(this);
+    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
   }
 
   @Override
   public String visitPhaseStartNode(PhaseStartNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
   public String visitPhaseNode(PhaseNode node) {
-    return node.startDirective().accept(this)
-        + node.nodes().accept(this)
-        + node.endDirective().accept(this);
+    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
   }
 
   @Override
   public String visitPhaseEndNode(PhaseEndNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
   public String visitMacroStartNode(MacroStartNode node) {
-    StringBuilder builder = new StringBuilder(node.token().text());
+    StringBuilder builder = new StringBuilder(opcode(node.token()));
 
     if (node.name() != null) {
       builder.append(" ");
@@ -342,14 +360,12 @@ public class CstFormatVisitor implements CstVisitor<String> {
 
   @Override
   public String visitMacroNode(MacroNode node) {
-    return node.startDirective().accept(this)
-        + node.nodes().accept(this)
-        + node.endDirective().accept(this);
+    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
   }
 
   @Override
   public String visitMacroEndNode(MacroEndNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
@@ -413,31 +429,31 @@ public class CstFormatVisitor implements CstVisitor<String> {
 
   @Override
   public String visitIfNode(IfNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
   public String visitEndIfNode(EndIfNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
   public String visitConditionalNode(ConditionalNode node) {
     StringBuilder builder = new StringBuilder();
 
-    builder.append(node.ifDirective().accept(this));
-    builder.append(node.thenBranch().accept(this));
+    builder.append(node.ifLine().accept(this));
+    builder.append(node.thenLines().accept(this));
 
-    if (node.elseDirective() != null) {
-      builder.append(node.elseDirective().accept(this));
+    if (node.elseLine() != null) {
+      builder.append(node.elseLine().accept(this));
     }
 
-    if (node.elseBranch() != null) {
-      builder.append(node.elseBranch().accept(this));
+    if (node.elseLines() != null) {
+      builder.append(node.elseLines().accept(this));
     }
 
-    if (node.endIfDirective() != null) {
-      builder.append(node.endIfDirective().accept(this));
+    if (node.elseIfLine() != null) {
+      builder.append(node.elseIfLine().accept(this));
     }
 
     return builder.toString();
@@ -445,27 +461,22 @@ public class CstFormatVisitor implements CstVisitor<String> {
 
   @Override
   public String visitElseIfNode(ElseIfNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
   public String visitElseNode(ElseNode node) {
-    return node.token().text();
+    return opcode(node.token());
   }
 
   @Override
   public String visitInsertNode(InsertNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+    return String.format("%s %s", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
   public String visitIncludeNode(IncludeNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
-  }
-
-  @Override
-  public String visitNodesNode(NodesNode node) {
-    return node.map(line -> line.accept(this)).collect(Collectors.joining());
+    return String.format("%s %s", opcode(node.token()), node.expression().accept(this));
   }
 
   @Override
@@ -481,5 +492,34 @@ public class CstFormatVisitor implements CstVisitor<String> {
   @Override
   public String visitLabelNode(LabelNode node) {
     return node.label().text();
+  }
+
+  @Override
+  public String visitLinesNode(LinesNode node) {
+    return node.lines().stream().map(line -> line.accept(this)).collect(Collectors.joining());
+  }
+
+  @Override
+  public String visitEmptyNode(EmptyNode node) {
+    return "";
+  }
+
+  @Override
+  public String visitSpaceNode(SpaceNode node) {
+    return String.format(
+        "%s %s",
+        opcode(node.token()),
+        Stream.of(node.count(), node.value())
+            .filter(Objects::nonNull)
+            .map(value -> value.accept(this))
+            .collect(Collectors.joining(", ")));
+  }
+
+  private String opcode(AssemblerToken instruction) {
+    return String.format(opcodeFormat, instruction.text());
+  }
+
+  private String directive(AssemblerToken instruction) {
+    return String.format(directiveFormat, instruction.text());
   }
 }

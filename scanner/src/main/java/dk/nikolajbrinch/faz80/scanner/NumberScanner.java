@@ -249,11 +249,13 @@ public class NumberScanner {
   private boolean checkHexNumber() throws IOException {
     int count = 1;
 
-    while (isHexDigit(assemblerScanner.peekChar(count).character())) {
+    while (assemblerScanner.peekChar(count) != null
+        && isHexDigit(assemblerScanner.peekChar(count).character())) {
       count++;
     }
 
     return count > 0
+        && assemblerScanner.peekChar(count) != null
         && (assemblerScanner.peekChar(count).character() == 'h'
             || assemblerScanner.peekChar(count).character() == 'H');
   }
@@ -261,11 +263,13 @@ public class NumberScanner {
   private boolean checkBinaryNumber() throws IOException {
     int count = 1;
 
-    while (isBinaryDigit(assemblerScanner.peekChar(count).character())) {
+    while (assemblerScanner.peekChar(count) != null
+        && isBinaryDigit(assemblerScanner.peekChar(count).character())) {
       count++;
     }
 
     return count > 0
+        && assemblerScanner.peekChar(count) != null
         && (assemblerScanner.peekChar(count).character() == 'b'
             || assemblerScanner.peekChar(count).character() == 'B');
   }
@@ -273,11 +277,13 @@ public class NumberScanner {
   private boolean checkOctalNumber() throws IOException {
     int count = 1;
 
-    while (isOctalDigit(assemblerScanner.peekChar(count).character())) {
+    while (assemblerScanner.peekChar(count) != null
+        && isOctalDigit(assemblerScanner.peekChar(count).character())) {
       count++;
     }
 
     return count > 0
+        && assemblerScanner.peekChar(count) != null
         && (assemblerScanner.peekChar(count).character() == 'o'
             || assemblerScanner.peekChar(count).character() == 'O'
             || assemblerScanner.peekChar(count).character() == 'q'
@@ -287,11 +293,13 @@ public class NumberScanner {
   private boolean checkDecimalNumber() throws IOException {
     int count = 1;
 
-    while (isDecimalDigit(assemblerScanner.peekChar(count).character())) {
+    while (assemblerScanner.peekChar(count) != null
+        && isDecimalDigit(assemblerScanner.peekChar(count).character())) {
       count++;
     }
 
     return count > 0
+        && assemblerScanner.peekChar(count) != null
         && (assemblerScanner.peekChar(count).character() == 'd'
             || assemblerScanner.peekChar(count).character() == 'D');
   }

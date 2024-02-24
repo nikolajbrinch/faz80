@@ -19,14 +19,14 @@ class ParseStringTests {
             db "Hej" + 'ø' + "med dig"
             """);
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
     Assertions.assertEquals(
         "db \"Hej\" + 'ø' + \"med dig\"",
-        new CstPrinter().print(((LineNode) nodes.get(0)).command()));
+        new NodePrinter().print(((BasicLineNode) nodes.get(0)).instruction()));
 
-    for (CstNode node : nodes) {
-      System.out.print(new CstPrinter().print(node));
+    for (Node node : nodes) {
+      System.out.print(new NodePrinter().print(node));
     }
   }
 }

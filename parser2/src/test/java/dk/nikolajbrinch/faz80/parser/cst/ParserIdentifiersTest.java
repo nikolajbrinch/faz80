@@ -27,15 +27,15 @@ class ParserIdentifiersTest {
           end:
           """);
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
     Assertions.assertEquals(7, nodes.size());
-    Assertions.assertEquals("@id___:", ((LineNode) nodes.get(0)).label().label().text());
-    Assertions.assertEquals(".id", ((LineNode) nodes.get(1)).label().label().text());
-    Assertions.assertEquals("id:", ((LineNode) nodes.get(2)).label().label().text());
-    Assertions.assertEquals("id::", ((LineNode) nodes.get(3)).label().label().text());
-    Assertions.assertEquals("_id_1::", ((LineNode) nodes.get(4)).label().label().text());
-    Assertions.assertEquals("exx:", ((LineNode) nodes.get(5)).label().label().text());
-    Assertions.assertEquals("end:", ((LineNode) nodes.get(6)).label().label().text());
+    Assertions.assertEquals("@id___:", ((BasicLineNode) nodes.get(0)).label().label().text());
+    Assertions.assertEquals(".id", ((BasicLineNode) nodes.get(1)).label().label().text());
+    Assertions.assertEquals("id:", ((BasicLineNode) nodes.get(2)).label().label().text());
+    Assertions.assertEquals("id::", ((BasicLineNode) nodes.get(3)).label().label().text());
+    Assertions.assertEquals("_id_1::", ((BasicLineNode) nodes.get(4)).label().label().text());
+    Assertions.assertEquals("exx:", ((BasicLineNode) nodes.get(5)).label().label().text());
+    Assertions.assertEquals("end:", ((BasicLineNode) nodes.get(6)).label().label().text());
   }
 }

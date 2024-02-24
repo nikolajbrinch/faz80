@@ -47,6 +47,11 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
     return linePosition;
   }
 
+  @Override
+  public int getLineCount() {
+    return lineCount;
+  }
+
   /**
    * Reads the next character from the reader
    *
@@ -58,9 +63,9 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
     Char value = null;
 
     if (currentLine == null) {
-      String string = reader.readLine();
+      String string = readLine();
       if (string != null) {
-        currentLine = new Line(lineCount, string + "\n");
+        currentLine = new Line(lineCount, string);
       } else {
         currentLine = null;
       }
@@ -70,7 +75,7 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
       value = currentLine.read(currentPosition, linePosition);
       currentPosition++;
 
-      if (value.character() == '\n') {
+      if (currentLine.isEmpty(linePosition + 1)) {
         lineCount++;
         linePosition = 1;
         currentLine = null;
@@ -80,6 +85,48 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
     }
 
     return value;
+  }
+
+  /**
+   * readLine() method that preserves EOL characters
+   *
+   * @return String representing a line
+   * @throws IOException
+   */
+  private String readLine() throws IOException {
+    StringBuilder builder = new StringBuilder();
+
+    int read = reader.read();
+
+    if (read == -1) {
+      return null;
+    }
+
+    char ch = (char) read;
+
+    while (read != -1 && ch != '\r' && ch != '\n') {
+      builder.append(ch);
+      read = reader.read();
+      ch = (char) read;
+    }
+
+    if (read != -1) {
+      builder.append(ch);
+
+      if (ch == '\r') {
+        reader.mark(1);
+        read = reader.read();
+        ch = (char) read;
+
+        if (ch == '\n') {
+          builder.append(ch);
+        } else {
+          reader.reset();
+        }
+      }
+    }
+
+    return builder.toString();
   }
 
   @Override

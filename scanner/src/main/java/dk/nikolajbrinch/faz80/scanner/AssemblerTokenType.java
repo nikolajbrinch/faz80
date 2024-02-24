@@ -98,5 +98,5 @@ public enum AssemblerTokenType implements TokenType {
   TARGET,
   END,
   DIRECTIVE,
-  EOF
+  ERROR, EOF
 }

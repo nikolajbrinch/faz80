@@ -1,8 +1,9 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InstructionNode;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
-public record NewlineNode(AssemblerToken newline) implements CommandNode {
+public record NewlineNode(AssemblerToken newline) implements InstructionNode {
 
   @Override
   public NodeType type() {
@@ -10,7 +11,7 @@ public record NewlineNode(AssemblerToken newline) implements CommandNode {
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitNewlineNode(this);
   }
 }

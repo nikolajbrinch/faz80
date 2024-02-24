@@ -8,9 +8,9 @@ class ParseDloopMacrosTests {
   @Test
   void testParse() throws IOException {
     ProgramNode program =
-        new CstParser()
+        new Parser()
             .parse(new String(getClass().getResourceAsStream("/dloop-macros.z80").readAllBytes()));
 
-    System.out.println(new CstPrinter().print(program));
+    System.out.println(new NodePrinter().print(program));
   }
 }

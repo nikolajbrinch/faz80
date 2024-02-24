@@ -20,14 +20,14 @@ class ParseExpressionTests {
         """
             ld hl, 0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9""");
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
     Assertions.assertEquals(
         "ld hl, 0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9",
-        new CstPrinter().print(((LineNode) nodes.get(0)).command()));
+        new NodePrinter().print(((BasicLineNode) nodes.get(0)).instruction()));
 
-    for (CstNode node : nodes) {
-      System.out.print(new CstPrinter().print(node));
+    for (Node node : nodes) {
+      System.out.print(new NodePrinter().print(node));
     }
   }
 }

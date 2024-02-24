@@ -1,56 +1,53 @@
 package dk.nikolajbrinch.faz80.ide.format;
 
-import dk.nikolajbrinch.faz80.parser.cst.CommentNode;
-import dk.nikolajbrinch.faz80.parser.cst.CstNode;
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitorAdapter;
-import dk.nikolajbrinch.faz80.parser.cst.LabelNode;
 import dk.nikolajbrinch.faz80.parser.cst.LineNode;
-import dk.nikolajbrinch.faz80.parser.cst.NewlineNode;
-import dk.nikolajbrinch.faz80.parser.cst.NodesNode;
+import dk.nikolajbrinch.faz80.parser.cst.LinesNode;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitorAdapter;
+import dk.nikolajbrinch.faz80.parser.cst.LabelNode;
+import dk.nikolajbrinch.faz80.parser.cst.BasicLineNode;
 import dk.nikolajbrinch.faz80.parser.cst.ProgramNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ConditionalNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.ScopeNode;
-import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.stream.Stream;
 
-public class CstLabelLengthVisitor implements CstVisitorAdapter<Integer> {
+public class CstLabelLengthVisitor implements NodeVisitorAdapter<Integer> {
 
   @Override
   public Integer visitProgramNode(ProgramNode node) {
-    return node.nodes().accept(this);
+    return node.node().accept(this);
   }
 
   @Override
   public Integer visitScopeNode(ScopeNode node) {
-    return max(Stream.of(node.startDirective(), node.nodes(), node.endDirective()));
+    return max(Stream.of(node.startLine(), node.body(), node.endLine()));
   }
 
   @Override
   public Integer visitConditionalNode(ConditionalNode node) {
     return max(
         Stream.of(
-            node.ifDirective(),
-            node.thenBranch(),
-            node.elseDirective(),
-            node.elseBranch(),
-            node.endIfDirective()));
+            node.ifLine(),
+            node.thenLines(),
+            node.elseLine(),
+            node.elseLines(),
+            node.elseIfLine()));
   }
 
   @Override
-  public Integer visitNodesNode(NodesNode nodes) {
-    return max(nodes.nodes().stream());
-  }
-
-  @Override
-  public Integer visitLineNode(LineNode node) {
+  public Integer visitSingleLineNode(BasicLineNode node) {
     LabelNode label = node.label();
 
     return label != null ? label.label().text().length() : -1;
   }
 
-  private Integer max(Stream<CstNode> nodeStream) {
+  @Override
+  public Integer visitLinesNode(LinesNode node) {
+    return max(node.lines().stream());
+  }
+
+  private Integer max(Stream<LineNode> nodeStream) {
     OptionalInt optional =
         nodeStream
             .filter(Objects::nonNull)

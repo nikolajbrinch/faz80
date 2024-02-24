@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
 import dk.nikolajbrinch.faz80.parser.cst.expression.LiteralStringExpressionNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InsertNode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,13 +21,13 @@ class ParseInsertTests {
 incbin "/Users/neko/somefile.z80"
 """);
 
-    List<CstNode> nodes = new CstParser().parse(tempFile.toFile()).nodes().nodes();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
 
     Assertions.assertEquals(1, nodes.size());
 
-    LineNode line = (LineNode) nodes.get(0);
+    BasicLineNode line = (BasicLineNode) nodes.get(0);
 
-    InsertNode insert = (InsertNode) line.command();
+    InsertNode insert = (InsertNode) line.instruction();
     Assertions.assertEquals(
         "\"/Users/neko/somefile.z80\"",
         ((LiteralStringExpressionNode) insert.expression()).stringLiteral().text());

@@ -13,7 +13,7 @@ class ParseRepeatTests {
   @Test
   void testParse() throws IOException {
     ProgramNode program =
-        new CstParser()
+        new Parser()
             .parse(
                 """
         count1 equ 4
@@ -28,8 +28,8 @@ class ParseRepeatTests {
         endr
         """);
 
-    System.out.println(new CstPrinter().print(program));
+    System.out.println(new NodePrinter().print(program));
 
-    Assertions.assertEquals(4, program.nodes().nodes().size());
+    Assertions.assertEquals(4, program.node().lines().size());
   }
 }

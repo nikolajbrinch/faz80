@@ -4,10 +4,10 @@ public enum NodeType {
   COMMENT,
   NEWLINE,
   DIRECTIVE,
-  INSTRUCTION,
+  OPCODE,
   MACRO_CALL,
   SCOPE,
-  LINE,
+  SINGLE_LINE,
   END,
   OPERAND,
   EXPRESSION,
@@ -38,5 +38,5 @@ public enum NodeType {
   ELSE_IF,
   PROGRAM,
   NDOES,
-  LABEL
+  LINES, EMPTY, SPACE, BLOCK, LABEL
 }

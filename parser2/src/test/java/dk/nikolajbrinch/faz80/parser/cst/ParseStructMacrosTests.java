@@ -8,14 +8,14 @@ class ParseStructMacrosTests {
 
   @Test
   void testParse() throws IOException {
-    List<CstNode> nodes =
-        new CstParser()
+    List<LineNode> nodes =
+        new Parser()
             .parse(new String(getClass().getResourceAsStream("/struct-macros.z80").readAllBytes()))
-            .nodes()
-            .nodes();
+            .node()
+            .lines();
 
-    for (CstNode node : nodes) {
-      System.out.print(new CstPrinter().print(node));
+    for (Node node : nodes) {
+      System.out.print(new NodePrinter().print(node));
     }
   }
 }

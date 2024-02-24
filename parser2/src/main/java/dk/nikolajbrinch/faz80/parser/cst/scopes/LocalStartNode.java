@@ -1,11 +1,11 @@
 package dk.nikolajbrinch.faz80.parser.cst.scopes;
 
-import dk.nikolajbrinch.faz80.parser.cst.CommandNode;
-import dk.nikolajbrinch.faz80.parser.cst.CstVisitor;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InstructionNode;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.parser.cst.NodeType;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
-public record LocalStartNode(AssemblerToken token) implements CommandNode {
+public record LocalStartNode(AssemblerToken token) implements InstructionNode {
 
   @Override
   public NodeType type() {
@@ -13,7 +13,7 @@ public record LocalStartNode(AssemblerToken token) implements CommandNode {
   }
 
   @Override
-  public  <R> R accept(CstVisitor<R> visitor) {
+  public  <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitLocalStartNode(this);
   }
 

@@ -1,8 +1,9 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InstructionNode;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
-public record CommentNode(AssemblerToken comment) implements CommandNode {
+public record CommentNode(AssemblerToken comment) implements InstructionNode {
 
   @Override
   public NodeType type() {
@@ -10,7 +11,7 @@ public record CommentNode(AssemblerToken comment) implements CommandNode {
   }
 
   @Override
-  public <R> R accept(CstVisitor<R> visitor) {
+  public <R> R accept(NodeVisitor<R> visitor) {
     return visitor.visitCommentNode(this);
   }
 }
