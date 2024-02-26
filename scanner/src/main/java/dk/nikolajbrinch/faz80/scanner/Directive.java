@@ -52,13 +52,21 @@ public enum Directive {
         .orElse(null);
   }
 
-  private static boolean matchKeyword(String text, Directive directive) {
-    for (String keyword : directive.keywords) {
+  public static boolean matchKeyword(String text, Directive directive) {
+    return directive.matchKeyword(text);
+  }
+
+  public boolean matchKeyword(String text) {
+    for (String keyword : keywords) {
       if (keyword.equalsIgnoreCase(text)) {
         return true;
       }
     }
 
     return false;
+  }
+
+  public String[] getKeywords() {
+    return keywords;
   }
 }

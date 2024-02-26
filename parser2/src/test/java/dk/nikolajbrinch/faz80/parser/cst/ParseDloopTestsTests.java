@@ -25,7 +25,7 @@ class ParseDloopTestsTests {
         new File(tempDir, "struct-macros.z80").toPath(),
         new String(getClass().getResourceAsStream("/struct-macros.z80").readAllBytes()));
 
-    List<LineNode> nodes = new Parser().parse(file).node().lines();
+    List<LineNode> nodes = new Parser().parse(file).lines().lines();
 
     for (Node node : nodes) {
       System.out.print(new NodePrinter().print(node));

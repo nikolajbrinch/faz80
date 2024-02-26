@@ -11,7 +11,7 @@ class ParseSimpleMonitorTests {
     List<LineNode> nodes =
         new Parser()
             .parse(new String(getClass().getResourceAsStream("/simple-monitor.z80").readAllBytes()))
-            .node()
+            .lines()
             .lines();
 
     for (Node node : nodes) {

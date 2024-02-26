@@ -11,7 +11,7 @@ class ParseMath48Tests {
     List<LineNode> nodes =
         new Parser()
             .parse(new String(getClass().getResourceAsStream("/Math48.z80").readAllBytes()))
-            .node()
+            .lines()
             .lines();
 
     for (Node node : nodes) {

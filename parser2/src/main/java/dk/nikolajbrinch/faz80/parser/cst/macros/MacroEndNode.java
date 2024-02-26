@@ -1,4 +1,4 @@
-package dk.nikolajbrinch.faz80.parser.cst.blocks;
+package dk.nikolajbrinch.faz80.parser.cst.macros;
 
 import dk.nikolajbrinch.faz80.parser.cst.instructions.InstructionNode;
 import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;

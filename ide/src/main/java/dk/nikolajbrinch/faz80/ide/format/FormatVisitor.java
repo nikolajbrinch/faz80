@@ -1,27 +1,23 @@
 package dk.nikolajbrinch.faz80.ide.format;
 
 import dk.nikolajbrinch.faz80.base.util.StringUtil;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.AlignmentNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.AssertionNode;
+import dk.nikolajbrinch.faz80.parser.cst.BasicLineNode;
 import dk.nikolajbrinch.faz80.parser.cst.CommentNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.ConstantNode;
 import dk.nikolajbrinch.faz80.parser.cst.EmptyNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.EndNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.GlobalNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.IncludeNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.InsertNode;
 import dk.nikolajbrinch.faz80.parser.cst.LabelNode;
 import dk.nikolajbrinch.faz80.parser.cst.LinesNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.MacroCallNode;
 import dk.nikolajbrinch.faz80.parser.cst.NewlineNode;
 import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.OriginNode;
 import dk.nikolajbrinch.faz80.parser.cst.ProgramNode;
-import dk.nikolajbrinch.faz80.parser.cst.BasicLineNode;
 import dk.nikolajbrinch.faz80.parser.cst.SpaceNode;
-import dk.nikolajbrinch.faz80.parser.cst.instructions.VariableNode;
+import dk.nikolajbrinch.faz80.parser.cst.TextNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatStartNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ConditionalNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ElseIfNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ElseNode;
@@ -35,25 +31,32 @@ import dk.nikolajbrinch.faz80.parser.cst.expression.IdentifierExpressionNode;
 import dk.nikolajbrinch.faz80.parser.cst.expression.LiteralNumberExpressionNode;
 import dk.nikolajbrinch.faz80.parser.cst.expression.LiteralStringExpressionNode;
 import dk.nikolajbrinch.faz80.parser.cst.expression.UnaryExpressionNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.AlignmentNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.AssertionNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.ConstantNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.EndNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.GlobalNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.IncludeNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.InsertNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.MacroCallNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.OriginNode;
+import dk.nikolajbrinch.faz80.parser.cst.instructions.VariableNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ConditionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ExpressionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.GroupingOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.RegisterOperandNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ParameterNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatStartNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.ScopeNode;
 import dk.nikolajbrinch.faz80.parser.statements.AssignStatement;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
@@ -63,13 +66,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CstFormatVisitor implements NodeVisitor<String> {
+public class FormatVisitor implements NodeVisitor<String> {
   private final String opcodeFormat;
   private final String directiveFormat;
   private final String lineFormat;
   private AssignStatement lastLabel = null;
 
-  public CstFormatVisitor(int indentSize, int opcodeSize, int directiveSize, int instructionSize) {
+  public FormatVisitor(int indentSize, int opcodeSize, int directiveSize, int instructionSize) {
     this.opcodeFormat = "%-" + opcodeSize + "s";
     this.directiveFormat = "%-" + directiveSize + "s";
     this.lineFormat = "%-" + indentSize + "s" + "%-" + instructionSize + "s%s%s";
@@ -229,7 +232,7 @@ public class CstFormatVisitor implements NodeVisitor<String> {
 
   @Override
   public String visitProgramNode(ProgramNode node) {
-    return node.node().accept(this);
+    return node.lines().accept(this);
   }
 
   @Override
@@ -292,7 +295,7 @@ public class CstFormatVisitor implements NodeVisitor<String> {
 
   @Override
   public String visitRepeatNode(RepeatNode node) {
-    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
+    return node.start().accept(this) + node.body().accept(this) + node.end().accept(this);
   }
 
   @Override
@@ -322,7 +325,7 @@ public class CstFormatVisitor implements NodeVisitor<String> {
 
   @Override
   public String visitLocalNode(LocalNode node) {
-    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
+    return node.start().accept(this) + node.body().accept(this) + node.end().accept(this);
   }
 
   @Override
@@ -332,7 +335,7 @@ public class CstFormatVisitor implements NodeVisitor<String> {
 
   @Override
   public String visitPhaseNode(PhaseNode node) {
-    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
+    return node.start().accept(this) + node.body().accept(this) + node.end().accept(this);
   }
 
   @Override
@@ -350,17 +353,14 @@ public class CstFormatVisitor implements NodeVisitor<String> {
     }
 
     builder.append(" ");
-    builder.append(
-        node.parameters().stream()
-            .map(parameter -> parameter.accept(this))
-            .collect(Collectors.joining(", ")));
+    builder.append(node.parameters().accept(this));
 
     return builder.toString();
   }
 
   @Override
   public String visitMacroNode(MacroNode node) {
-    return node.startLine().accept(this) + node.body().accept(this) + node.endLine().accept(this);
+    return node.start().accept(this) + node.body().accept(this) + node.end().accept(this);
   }
 
   @Override
@@ -513,6 +513,36 @@ public class CstFormatVisitor implements NodeVisitor<String> {
             .filter(Objects::nonNull)
             .map(value -> value.accept(this))
             .collect(Collectors.joining(", ")));
+  }
+
+  @Override
+  public String visitTextNode(TextNode node) {
+    return node.text().text();
+  }
+
+  @Override
+  public String visitParametersNode(ParametersNode node) {
+    StringBuilder builder = new StringBuilder();
+
+    if (node.groupStart() != null) {
+      builder.append(node.groupStart().text());
+    }
+
+    builder.append(
+        node.parameters().stream()
+            .map(parameter -> parameter.accept(this))
+            .collect(Collectors.joining(", ")));
+
+    if (node.groupEnd() != null) {
+      builder.append(node.groupEnd().text());
+    }
+
+    return builder.toString();
+  }
+
+  @Override
+  public String visitMacroSymbolNode(MacroSymbolNode node) {
+    return node.start().accept(this) + node.body().accept(this) + node.end().accept(this);
   }
 
   private String opcode(AssemblerToken instruction) {

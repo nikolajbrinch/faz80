@@ -23,7 +23,7 @@ class ParseRegistersTests {
         ex af, af'
         """);
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     BasicLineNode line = (BasicLineNode) nodes.get(0);
     OpcodeNode instruction = (OpcodeNode) line.instruction();

@@ -28,7 +28,7 @@ class ParseMacroCallTests {
         ; comment
         """);
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     for (Node node : nodes) {
       System.out.print(new NodePrinter().print(node));

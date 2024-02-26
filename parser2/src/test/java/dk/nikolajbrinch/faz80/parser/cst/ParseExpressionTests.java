@@ -20,7 +20,7 @@ class ParseExpressionTests {
         """
             ld hl, 0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9""");
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     Assertions.assertEquals(
         "ld hl, 0b10011001 + -8 * 0207 * (304 + 4) / 0x5a == 0o6 * {a + +b::} ^ [$4f << %1111111] >>> 3 & 7 | 9",

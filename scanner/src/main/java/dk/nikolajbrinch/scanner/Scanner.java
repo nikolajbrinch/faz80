@@ -14,4 +14,15 @@ public interface Scanner<T> {
 
   void setMode(Mode mode);
 
+  default void mark() {
+    throw new UnsupportedOperationException("Mark is not supported");
+  }
+
+  default void reset() {
+    throw new UnsupportedOperationException("Reset is not supported");
+  }
+
+  default boolean markSupported() {
+    return false;
+  }
 }

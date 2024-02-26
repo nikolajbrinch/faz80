@@ -1,59 +1,38 @@
 package dk.nikolajbrinch.faz80.scanner;
 
 import dk.nikolajbrinch.scanner.Char;
+import dk.nikolajbrinch.scanner.CharReader;
 import dk.nikolajbrinch.scanner.Position;
+import dk.nikolajbrinch.scanner.SourceInfo;
 import java.io.IOException;
+import java.util.function.Predicate;
 
 public class NumberScanner {
 
-  private final AssemblerScanner assemblerScanner;
+  private final SourceInfo sourceInfo;
+  private final CharReader charReader;
 
-  public NumberScanner(AssemblerScanner assemblerScanner) {
-    this.assemblerScanner = assemblerScanner;
+  private final Radix radix;
+
+  public NumberScanner(SourceInfo sourceInfo, CharReader charReader, Radix radix) {
+    this.sourceInfo = sourceInfo;
+    this.charReader = charReader;
+    this.radix = radix;
   }
 
   AssemblerToken createNumberToken(Char ch) throws IOException {
     AssemblerToken number = null;
 
     if (ch.character() == '0') {
-      Char nextChar = assemblerScanner.peekChar();
+      Char nextChar = peekChar();
 
       if (nextChar != null) {
         number =
             switch (nextChar.character()) {
               case 'x', 'X' -> createHexHumberToken(ch);
-              case 'b', 'B' -> {
-                if (checkHexNumber()) {
-                  AssemblerToken hexNumber = createHexHumberToken(ch);
-                  yield hexNumber;
-                }
-
-                yield createBinaryNumberToken(ch);
-              }
-              case 'o', 'O', '0', '1', '2', '3', '4', '5', '6', '7' -> {
-                if (checkHexNumber()) {
-                  yield createHexHumberToken(ch);
-                }
-
-                if (checkBinaryNumber()) {
-                  yield createBinaryNumberToken(ch);
-                }
-
-                if (checkDecimalNumber()) {
-                  yield createDecimalNumberToken(ch);
-                }
-
-                yield createOctalHumberToken(ch);
-              }
-              default -> {
-                AssemblerToken hexNumber = null;
-
-                if (checkHexNumber()) {
-                  hexNumber = createHexHumberToken(ch);
-                }
-
-                yield hexNumber;
-              }
+              case 'b', 'B' -> tryBinaryNumber(ch);
+              case 'o', 'O', '0', '1', '2', '3', '4', '5', '6', '7' -> tryOctalNUmber(ch);
+              default -> tryHexNumber(ch);
             };
       }
     }
@@ -75,237 +54,201 @@ public class NumberScanner {
     }
 
     StringBuilder builder = new StringBuilder();
-    Char last = assemblerScanner.appendChar(builder, ch);
+    Char last = appendChar(builder, ch);
 
-    while (assemblerScanner.checkNextChar(Character::isDigit)) {
-      last = assemblerScanner.appendChar(builder);
+    while (matchChar(Character::isDigit)) {
+      last = appendChar(builder);
     }
 
-    if (assemblerScanner.checkNextChar(
-        nextChar -> nextChar == ':' || nextChar == 'b' || nextChar == 'f' || nextChar == '$')) {
-      last = assemblerScanner.appendChar(builder);
+    if (isIdentifier()) {
+      last = appendChar(builder);
 
-      if (last.character() == '$' && assemblerScanner.checkNextChar(':')) {
-        last = assemblerScanner.appendChar(builder);
+      if (isColonOrDollar()) {
+        last = appendChar(builder);
       }
 
-      return new AssemblerToken(
-          AssemblerTokenType.IDENTIFIER,
-          assemblerScanner.getSourceInfo(),
-          new Position(ch.position(), last.position()),
-          ch.line(),
-          ch.linePosition(),
-          last.linePosition(),
-          builder.toString());
+      return createToken(AssemblerTokenType.IDENTIFIER, ch, last, builder.toString());
     }
 
-    return new AssemblerToken(
-        AssemblerTokenType.DECIMAL_NUMBER,
-        assemblerScanner.getSourceInfo(),
-        new Position(ch.position(), last.position()),
-        ch.line(),
-        ch.linePosition(),
-        last.linePosition(),
-        builder.toString());
+    return createToken(AssemblerTokenType.DECIMAL_NUMBER, ch, last, builder.toString());
+  }
+
+  private AssemblerToken tryHexNumber(Char ch) throws IOException {
+    AssemblerToken hexNumber = null;
+
+    if (checkHexNumber()) {
+      hexNumber = createHexHumberToken(ch);
+    }
+
+    return hexNumber;
+  }
+
+  private AssemblerToken tryOctalNUmber(Char ch) throws IOException {
+    if (checkHexNumber()) {
+      return createHexHumberToken(ch);
+    }
+
+    if (checkBinaryNumber()) {
+      return createBinaryNumberToken(ch);
+    }
+
+    if (checkDecimalNumber()) {
+      return createDecimalNumberToken(ch);
+    }
+
+    return createOctalHumberToken(ch);
+  }
+
+  private AssemblerToken tryBinaryNumber(Char ch) throws IOException {
+    if (checkHexNumber()) {
+      return createHexHumberToken(ch);
+    }
+
+    return createBinaryNumberToken(ch);
   }
 
   AssemblerToken createHexHumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
-    boolean prefix =
-        (assemblerScanner.checkNextChar('x')
-            || assemblerScanner.checkNextChar('X')
-            || assemblerScanner.checkNextChar('$'));
+    boolean prefix = matchChar('x', 'X', '$');
 
     if (prefix) {
-      last = assemblerScanner.appendChar(builder);
+      last = appendChar(builder);
     }
 
-    while (assemblerScanner.checkNextChar(NumberScanner::isHexDigit)) {
-      last = assemblerScanner.appendChar(builder);
+    while (matchChar(NumberScanner::isHexDigit)) {
+      last = appendChar(builder);
     }
 
-    if (!prefix && (assemblerScanner.checkNextChar('h') || assemblerScanner.checkNextChar('H'))) {
-      last = assemblerScanner.appendChar(builder);
+    if (!prefix && matchChar('h', 'H')) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
         ? null
-        : new AssemblerToken(
-            AssemblerTokenType.HEX_NUMBER,
-            assemblerScanner.getSourceInfo(),
-            new Position(ch.position(), last.position()),
-            ch.line(),
-            ch.linePosition(),
-            last.linePosition(),
-            builder.toString());
+        : createToken(AssemblerTokenType.HEX_NUMBER, ch, last, builder.toString());
   }
 
   AssemblerToken createBinaryNumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
-    boolean prefix =
-        (assemblerScanner.checkNextChar('b')
-            || assemblerScanner.checkNextChar('B')
-            || assemblerScanner.checkNextChar('%'));
+    boolean prefix = matchChar('b', 'B', '%');
 
     if (prefix) {
-      last = assemblerScanner.appendChar(builder);
+      last = appendChar(builder);
     }
 
-    while (assemblerScanner.checkNextChar(NumberScanner::isBinaryDigit)) {
-      last = assemblerScanner.appendChar(builder);
+    while (matchChar(NumberScanner::isBinaryDigit)) {
+      last = appendChar(builder);
     }
 
-    if (!prefix && (assemblerScanner.checkNextChar('b') || assemblerScanner.checkNextChar('B'))) {
-      last = assemblerScanner.appendChar(builder);
+    if (!prefix && (matchChar('b', 'B'))) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
         ? null
-        : new AssemblerToken(
-            AssemblerTokenType.BINARY_NUMBER,
-            assemblerScanner.getSourceInfo(),
-            new Position(ch.position(), last.position()),
-            ch.line(),
-            ch.linePosition(),
-            last.linePosition(),
-            builder.toString());
+        : createToken(AssemblerTokenType.BINARY_NUMBER, ch, last, builder.toString());
   }
 
   private AssemblerToken createOctalHumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
-    boolean prefix = (assemblerScanner.checkNextChar('o') || assemblerScanner.checkNextChar('O'));
+    boolean prefix = matchChar('o', 'O');
 
     if (prefix) {
-      last = assemblerScanner.appendChar(builder);
+      last = appendChar(builder);
     }
 
-    while (assemblerScanner.checkNextChar(NumberScanner::isOctalDigit)) {
-      last = assemblerScanner.appendChar(builder);
+    while (matchChar(NumberScanner::isOctalDigit)) {
+      last = appendChar(builder);
     }
 
-    if (assemblerScanner.checkNextChar(':')) {
-      last = assemblerScanner.appendChar(builder);
+    if (matchChar(':')) {
+      last = appendChar(builder);
 
-      return new AssemblerToken(
-          AssemblerTokenType.IDENTIFIER,
-          assemblerScanner.getSourceInfo(),
-          new Position(ch.position(), last.position()),
-          ch.line(),
-          ch.linePosition(),
-          last.linePosition(),
-          builder.toString());
+      return createToken(AssemblerTokenType.IDENTIFIER, ch, last, builder.toString());
     }
 
-    if (!prefix
-        && (assemblerScanner.checkNextChar('o')
-            || assemblerScanner.checkNextChar('O')
-            || assemblerScanner.checkNextChar('q')
-            || assemblerScanner.checkNextChar('Q'))) {
-      last = assemblerScanner.appendChar(builder);
+    if (!prefix && matchChar('o', 'O', 'q', 'Q')) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
         ? null
-        : new AssemblerToken(
-            AssemblerTokenType.OCTAL_NUMBER,
-            assemblerScanner.getSourceInfo(),
-            new Position(ch.position(), last.position()),
-            ch.line(),
-            ch.linePosition(),
-            last.linePosition(),
-            builder.toString());
+        : createToken(AssemblerTokenType.OCTAL_NUMBER, ch, last, builder.toString());
   }
 
   private AssemblerToken createDecimalNumberToken(Char ch) throws IOException {
     StringBuilder builder = new StringBuilder(ch.toString());
     Char last = ch;
 
-    while (assemblerScanner.checkNextChar(NumberScanner::isDecimalDigit)) {
-      last = assemblerScanner.appendChar(builder);
+    while (matchChar(NumberScanner::isDecimalDigit)) {
+      last = appendChar(builder);
     }
 
-    if (assemblerScanner.checkNextChar('d') || assemblerScanner.checkNextChar('D')) {
-      last = assemblerScanner.appendChar(builder);
+    if (matchChar('d', 'D')) {
+      last = appendChar(builder);
     }
 
     return builder.isEmpty()
         ? null
-        : new AssemblerToken(
-            AssemblerTokenType.DECIMAL_NUMBER,
-            assemblerScanner.getSourceInfo(),
-            new Position(ch.position(), last.position()),
-            ch.line(),
-            ch.linePosition(),
-            last.linePosition(),
-            builder.toString());
+        : createToken(AssemblerTokenType.DECIMAL_NUMBER, ch, last, builder.toString());
   }
 
   private boolean checkHexNumber() throws IOException {
     int count = 1;
 
-    while (assemblerScanner.peekChar(count) != null
-        && isHexDigit(assemblerScanner.peekChar(count).character())) {
+    while (peekChar(count) != null && isHexDigit(peekChar(count).character())) {
       count++;
     }
 
-    return count > 0
-        && assemblerScanner.peekChar(count) != null
-        && (assemblerScanner.peekChar(count).character() == 'h'
-            || assemblerScanner.peekChar(count).character() == 'H');
+    return count > 0 && matchChar(peekChar(count), 'h', 'H');
   }
 
   private boolean checkBinaryNumber() throws IOException {
     int count = 1;
 
-    while (assemblerScanner.peekChar(count) != null
-        && isBinaryDigit(assemblerScanner.peekChar(count).character())) {
+    while (peekChar(count) != null && isBinaryDigit(peekChar(count).character())) {
       count++;
     }
 
-    return count > 0
-        && assemblerScanner.peekChar(count) != null
-        && (assemblerScanner.peekChar(count).character() == 'b'
-            || assemblerScanner.peekChar(count).character() == 'B');
+    return count > 0 && matchChar(peekChar(count), 'b', 'B');
   }
 
   private boolean checkOctalNumber() throws IOException {
     int count = 1;
 
-    while (assemblerScanner.peekChar(count) != null
-        && isOctalDigit(assemblerScanner.peekChar(count).character())) {
+    while (peekChar(count) != null && isOctalDigit(peekChar(count).character())) {
       count++;
     }
 
-    return count > 0
-        && assemblerScanner.peekChar(count) != null
-        && (assemblerScanner.peekChar(count).character() == 'o'
-            || assemblerScanner.peekChar(count).character() == 'O'
-            || assemblerScanner.peekChar(count).character() == 'q'
-            || assemblerScanner.peekChar(count).character() == 'Q');
+    return count > 0 && matchChar(peekChar(count), 'o', 'O', 'q', 'Q');
   }
 
   private boolean checkDecimalNumber() throws IOException {
     int count = 1;
 
-    while (assemblerScanner.peekChar(count) != null
-        && isDecimalDigit(assemblerScanner.peekChar(count).character())) {
+    while (peekChar(count) != null && isDecimalDigit(peekChar(count).character())) {
       count++;
     }
 
-    return count > 0
-        && assemblerScanner.peekChar(count) != null
-        && (assemblerScanner.peekChar(count).character() == 'd'
-            || assemblerScanner.peekChar(count).character() == 'D');
+    return count > 0 && matchChar(peekChar(count), 'd', 'D');
   }
 
   boolean isNumberStart(char character) {
     return isDecimalDigit(character);
+  }
+
+  private boolean isIdentifier() throws IOException {
+    return isColonOrDollar() || matchChar('b', 'f');
+  }
+
+  private boolean isColonOrDollar() throws IOException {
+    return matchChar(':', '$');
   }
 
   static boolean isDecimalDigit(char character) {
@@ -326,5 +269,72 @@ public class NumberScanner {
 
   private static boolean isDigit(char character, int radix) {
     return Character.digit(character, radix) != -1;
+  }
+
+  private boolean matchChar(char... chars) throws IOException {
+    return matchChar(peekChar(), chars);
+  }
+
+  private boolean matchChar(Char character, char... chars) {
+    for (char ch : chars) {
+      if (checkChar(character, ch)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public boolean matchChar(Predicate<Character> predicate) throws IOException {
+    return matchChar(peekChar(), predicate);
+  }
+
+  private boolean matchChar(Char character, Predicate<Character> predicate) {
+    return checkChar(character, predicate);
+  }
+
+  private boolean checkChar(Char character, char ch) {
+    if (character == null) {
+      return false;
+    }
+
+    return character.character() == ch;
+  }
+
+  private boolean checkChar(Char character, Predicate<Character> predicate) {
+    if (character == null) {
+      return false;
+    }
+
+    return predicate.test(character.character());
+  }
+
+  private Char peekChar() throws IOException {
+    return charReader.peek();
+  }
+
+  private Char peekChar(int position) throws IOException {
+    return charReader.peek(position);
+  }
+
+  private Char appendChar(StringBuilder buffer) throws IOException {
+    return appendChar(buffer, charReader.next());
+  }
+
+  private Char appendChar(StringBuilder buffer, Char ch) {
+    buffer.append(ch.toString());
+
+    return ch;
+  }
+
+  private AssemblerToken createToken(AssemblerTokenType type, Char start, Char end, String text) {
+    return new AssemblerToken(
+        type,
+        sourceInfo,
+        new Position(start.position(), end.position()),
+        start.line(),
+        start.column(),
+        end.column(),
+        text);
   }
 }

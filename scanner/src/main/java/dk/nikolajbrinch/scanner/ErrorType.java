@@ -1,7 +1,8 @@
 package dk.nikolajbrinch.scanner;
 
 public enum ErrorType {
-  UNTERMINATED_STRING("Unterminated string");
+  UNTERMINATED_STRING("Unterminated string"),
+  UNTERMINATED_MACRO_BODY("Unterminated Macro body");
 
   private String message;
 

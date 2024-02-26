@@ -29,7 +29,7 @@ class ParseEndTests {
         ld a, b
         """);
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     Assertions.assertEquals(5, nodes.size());
 

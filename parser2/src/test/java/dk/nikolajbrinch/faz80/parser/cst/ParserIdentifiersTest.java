@@ -27,7 +27,7 @@ class ParserIdentifiersTest {
           end:
           """);
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     Assertions.assertEquals(7, nodes.size());
     Assertions.assertEquals("@id___:", ((BasicLineNode) nodes.get(0)).label().label().text());

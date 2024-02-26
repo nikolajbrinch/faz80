@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 
 /** A simple Char Scanner that implements look ahead */
@@ -22,7 +23,8 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
 
   private int currentPosition = 0;
 
-  private int linePosition = 1;
+  private int previousPosition = currentPosition;
+  private int column = 1;
 
   public BufferedCharReaderImpl(InputStream inputStream) {
     this(inputStream, UTF_8);
@@ -43,8 +45,8 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
   }
 
   @Override
-  public int getLinePosition() {
-    return linePosition;
+  public int getColumn() {
+    return column;
   }
 
   @Override
@@ -63,7 +65,7 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
     Char value = null;
 
     if (currentLine == null) {
-      String string = readLine();
+      String string = readLine(reader);
       if (string != null) {
         currentLine = new Line(lineCount, string);
       } else {
@@ -72,15 +74,16 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
     }
 
     if (currentLine != null) {
-      value = currentLine.read(currentPosition, linePosition);
+      value = currentLine.read(currentPosition, column);
       currentPosition++;
 
-      if (currentLine.isEmpty(linePosition + 1)) {
+      if (currentLine.isEmpty(column + 1)) {
         lineCount++;
-        linePosition = 1;
+        column = 1;
+        previousPosition = currentPosition;
         currentLine = null;
       } else {
-        linePosition++;
+        column++;
       }
     }
 
@@ -93,7 +96,7 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
    * @return String representing a line
    * @throws IOException
    */
-  private String readLine() throws IOException {
+  private static String readLine(Reader reader) throws IOException {
     StringBuilder builder = new StringBuilder();
 
     int read = reader.read();
@@ -127,6 +130,13 @@ public class BufferedCharReaderImpl extends BaseReader<Char> implements CharRead
     }
 
     return builder.toString();
+  }
+
+  @Override
+  public void resetLine() {
+    column = 1;
+    currentPosition = previousPosition;
+    clearBuffer();
   }
 
   @Override

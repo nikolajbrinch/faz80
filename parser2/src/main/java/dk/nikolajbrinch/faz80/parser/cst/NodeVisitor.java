@@ -1,12 +1,14 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentsNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
@@ -66,9 +68,9 @@ public interface NodeVisitor<R> {
 
   R visitEndNode(EndNode node);
 
-  R visitBlockNode(BlockNode node);
+  R visitBlockNode(BlockNode<? extends Node> node);
 
-  R visitScopeNode(ScopeNode node);
+  R visitScopeNode(ScopeNode<? extends Node> node);
 
   R visitMacroCallNode(MacroCallNode node);
 
@@ -163,4 +165,10 @@ public interface NodeVisitor<R> {
   R visitEmptyNode(EmptyNode node);
 
   R visitSpaceNode(SpaceNode node);
+
+  R visitTextNode(TextNode node);
+
+  R visitParametersNode(ParametersNode node);
+
+  R visitMacroSymbolNode(MacroSymbolNode node);
 }

@@ -2,9 +2,10 @@ package dk.nikolajbrinch.faz80.parser.cst.scopes;
 
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockType;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.BodyNode;
 import dk.nikolajbrinch.faz80.parser.cst.symbols.Symbols;
 
-public interface ScopeNode extends BlockNode {
+public interface ScopeNode<B extends BodyNode> extends BlockNode<B> {
   ScopeType scopeType();
 
   Symbols symbols();
@@ -13,5 +14,4 @@ public interface ScopeNode extends BlockNode {
   default BlockType blockType() {
     return BlockType.SCOPE;
   }
-
 }

@@ -11,7 +11,7 @@ class ParseStructMacrosTests {
     List<LineNode> nodes =
         new Parser()
             .parse(new String(getClass().getResourceAsStream("/struct-macros.z80").readAllBytes()))
-            .node()
+            .lines()
             .lines();
 
     for (Node node : nodes) {

@@ -1,11 +1,6 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ParameterNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatEndNode;
@@ -34,6 +29,13 @@ import dk.nikolajbrinch.faz80.parser.cst.instructions.MacroCallNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.OriginNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.VariableNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ConditionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ExpressionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.GroupingOperandNode;
@@ -255,12 +257,12 @@ public interface NodeVisitorAdapter<R> extends NodeVisitor<R> {
   }
 
   @Override
-  default R visitBlockNode(BlockNode node) {
+  default R visitBlockNode(BlockNode<? extends Node> node) {
     return null;
   }
 
   @Override
-  default R visitScopeNode(ScopeNode node) {
+  default R visitScopeNode(ScopeNode<? extends Node> node) {
     return null;
   }
 
@@ -291,6 +293,21 @@ public interface NodeVisitorAdapter<R> extends NodeVisitor<R> {
 
   @Override
   default R visitSpaceNode(SpaceNode node) {
+    return null;
+  }
+
+  @Override
+  default R visitTextNode(TextNode node) {
+    return null;
+  }
+
+  @Override
+  default R visitParametersNode(ParametersNode node) {
+    return null;
+  }
+
+  @Override
+  default R visitMacroSymbolNode(MacroSymbolNode node) {
     return null;
   }
 }

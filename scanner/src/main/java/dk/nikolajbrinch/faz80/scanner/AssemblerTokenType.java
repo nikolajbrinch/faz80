@@ -1,5 +1,6 @@
 package dk.nikolajbrinch.faz80.scanner;
 
+import dk.nikolajbrinch.scanner.Char;
 import dk.nikolajbrinch.scanner.TokenType;
 
 public enum AssemblerTokenType implements TokenType {
@@ -98,5 +99,7 @@ public enum AssemblerTokenType implements TokenType {
   TARGET,
   END,
   DIRECTIVE,
-  ERROR, EOF
+  TEXT,
+  ERROR,
+  EOF;
 }

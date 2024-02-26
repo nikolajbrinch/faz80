@@ -17,14 +17,14 @@ public class Formatter {
 
   private int instructionSize = 24;
 
-  private final CstLabelLengthVisitor labelLengthVisitor = new CstLabelLengthVisitor();
+  private final LabelLengthVisitor labelLengthVisitor = new LabelLengthVisitor();
 
   public String format(int tabStop, String text) throws IOException {
     ProgramNode programNode = parse(text);
 
     int indent = fixedIndent ? maxIndent : calcIndent(programNode, tabStop);
 
-    return new CstFormatVisitor(indent, opcodeSize, directiveSize, instructionSize)
+    return new FormatVisitor(indent, opcodeSize, directiveSize, instructionSize)
         .format(programNode);
   }
 

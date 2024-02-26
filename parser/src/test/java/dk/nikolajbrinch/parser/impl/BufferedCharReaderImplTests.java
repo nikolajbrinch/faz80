@@ -25,17 +25,17 @@ class BufferedCharReaderImplTests {
 
       Assertions.assertEquals('t', charReader.peek().character());
       Assertions.assertEquals(1, charReader.peek().line().number());
-      Assertions.assertEquals(1, charReader.peek().linePosition());
+      Assertions.assertEquals(1, charReader.peek().column());
 
       Assertions.assertEquals('t', charReader.peek(4).character());
       Assertions.assertEquals(1, charReader.peek(4).line().number());
-      Assertions.assertEquals(4, charReader.peek(4).linePosition());
+      Assertions.assertEquals(4, charReader.peek(4).column());
 
       Assertions.assertEquals('t', charReader.next().character());
 
       Assertions.assertEquals('t', charReader.peek(3).character());
       Assertions.assertEquals(1, charReader.peek(3).line().number());
-      Assertions.assertEquals(4, charReader.peek(3).linePosition());
+      Assertions.assertEquals(4, charReader.peek(3).column());
 
       Char last = null;
       while (charReader.hasNext()) {
@@ -44,7 +44,7 @@ class BufferedCharReaderImplTests {
 
       Assertions.assertEquals('\n', last.character());
       Assertions.assertEquals(2, last.line().number());
-      Assertions.assertEquals(12, last.linePosition());
+      Assertions.assertEquals(12, last.column());
       Assertions.assertNull(charReader.peek());
     }
   }
@@ -68,7 +68,7 @@ class BufferedCharReaderImplTests {
 
       Assertions.assertEquals('\n', last.character());
       Assertions.assertEquals(2, last.line().number());
-      Assertions.assertEquals(12, last.linePosition());
+      Assertions.assertEquals(12, last.column());
       Assertions.assertThrows(NoSuchElementException.class, () -> iterator.next());
     }
   }

@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.scanner;
 
-public record Char(int position, Line line, int linePosition, char character) {
+public record Char(int position, Line line, int column, char character) {
 
   @Override
   public String toString() {

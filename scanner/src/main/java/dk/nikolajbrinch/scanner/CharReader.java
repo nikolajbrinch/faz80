@@ -6,7 +6,9 @@ public interface CharReader extends Reader<Char> {
 
   int getPosition();
 
-  int getLinePosition();
+  int getColumn();
 
   int getLineCount();
+
+  void resetLine();
 }

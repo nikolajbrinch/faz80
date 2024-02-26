@@ -1,7 +1,21 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
 import dk.nikolajbrinch.faz80.base.util.StringUtil;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatNode;
+import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatStartNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ConditionalNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ElseIfNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ElseNode;
@@ -30,21 +44,9 @@ import dk.nikolajbrinch.faz80.parser.cst.operands.ConditionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ExpressionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.GroupingOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.RegisterOperandNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ParameterNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.RepeatStartNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.ScopeNode;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import java.util.ArrayList;
@@ -116,7 +118,7 @@ public class NodePrinter implements NodeVisitor<String> {
 
   @Override
   public String visitBlockNode(BlockNode node) {
-    return Stream.of(node.startLine(), node.body(), node.endLine())
+    return Stream.of(node.start(), node.body(), node.end())
         .filter(Objects::nonNull)
         .map(child -> child.accept(this))
         .collect(Collectors.joining());
@@ -187,7 +189,7 @@ public class NodePrinter implements NodeVisitor<String> {
 
   @Override
   public String visitProgramNode(ProgramNode node) {
-    return node.node().accept(this);
+    return node.lines().accept(this);
   }
 
   @Override
@@ -308,16 +310,18 @@ public class NodePrinter implements NodeVisitor<String> {
     }
 
     builder.append(" ");
-    builder.append(
-        node.parameters().stream()
-            .map(parameter -> parameter.accept(this))
-            .collect(Collectors.joining(", ")));
+    builder.append(node.parameters().accept(this));
 
     return builder.toString();
   }
 
   @Override
   public String visitMacroNode(MacroNode node) {
+    return visitBlockNode(node);
+  }
+
+  @Override
+  public String visitMacroSymbolNode(MacroSymbolNode node) {
     return visitBlockNode(node);
   }
 
@@ -446,7 +450,7 @@ public class NodePrinter implements NodeVisitor<String> {
 
   @Override
   public String visitEmptyNode(EmptyNode node) {
-    return null;
+    return "";
   }
 
   @Override
@@ -458,5 +462,30 @@ public class NodePrinter implements NodeVisitor<String> {
             .filter(Objects::nonNull)
             .map(value -> value.accept(this))
             .collect(Collectors.joining(", ")));
+  }
+
+  @Override
+  public String visitTextNode(TextNode node) {
+    return node.text().text();
+  }
+
+  @Override
+  public String visitParametersNode(ParametersNode node) {
+    StringBuilder builder = new StringBuilder();
+
+    if (node.groupStart() != null) {
+      builder.append(node.groupStart().text());
+    }
+
+    builder.append(
+        node.parameters().stream()
+            .map(parameter -> parameter.accept(this))
+            .collect(Collectors.joining(", ")));
+
+    if (node.groupEnd() != null) {
+      builder.append(node.groupEnd().text());
+    }
+
+    return builder.toString();
   }
 }

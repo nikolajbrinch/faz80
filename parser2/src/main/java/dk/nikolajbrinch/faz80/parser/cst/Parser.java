@@ -7,13 +7,7 @@ import dk.nikolajbrinch.faz80.parser.AssemblerTokenProducer;
 import dk.nikolajbrinch.faz80.parser.Condition;
 import dk.nikolajbrinch.faz80.parser.Grouping;
 import dk.nikolajbrinch.faz80.parser.Register;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.blocks.ParameterNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
@@ -47,6 +41,14 @@ import dk.nikolajbrinch.faz80.parser.cst.instructions.MacroCallNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.OriginNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.VariableNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ConditionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ExpressionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.GroupingOperandNode;
@@ -55,7 +57,6 @@ import dk.nikolajbrinch.faz80.parser.cst.operands.RegisterOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.LocalStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.scopes.ScopeNode;
 import dk.nikolajbrinch.faz80.parser.cst.symbols.SymbolInfo;
 import dk.nikolajbrinch.faz80.parser.cst.symbols.SymbolType;
 import dk.nikolajbrinch.faz80.parser.cst.symbols.Symbols;
@@ -120,10 +121,10 @@ public class Parser {
   }
 
   private ProgramNode parse() {
-    return new ProgramNode(globals, parseLines(this::isEof));
+    return new ProgramNode(globals, new LinesNode(parseLines(this::isEof)));
   }
 
-  private CompositeLineNode parseLines(BooleanSupplier predicate) {
+  private List<LineNode> parseLines(BooleanSupplier predicate) {
     List<LineNode> lines = new ArrayList<>();
 
     while (!predicate.getAsBoolean()) {
@@ -134,7 +135,7 @@ public class Parser {
       }
     }
 
-    return new LinesNode(lines);
+    return lines;
   }
 
   public LineNode parseLine() {
@@ -279,7 +280,7 @@ public class Parser {
 
   private LineNode include() {
     IncludeNode includeNode = new IncludeNode(nextToken(), expression());
-    LineNode lineNode = newSingleLine(includeNode);
+    LineNode lineNode = newBasicLine(includeNode);
 
     if (configuration.isResolveIncludes()) {
       String filename =
@@ -342,26 +343,26 @@ public class Parser {
     throw new ParseException("Unknown directive: " + token.text());
   }
 
-  private BlockNode repeat(AssemblerTokenType endToken) {
-    BasicLineNode startLine = newSingleLine(new RepeatStartNode(nextToken(), expression()));
-    CompositeLineNode lines = parseLines(() -> checkType(endToken));
-    LineNode endLine = parseLine();
+  private RepeatNode repeat(AssemblerTokenType endToken) {
+    LineNode start = newBasicLine(new RepeatStartNode(nextToken(), expression()));
+    List<LineNode> lines = parseLines(() -> checkType(endToken));
+    LineNode end = parseLine();
 
-    return new RepeatNode(startLine, lines, endLine);
+    return new RepeatNode(start, new LinesNode(lines), end);
   }
 
   private InstructionNode endRepeat() {
     return new RepeatEndNode(nextToken());
   }
 
-  private ScopeNode local() {
+  private LocalNode local() {
     return nestSymbols(
         () -> {
-          LineNode startLine = newSingleLine(new LocalStartNode(nextToken()));
-          CompositeLineNode lines = parseLines(() -> checkType(AssemblerTokenType.ENDLOCAL));
+          LineNode startLine = newBasicLine(new LocalStartNode(nextToken()));
+          List<LineNode> lines = parseLines(() -> checkType(AssemblerTokenType.ENDLOCAL));
           LineNode endLine = parseLine();
 
-          return new LocalNode(symbols, startLine, lines, endLine);
+          return new LocalNode(symbols, startLine, new LinesNode(lines), endLine);
         });
   }
 
@@ -369,12 +370,12 @@ public class Parser {
     return new LocalEndNode(nextToken());
   }
 
-  private BlockNode phase() {
-    LineNode startLine = newSingleLine(new PhaseStartNode(nextToken(), expression()));
-    CompositeLineNode lines = parseLines(() -> checkType(AssemblerTokenType.DEPHASE));
-    LineNode endLine = parseLine();
+  private PhaseNode phase() {
+    LineNode start = newBasicLine(new PhaseStartNode(nextToken(), expression()));
+    List<LineNode> lines = parseLines(() -> checkType(AssemblerTokenType.DEPHASE));
+    LineNode end = parseLine();
 
-    return new PhaseNode(startLine, lines, endLine);
+    return new PhaseNode(start, new LinesNode(lines), end);
   }
 
   private InstructionNode dePhase() {
@@ -384,29 +385,30 @@ public class Parser {
   private ConditionalNode conditional() {
     AssemblerToken token = nextToken();
 
-    BasicLineNode ifNode =
+    LineNode ifNode =
         switch (token.type()) {
-          case IF -> newSingleLine(new IfNode(token, expression()));
-          case ELSE_IF -> newSingleLine(new ElseIfNode(token, expression()));
+          case IF -> newBasicLine(new IfNode(token, expression()));
+          case ELSE_IF -> newBasicLine(new ElseIfNode(token, expression()));
           default -> null;
         };
 
-    CompositeLineNode thenLines =
+    List<LineNode> thenLines =
         parseLines(
             () ->
                 match(
                     AssemblerTokenType.ENDIF, AssemblerTokenType.ELSE, AssemblerTokenType.ELSE_IF));
 
     return switch (peek().type()) {
-      case ENDIF -> new ConditionalNode(ifNode, thenLines, null, null, parseLine());
+      case ENDIF -> new ConditionalNode(ifNode, new LinesNode(thenLines), null, null, parseLine());
       case ELSE ->
           new ConditionalNode(
               ifNode,
-              thenLines,
+              new LinesNode(thenLines),
               parseLine(),
-              parseLines(() -> match(AssemblerTokenType.ENDIF)),
+              new LinesNode(parseLines(() -> match(AssemblerTokenType.ENDIF))),
               parseLine());
-      case ELSE_IF -> new ConditionalNode(ifNode, thenLines, parseLine(), null, null);
+      case ELSE_IF ->
+          new ConditionalNode(ifNode, new LinesNode(thenLines), parseLine(), null, null);
       default -> null;
     };
   }
@@ -535,7 +537,7 @@ public class Parser {
     return checkType(AssemblerTokenType.COMMA);
   }
 
-  private BlockNode macro(LabelNode label) {
+  private BlockNode<? extends Node> macro(LabelNode label) {
     AssemblerToken token = nextToken();
     AssemblerToken name = label == null ? nextToken() : label.label();
 
@@ -548,6 +550,30 @@ public class Parser {
       extraToken = nextToken();
     }
 
+    LineNode startLine = newBasicLine(new MacroStartNode(token, name, extraToken, parameters()));
+
+    MacroNode macroNode = null;
+
+    if (configuration.isExpandMacros()) {
+      tokenProducer.setMode(Mode.MACRO_BODY);
+      TextNode textNode = new TextNode(expect(AssemblerTokenType.TEXT));
+      tokenProducer.setMode(Mode.NORMAL);
+      LineNode endLine = parseLine();
+
+      MacroSymbolNode macroSymbolNode = new MacroSymbolNode(startLine, textNode, endLine);
+      symbols.assign(macroName, macroSymbolNode);
+    } else {
+      List<LineNode> lines = null;
+      lines = parseLines(() -> checkType(AssemblerTokenType.ENDMACRO));
+      LineNode endLine = parseLine();
+
+      macroNode = new MacroNode(startLine, new LinesNode(lines), endLine);
+    }
+
+    return macroNode;
+  }
+
+  private ParametersNode parameters() {
     List<ParameterNode> parameters = new ArrayList<>();
 
     while (isNotEol()) {
@@ -560,19 +586,7 @@ public class Parser {
       }
     }
 
-    LineNode startLine = newSingleLine(new MacroStartNode(token, name, extraToken, parameters));
-    CompositeLineNode lines = parseLines(() -> checkType(AssemblerTokenType.ENDMACRO));
-    LineNode endLine = parseLine();
-
-    MacroNode macroNode = new MacroNode(startLine, lines, endLine);
-
-    symbols.assign(macroName, macroNode);
-
-    return macroNode;
-  }
-
-  private InstructionNode endMacro() {
-    return new MacroEndNode(nextToken());
+    return new ParametersNode(null, parameters, null);
   }
 
   private ParameterNode parameter() {
@@ -586,6 +600,10 @@ public class Parser {
     }
 
     return new ParameterNode(name, expression);
+  }
+
+  private InstructionNode endMacro() {
+    return new MacroEndNode(nextToken());
   }
 
   private InstructionNode macroCall(AssemblerToken identifier) {
@@ -723,7 +741,7 @@ public class Parser {
     return new EndNode(expect(AssemblerTokenType.END));
   }
 
-  private BasicLineNode newSingleLine(InstructionNode commandNode) {
+  private LineNode newBasicLine(InstructionNode commandNode) {
     return new BasicLineNode(commandNode, comment(), newline());
   }
 

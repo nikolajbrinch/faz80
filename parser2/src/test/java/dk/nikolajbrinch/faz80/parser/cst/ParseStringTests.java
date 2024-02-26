@@ -19,7 +19,7 @@ class ParseStringTests {
             db "Hej" + 'ø' + "med dig"
             """);
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     Assertions.assertEquals(
         "db \"Hej\" + 'ø' + \"med dig\"",

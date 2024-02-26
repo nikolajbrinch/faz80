@@ -115,8 +115,8 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
         sourceInfo,
         new Position(first.position(), last.position()),
         first.line(),
-        first.linePosition(),
-        last.linePosition(),
+        first.column(),
+        last.column(),
         new String(charArray));
   }
 
@@ -197,7 +197,7 @@ public abstract class BaseScanner<E extends TokenType, T extends Token>
                   charReader.getLine() != null
                       ? charReader.getLine()
                       : new Line(charReader.getLineCount(), null),
-                  charReader.getLinePosition());
+                  charReader.getColumn());
         } else {
           token = createToken();
         }

@@ -1,10 +1,10 @@
 package dk.nikolajbrinch.faz80.ide.format;
 
-import dk.nikolajbrinch.faz80.parser.cst.LineNode;
-import dk.nikolajbrinch.faz80.parser.cst.LinesNode;
-import dk.nikolajbrinch.faz80.parser.cst.NodeVisitorAdapter;
-import dk.nikolajbrinch.faz80.parser.cst.LabelNode;
 import dk.nikolajbrinch.faz80.parser.cst.BasicLineNode;
+import dk.nikolajbrinch.faz80.parser.cst.LabelNode;
+import dk.nikolajbrinch.faz80.parser.cst.LinesNode;
+import dk.nikolajbrinch.faz80.parser.cst.Node;
+import dk.nikolajbrinch.faz80.parser.cst.NodeVisitorAdapter;
 import dk.nikolajbrinch.faz80.parser.cst.ProgramNode;
 import dk.nikolajbrinch.faz80.parser.cst.conditional.ConditionalNode;
 import dk.nikolajbrinch.faz80.parser.cst.scopes.ScopeNode;
@@ -12,16 +12,16 @@ import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.stream.Stream;
 
-public class CstLabelLengthVisitor implements NodeVisitorAdapter<Integer> {
+public class LabelLengthVisitor implements NodeVisitorAdapter<Integer> {
 
   @Override
   public Integer visitProgramNode(ProgramNode node) {
-    return node.node().accept(this);
+    return node.lines().accept(this);
   }
 
   @Override
-  public Integer visitScopeNode(ScopeNode node) {
-    return max(Stream.of(node.startLine(), node.body(), node.endLine()));
+  public Integer visitScopeNode(ScopeNode<? extends Node> node) {
+    return max(Stream.of(node.start(), node.body(), node.end()));
   }
 
   @Override
@@ -47,7 +47,7 @@ public class CstLabelLengthVisitor implements NodeVisitorAdapter<Integer> {
     return max(node.lines().stream());
   }
 
-  private Integer max(Stream<LineNode> nodeStream) {
+  private Integer max(Stream<? extends Node> nodeStream) {
     OptionalInt optional =
         nodeStream
             .filter(Objects::nonNull)

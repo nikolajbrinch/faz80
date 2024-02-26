@@ -22,7 +22,7 @@ class ParseSetTests {
             label1: set 4, a
             """);
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     BasicLineNode lineNode = (BasicLineNode) nodes.get(0);
     Assertions.assertEquals("var1::", lineNode.label().label().text());

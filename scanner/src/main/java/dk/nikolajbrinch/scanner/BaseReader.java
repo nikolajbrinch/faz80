@@ -80,6 +80,10 @@ public abstract class BaseReader<T> implements Reader<T> {
     return buffer.size() >= size;
   }
 
+  protected void clearBuffer() {
+    buffer.clear();
+  }
+
   protected abstract T read() throws IOException;
 
   @Override
@@ -114,4 +118,5 @@ public abstract class BaseReader<T> implements Reader<T> {
   public Stream<T> stream() {
     return StreamSupport.stream(this.spliterator(), false);
   }
+
 }

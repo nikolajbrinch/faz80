@@ -1,21 +1,20 @@
-package dk.nikolajbrinch.faz80.parser.cst.blocks;
+package dk.nikolajbrinch.faz80.parser.cst.macros;
 
 import dk.nikolajbrinch.faz80.parser.cst.Node;
 import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.parser.cst.NodeType;
+import dk.nikolajbrinch.faz80.parser.cst.expression.ExpressionNode;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
-import java.util.List;
 
-public record ArgumentNode(AssemblerToken boundsStart, List<AssemblerToken> tokens, AssemblerToken boundsEnd) implements Node {
+public record ParameterNode(AssemblerToken name, ExpressionNode defaultValue) implements Node {
 
   @Override
   public NodeType type() {
-    return NodeType.ARGUMENT;
+    return NodeType.PARAMETER;
   }
 
   @Override
   public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitArgumentNode(this);
+    return visitor.visitParameterNode(this);
   }
-
 }

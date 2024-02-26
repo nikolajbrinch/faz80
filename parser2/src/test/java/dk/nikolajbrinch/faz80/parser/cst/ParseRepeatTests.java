@@ -30,6 +30,6 @@ class ParseRepeatTests {
 
     System.out.println(new NodePrinter().print(program));
 
-    Assertions.assertEquals(4, program.node().lines().size());
+    Assertions.assertEquals(4, program.lines().lines().size());
   }
 }

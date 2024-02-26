@@ -16,11 +16,13 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   private final NumberScanner numberScanner;
 
+  private Radix radix = Radix.DECIMAL;
+
   private Mode mode = Mode.NORMAL;
 
   public AssemblerScanner(ScannerSource source) {
     super(source);
-    this.numberScanner = new NumberScanner(this);
+    this.numberScanner = new NumberScanner(source.getSourceInfo(), this.getCharReader(), radix);
   }
 
   public void setMode(Mode mode) {
@@ -43,6 +45,10 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   @Override
   protected AssemblerToken createToken() throws IOException {
+    if (mode == Mode.MACRO_BODY) {
+      return createMacroBodyToken();
+    }
+
     Char ch = nextChar();
 
     AssemblerToken nextToken = null;
@@ -98,6 +104,84 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     return nextToken;
   }
 
+  private AssemblerToken createMacroBodyToken() throws IOException {
+    Char first = peekChar();
+    Char last = first;
+
+    int index = 0;
+    StringBuilder builder = new StringBuilder();
+
+    int lastPosition = last.position();
+    int lastColumn = last.column();
+
+    while (true) {
+      AssemblerToken token =
+          switch (last.character()) {
+            case '\n', '\\' -> createCharsToken(AssemblerTokenType.NEWLINE, nextChar());
+            case '\r' -> createCarriageReturnToken(nextChar());
+            case '"', '\'' -> createTextToken(nextChar());
+            default -> null;
+          };
+
+      if (token != null) {
+        builder.append(token.text());
+        index = builder.length();
+        lastPosition = getCharReader().getPosition();
+        lastColumn = getCharReader().getColumn();
+      } else {
+        if (isEndOfBody(last)) {
+          break;
+        } else {
+          builder.append(nextChar().character());
+        }
+      }
+
+      last = peekChar();
+    }
+
+    mode = Mode.NORMAL;
+    getCharReader().resetLine();
+
+    return new AssemblerToken(
+        AssemblerTokenType.TEXT,
+        getSourceInfo(),
+        new Position(first.position(), lastPosition),
+        first.line(),
+        first.column(),
+        lastColumn,
+        builder.substring(0, index).toString());
+  }
+
+  private boolean isEndOfBody(Char first) throws IOException {
+    String[] keywords = Directive.ENDMACRO.getKeywords();
+
+    int charLength = -1;
+    for (String keyword : keywords) {
+      charLength = Math.max(charLength, keyword.length());
+    }
+
+    StringBuilder builder = new StringBuilder().append(first.character());
+
+    for (int i = 0; i < charLength; i++) {
+      Char last = peekChar(i + 2);
+
+      if (last != null) {
+        builder.append(last.character());
+      } else {
+        throw new ScanException(
+            new ScanError(
+                ErrorType.UNTERMINATED_MACRO_BODY,
+                createErrorToken(first, last, builder.toString())));
+      }
+
+      if (Directive.ENDMACRO.matchKeyword(builder.toString())) {
+        return true;
+      }
+    }
+
+    return Directive.ENDMACRO.matchKeyword(builder.toString());
+  }
+
   private void sync() throws IOException {
     Char ch = peekChar();
 
@@ -105,18 +189,6 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       nextChar();
       ch = peekChar();
     }
-  }
-
-  @Override
-  protected AssemblerToken createToken(
-      AssemblerTokenType tokenType,
-      SourceInfo sourceInfo,
-      Position position,
-      Line line,
-      int start,
-      int end,
-      String text) {
-    return new AssemblerToken(tokenType, sourceInfo, position, line, start, end, text);
   }
 
   @Override
@@ -277,14 +349,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       type = AssemblerTokenType.CHAR;
     }
 
-    return new AssemblerToken(
-        type,
-        getSourceInfo(),
-        new Position(ch.position(), last.position()),
-        ch.line(),
-        ch.linePosition(),
-        last.linePosition(),
-        builder.toString());
+    return createToken(type, ch, last, builder.toString());
   }
 
   private AssemblerToken createIdentifierToken(Char ch) throws IOException {
@@ -325,14 +390,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       }
     }
 
-    return new AssemblerToken(
-        tokenType,
-        getSourceInfo(),
-        new Position(ch.position(), last.position()),
-        ch.line(),
-        ch.linePosition(),
-        last.linePosition(),
-        text);
+    return createToken(tokenType, ch, last, text);
   }
 
   private AssemblerToken createCommentToken(Char ch) throws IOException {
@@ -343,14 +401,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       last = appendChar(builder);
     }
 
-    return new AssemblerToken(
-        AssemblerTokenType.COMMENT,
-        getSourceInfo(),
-        new Position(ch.position(), last.position()),
-        ch.line(),
-        ch.linePosition(),
-        last.linePosition(),
-        builder.toString());
+    return createToken(AssemblerTokenType.COMMENT, ch, last, builder.toString());
   }
 
   private Char appendStringChar(StringBuilder builder) throws IOException {
@@ -387,13 +438,29 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
   }
 
   private AssemblerToken createErrorToken(Char start, Char end, String text) {
+    return createToken(AssemblerTokenType.ERROR, start, end, text);
+  }
+
+  private AssemblerToken createToken(AssemblerTokenType type, Char start, Char end, String text) {
     return new AssemblerToken(
-        AssemblerTokenType.ERROR,
+        type,
         getSourceInfo(),
         new Position(start.position(), end.position()),
         start.line(),
-        start.linePosition(),
-        end.linePosition(),
+        start.column(),
+        end.column(),
         text);
+  }
+
+  @Override
+  protected AssemblerToken createToken(
+      AssemblerTokenType tokenType,
+      SourceInfo sourceInfo,
+      Position position,
+      Line line,
+      int start,
+      int end,
+      String text) {
+    return new AssemblerToken(tokenType, sourceInfo, position, line, start, end, text);
   }
 }

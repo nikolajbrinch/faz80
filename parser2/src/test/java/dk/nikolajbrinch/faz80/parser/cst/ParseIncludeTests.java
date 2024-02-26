@@ -32,7 +32,7 @@ class ParseIncludeTests {
 
     System.out.println(new NodePrinter().print(new Parser().parse(tempFile.toFile())));
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
     Assertions.assertEquals(2, nodes.size());
   }
@@ -68,8 +68,16 @@ class ParseIncludeTests {
 
     System.out.println(new NodePrinter().print(new Parser().parse(tempFile.toFile())));
 
-    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).node().lines();
+    List<LineNode> nodes = new Parser().parse(tempFile.toFile()).lines().lines();
 
-    Assertions.assertEquals(7, nodes.size());
+    Assertions.assertEquals(6, nodes.size());
+
+    Assertions.assertEquals(
+        7,
+        new Parser(new ParserConfiguration(true, false))
+            .parse(tempFile.toFile())
+            .lines()
+            .lines()
+            .size());
   }
 }
