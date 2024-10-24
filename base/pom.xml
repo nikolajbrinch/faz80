@@ -16,6 +16,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
+<<<<<<< HEAD
+=======
+      <version>5.10.2</version>
+      <scope>test</scope>
+>>>>>>> ba9f9439c76cba03dc3698ab1b6c36cf45b9726c
     </dependency>
   </dependencies>
 
@@ -24,6 +29,24 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+<<<<<<< HEAD
+=======
+        <version>0.8.12</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>generate-code-coverage-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+>>>>>>> ba9f9439c76cba03dc3698ab1b6c36cf45b9726c
       </plugin>
     </plugins>
   </build>
