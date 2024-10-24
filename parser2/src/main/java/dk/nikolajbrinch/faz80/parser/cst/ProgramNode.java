@@ -10,8 +10,4 @@ public record ProgramNode(Symbols symbols, LinesNode lines) implements Node {
     return NodeType.PROGRAM;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitProgramNode(this);
-  }
 }

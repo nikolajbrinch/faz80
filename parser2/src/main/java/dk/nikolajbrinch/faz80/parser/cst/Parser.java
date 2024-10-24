@@ -3,10 +3,10 @@ package dk.nikolajbrinch.faz80.parser.cst;
 import dk.nikolajbrinch.faz80.base.logging.Logger;
 import dk.nikolajbrinch.faz80.base.logging.LoggerFactory;
 import dk.nikolajbrinch.faz80.base.util.StringUtil;
-import dk.nikolajbrinch.faz80.parser.AssemblerTokenProducer;
-import dk.nikolajbrinch.faz80.parser.Condition;
-import dk.nikolajbrinch.faz80.parser.Grouping;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.AssemblerTokenProducer;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
+import dk.nikolajbrinch.faz80.parser.base.Grouping;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
@@ -72,6 +72,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -171,6 +172,7 @@ public class Parser {
     AssemblerToken token = peek();
 
     return switch (token.type()) {
+      case SECTION -> section();
       case INCLUDE -> include();
       case MACRO -> macro(label);
       case REPEAT -> repeat(AssemblerTokenType.ENDREPEAT);
@@ -195,7 +197,8 @@ public class Parser {
       case ALIGN -> align();
       case INSERT -> insert();
       case DATA_BYTE -> dataByte();
-      case DATA_WORD -> dataWord();
+      case DATA_WORD_LE -> dataWordLe();
+      case DATA_WORD_BE -> dataWordBe();
       case DATA_LONG -> dataLong();
       case DATA_TEXT -> dataText();
       case DATA_BLOCK -> dataBlock();
@@ -278,6 +281,15 @@ public class Parser {
     return new AlignmentNode(token, alignment, fillByte);
   }
 
+  private LineNode section() {
+    AssemblerToken token = nextToken();
+    AssemblerToken name = nextToken();
+
+    SectionNode sectionNode = new SectionNode(token, name);
+
+    return newBasicLine(sectionNode);
+ }
+
   private LineNode include() {
     IncludeNode includeNode = new IncludeNode(nextToken(), expression());
     LineNode lineNode = newBasicLine(includeNode);
@@ -305,8 +317,12 @@ public class Parser {
     return new DataNode(DataType.BYTE, nextToken(), expressions());
   }
 
-  private InstructionNode dataWord() {
-    return new DataNode(DataType.WORD, nextToken(), expressions());
+  private InstructionNode dataWordLe() {
+    return new DataNode(DataType.WORD_LE, nextToken(), expressions());
+  }
+
+  private InstructionNode dataWordBe() {
+    return new DataNode(DataType.WORD_BE, nextToken(), expressions());
   }
 
   private InstructionNode dataLong() {
@@ -621,9 +637,23 @@ public class Parser {
       argumentsNode = new ArgumentsNode(null, arguments(null), null);
     }
 
-    symbols.reference(identifier.text(), symbols.lookup(identifier.text()));
+    MacroCallNode macroCallNode = new MacroCallNode(identifier, argumentsNode);
 
-    return new MacroCallNode(identifier, argumentsNode);
+    if (configuration.isExpandMacros()) {
+      expandMacro(macroCallNode, symbols);
+      return null;
+    } else {
+      symbols.reference(identifier.text(), symbols.lookup(identifier.text()));
+    }
+
+    return macroCallNode;
+  }
+
+  private void expandMacro(MacroCallNode macroCallNode, Symbols symbols) {
+    String text = macroCallNode.name().text();
+    Optional<Node> node = symbols.get(text);
+
+
   }
 
   private List<ArgumentNode> arguments(AssemblerTokenType groupingEnd) {
@@ -762,7 +792,7 @@ public class Parser {
           "Line: "
               + token.line().number()
               + ", column: "
-              + token.start()
+              + token.startColumn()
               + " - Expected "
               + type.name()
               + ", got "

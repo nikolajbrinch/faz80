@@ -86,15 +86,15 @@
                   </items>
                 </SplitPane>
               </Tab>
-              <Tab text="Errors" fx:id="errorsTab">
-                <TableView fx:id="errorTableView" VBox.vgrow="ALWAYS">
+              <Tab text="Messages" fx:id="messageTab">
+                <TableView fx:id="messageTableView" VBox.vgrow="ALWAYS">
                   <columns>
-                    <TableColumn fx:id="errorLocation" prefWidth="150.0" text="Location"/>
-                    <TableColumn fx:id="errorType" prefWidth="70.0" text="Type"/>
-                    <TableColumn fx:id="errorLine" prefWidth="50.0" text="Line"/>
-                    <TableColumn fx:id="errorTask" prefWidth="70.0" text="Task"/>
-                    <TableColumn fx:id="errorToken" prefWidth="120.0" text="Token"/>
-                    <TableColumn fx:id="errorDescription" prefWidth="500.0" text="Description"/>
+                    <TableColumn fx:id="messageType" prefWidth="70.0" text="Type"/>
+                    <TableColumn fx:id="messageLocation" prefWidth="150.0" text="Location"/>
+                    <TableColumn fx:id="messageLine" prefWidth="50.0" text="Line"/>
+                    <TableColumn fx:id="messageTask" prefWidth="70.0" text="Task"/>
+                    <TableColumn fx:id="messageToken" prefWidth="120.0" text="Token"/>
+                    <TableColumn fx:id="messageDescription" prefWidth="500.0" text="Description"/>
                   </columns>
                 </TableView>
               </Tab>
@@ -113,7 +113,7 @@
           <MenuItem mnemonicParsing="false" onAction="#openFile" text="Open…"
             accelerator="Shortcut+O"/>
 
-          <Menu mnemonicParsing="false" text="Open Recent"/>
+          <Menu mnemonicParsing="false" text="Open Recent" fx:id="recentFilesMenu"/>
           <SeparatorMenuItem mnemonicParsing="false"/>
           <MenuItem mnemonicParsing="false" text="Close" onAction="#closeFile"
             accelerator="Shortcut+W"/>
@@ -145,7 +145,7 @@
       </Menu>
       <Menu mnemonicParsing="false" text="Help">
         <items>
-          <MenuItem mnemonicParsing="false" text="About FZA80"/>
+          <MenuItem mnemonicParsing="false" text="About FZA80" onAction="#about"/>
         </items>
       </Menu>
     </menus>

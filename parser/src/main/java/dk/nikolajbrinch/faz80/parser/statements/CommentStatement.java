@@ -7,11 +7,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record CommentStatement(AssemblerToken comment) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitCommentStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() {
     return comment.sourceInfo();
   }

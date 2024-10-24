@@ -7,11 +7,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record EndStatement(AssemblerToken token) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitEndStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() {
     return token.sourceInfo();
   }

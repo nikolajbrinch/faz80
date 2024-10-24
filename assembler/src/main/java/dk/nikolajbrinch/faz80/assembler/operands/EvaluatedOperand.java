@@ -2,9 +2,9 @@ package dk.nikolajbrinch.faz80.assembler.operands;
 
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
 import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.Condition;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 
 public record EvaluatedOperand(
     Object operand, Object displacement, boolean isIndirect, AddressingMode addressingMode) {

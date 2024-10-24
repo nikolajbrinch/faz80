@@ -3,14 +3,16 @@ package dk.nikolajbrinch.faz80.compiler;
 import dk.nikolajbrinch.faz80.assembler.AssembleResult;
 import dk.nikolajbrinch.faz80.assembler.Assembled;
 import dk.nikolajbrinch.faz80.assembler.Assembler;
-import dk.nikolajbrinch.faz80.parser.evaluator.ExpressionEvaluator;
+import dk.nikolajbrinch.faz80.base.logging.Logger;
+import dk.nikolajbrinch.faz80.base.logging.LoggerFactory;
 import dk.nikolajbrinch.faz80.linker.LinkResult;
 import dk.nikolajbrinch.faz80.linker.Linker;
+import dk.nikolajbrinch.faz80.parser.AssemblerAnalyzer;
 import dk.nikolajbrinch.faz80.parser.AssemblerParseResult;
 import dk.nikolajbrinch.faz80.parser.AssemblerParser;
+import dk.nikolajbrinch.faz80.parser.base.BaseMessage;
+import dk.nikolajbrinch.faz80.parser.evaluator.ExpressionEvaluator;
 import dk.nikolajbrinch.faz80.parser.statements.BlockStatement;
-import dk.nikolajbrinch.faz80.base.errors.BaseError;
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,7 +20,9 @@ import java.util.List;
 
 public class Compiler {
 
-  private final List<BaseError<? extends BaseException>> errors = new ArrayList<>();
+  private final Logger logger = LoggerFactory.getLogger();
+
+  private final List<BaseMessage> messages = new ArrayList<>();
 
   private AssemblerParser parser;
   private Assembler assembler;
@@ -61,31 +65,47 @@ public class Compiler {
   }
 
   public void parse(String source) throws IOException {
+    long currentTime = System.currentTimeMillis();
     parser = new AssemblerParser(directory);
     parseResult = parser.parse(source);
+    logger.debug("Parsing took: " + (System.currentTimeMillis() - currentTime) + "ms");
 
-    errors.clear();
-    errors.addAll(parser.getErrors());
+    currentTime = System.currentTimeMillis();
+    parseResult = new AssemblerAnalyzer().analyze(parseResult);
+    logger.debug("Analyzing took: " + (System.currentTimeMillis() - currentTime) + "ms");
+
+    messages.clear();
+    messages.addAll(parseResult.messages());
   }
 
   public void parse(File file) throws IOException {
+    long currentTime = System.currentTimeMillis();
     parser = new AssemblerParser(file.getParentFile());
     parseResult = parser.parse(file);
+    logger.debug("Parsing took: " + (System.currentTimeMillis() - currentTime) + "ms");
 
-    errors.clear();
-    errors.addAll(parser.getErrors());
+    currentTime = System.currentTimeMillis();
+    parseResult = new AssemblerAnalyzer().analyze(parseResult);
+    logger.debug("Analyzing took: " + (System.currentTimeMillis() - currentTime) + "ms");
+
+    messages.clear();
+    messages.addAll(parseResult.messages());
   }
 
   public void assemble(BlockStatement block) {
+    long currentTime = System.currentTimeMillis();
     assembler = new Assembler(new ExpressionEvaluator());
     assembleResult = assembler.assemble(block);
-    errors.addAll(assembleResult.errors());
+    messages.addAll(assembleResult.messages());
+    logger.debug("Assembling took: " + (System.currentTimeMillis() - currentTime) + "ms");
   }
 
   public void link(Assembled assembled) {
+    long currentTime = System.currentTimeMillis();
     linker = new Linker();
     linkResult = linker.link(assembled);
-    errors.addAll(linkResult.errors());
+    messages.addAll(linkResult.messages());
+    logger.debug("Linking took: " + (System.currentTimeMillis() - currentTime) + "ms");
   }
 
   public AssemblerParseResult getParseResult() {
@@ -101,10 +121,10 @@ public class Compiler {
   }
 
   public boolean hasErrors() {
-    return !errors.isEmpty();
+    return messages.stream().anyMatch(BaseMessage::isError);
   }
 
-  public List<BaseError<? extends BaseException>> getErrors() {
-    return errors;
+  public List<BaseMessage> getMessages() {
+    return messages;
   }
 }

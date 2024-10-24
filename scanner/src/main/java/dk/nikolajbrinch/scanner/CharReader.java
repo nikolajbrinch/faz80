@@ -2,11 +2,11 @@ package dk.nikolajbrinch.scanner;
 
 public interface CharReader extends Reader<Char> {
 
-  Line getLine();
+  Line getCurrentLine();
 
-  int getPosition();
+  int getCurrentPosition();
 
-  int getColumn();
+  int getCurrentColumn();
 
   int getLineCount();
 

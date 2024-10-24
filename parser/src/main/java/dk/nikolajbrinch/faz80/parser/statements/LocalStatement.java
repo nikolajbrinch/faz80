@@ -7,11 +7,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record LocalStatement(AssemblerToken startToken, AssemblerToken endToken, BlockStatement block) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitLocalStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return block.sourceInfo(); }
 
   @Override

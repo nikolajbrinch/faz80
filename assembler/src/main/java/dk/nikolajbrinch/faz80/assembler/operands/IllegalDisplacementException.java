@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.assembler.operands;
 
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
 
 public class IllegalDisplacementException extends RuntimeException {
 

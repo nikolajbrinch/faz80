@@ -1,12 +1,12 @@
 package dk.nikolajbrinch.faz80.parser.statements;
 
-import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.SourceInfo;
 
-public interface Statement {
-
-  <R> R accept(StatementVisitor<R> visitor);
+public sealed interface Statement
+    permits AlignStatement, AssertStatement, AssignStatement, BlockStatement, CommentStatement, ConditionalStatement, EmptyStatement,
+    EndStatement, ExpressionStatement, GlobalStatement, IncludeStatement, InsertStatement, InstructionStatement, LocalStatement,
+    MacroCallStatement, MacroStatement, OriginStatement, PhaseStatement, RepeatStatement, SectionStatement, ValuesStatement {
 
   SourceInfo sourceInfo();
 

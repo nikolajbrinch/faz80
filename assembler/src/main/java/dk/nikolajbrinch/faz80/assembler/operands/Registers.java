@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.assembler.operands;
 
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 import java.util.Map;
 
 public class Registers {

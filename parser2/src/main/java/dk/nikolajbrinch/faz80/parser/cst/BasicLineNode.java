@@ -15,8 +15,4 @@ public record BasicLineNode(
     return NodeType.SINGLE_LINE;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitSingleLineNode(this);
-  }
 }

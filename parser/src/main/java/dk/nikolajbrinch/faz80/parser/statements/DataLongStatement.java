@@ -9,11 +9,6 @@ import java.util.List;
 public record DataLongStatement(AssemblerToken token, List<Expression> values) implements ValuesStatement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitDataLongStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() {
     return values.isEmpty() ? null : values.get(0).sourceInfo();
   }

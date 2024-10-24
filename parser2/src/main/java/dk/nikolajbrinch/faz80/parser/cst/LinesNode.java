@@ -12,11 +12,6 @@ public record LinesNode(List<LineNode> lines) implements LineNode, BodyNode {
     return NodeType.LINES;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitLinesNode(this);
-  }
-
   public <R> Stream<R> map(Function<? super LineNode, ? extends R> mapper) {
     return lines.stream().map(mapper);
   }

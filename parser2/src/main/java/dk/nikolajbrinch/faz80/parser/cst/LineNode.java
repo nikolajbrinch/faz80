@@ -1,3 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
-public interface LineNode extends Node {}
+import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
+import dk.nikolajbrinch.faz80.parser.cst.conditional.ConditionalNode;
+
+public sealed interface LineNode extends Node
+    permits BasicLineNode, BlockNode, ConditionalNode, LinesNode {}

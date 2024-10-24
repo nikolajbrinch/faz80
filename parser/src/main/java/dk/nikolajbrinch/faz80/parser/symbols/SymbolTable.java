@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.parser.symbols;
 
-import dk.nikolajbrinch.faz80.parser.IdentifierUtil;
+import dk.nikolajbrinch.faz80.parser.base.IdentifierNormalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class SymbolTable {
   }
 
   public Optional<?> get(String name) {
-    String normalizedName = IdentifierUtil.normalize(name);
+    String normalizedName = IdentifierNormalizer.normalize(name);
 
     if (symbolTypes.containsKey(normalizedName)) {
       List<Optional<?>> values = symbols.get(normalizedName);
@@ -50,7 +50,7 @@ public class SymbolTable {
   }
 
   public SymbolType getSymbolType(String name) {
-    String normalizedName = IdentifierUtil.normalize(name);
+    String normalizedName = IdentifierNormalizer.normalize(name);
 
     if (symbolTypes.containsKey(normalizedName)) {
       return symbolTypes.get(normalizedName);
@@ -64,7 +64,7 @@ public class SymbolTable {
   }
 
   public boolean exists(String name) {
-    String normalizedName = IdentifierUtil.normalize(name);
+    String normalizedName = IdentifierNormalizer.normalize(name);
 
     if (symbolTypes.containsKey(normalizedName)) {
       return true;
@@ -78,7 +78,7 @@ public class SymbolTable {
   }
 
   public Optional<?> assign(String name, SymbolType type, Optional<?> symbol) {
-    String normalizedName = IdentifierUtil.normalize(name);
+    String normalizedName = IdentifierNormalizer.normalize(name);
 
     SymbolType symbolType = symbolTypes.get(normalizedName);
 
@@ -102,7 +102,7 @@ public class SymbolTable {
   }
 
   public void define(String name, SymbolType type) {
-    String normalizedName = IdentifierUtil.normalize(name);
+    String normalizedName = IdentifierNormalizer.normalize(name);
 
     symbolTypes.put(normalizedName, type);
   }

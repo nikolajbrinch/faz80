@@ -65,3 +65,10 @@
   -rtfx-underline-offset: 1px;
   -rtfx-underline-dash-array: 1px 3px;
 }
+
+.warning-class {
+  -rtfx-underline-color: #FB8500;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-offset: 1px;
+  -rtfx-underline-dash-array: 1px 3px;
+}

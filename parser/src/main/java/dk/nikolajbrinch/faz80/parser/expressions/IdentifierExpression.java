@@ -7,11 +7,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record IdentifierExpression(AssemblerToken token) implements Expression {
 
   @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
-    return visitor.visitIdentifierExpression(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return token.sourceInfo(); }
 
   @Override

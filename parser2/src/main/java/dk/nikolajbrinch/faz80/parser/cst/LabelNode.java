@@ -10,8 +10,4 @@ public record LabelNode(AssemblerToken label) implements InstructionNode {
     return NodeType.LABEL;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitLabelNode(this);
-  }
 }

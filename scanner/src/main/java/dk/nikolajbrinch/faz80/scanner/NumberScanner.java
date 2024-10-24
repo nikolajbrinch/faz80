@@ -7,6 +7,9 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 import java.io.IOException;
 import java.util.function.Predicate;
 
+/**
+ * Scans numbers from the source
+ */
 public class NumberScanner {
 
   private final SourceInfo sourceInfo;

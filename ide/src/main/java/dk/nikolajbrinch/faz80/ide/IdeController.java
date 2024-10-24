@@ -1,17 +1,20 @@
 package dk.nikolajbrinch.faz80.ide;
 
 import dk.nikolajbrinch.faz80.assembler.AssembleResult;
+import dk.nikolajbrinch.faz80.formatter.Formatter;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeUtil;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeValue;
+import dk.nikolajbrinch.faz80.ide.config.Config;
 import dk.nikolajbrinch.faz80.ide.editor.EditorTabController;
-import dk.nikolajbrinch.faz80.ide.format.Formatter;
 import dk.nikolajbrinch.faz80.ide.symbols.SymbolProperty;
 import dk.nikolajbrinch.faz80.ide.symbols.SymbolTableBuilder;
 import dk.nikolajbrinch.faz80.linker.LinkResult;
-import dk.nikolajbrinch.faz80.base.errors.BaseError;
+import dk.nikolajbrinch.faz80.parser.base.BaseMessage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javafx.application.Platform;
@@ -19,8 +22,12 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -30,12 +37,13 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class IdeController {
 
   private final OutputBuilder outputBuilder = new OutputBuilder();
   private final ListingBuilder listingBuilder = new ListingBuilder();
-  private final ErrorListBuilder errorListBuilder = new ErrorListBuilder();
+  private final MessageListBuilder messageListBuilder = new MessageListBuilder();
   private final SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder();
   private final Formatter formatter = new Formatter();
   private final TaskManager taskManager = new TaskManager();
@@ -58,21 +66,21 @@ public class IdeController {
 
   @FXML private Tab outputTab;
 
-  @FXML private Tab errorsTab;
+  @FXML private Tab messageTab;
 
-  @FXML private TableView<ErrorProperty> errorTableView;
+  @FXML private TableView<MessageProperty> messageTableView;
 
-  @FXML private TableColumn<ErrorProperty, String> errorLocation;
+  @FXML private TableColumn<MessageProperty, String> messageType;
 
-  @FXML private TableColumn<ErrorProperty, String> errorType;
+  @FXML private TableColumn<MessageProperty, String> messageLocation;
 
-  @FXML private TableColumn<ErrorProperty, Integer> errorLine;
+  @FXML private TableColumn<MessageProperty, Integer> messageLine;
 
-  @FXML private TableColumn<ErrorProperty, String> errorTask;
+  @FXML private TableColumn<MessageProperty, String> messageTask;
 
-  @FXML private TableColumn<ErrorProperty, String> errorToken;
+  @FXML private TableColumn<MessageProperty, String> messageToken;
 
-  @FXML private TableColumn<ErrorProperty, String> errorDescription;
+  @FXML private TableColumn<MessageProperty, String> messageDescription;
 
   @FXML private TextArea output;
 
@@ -80,12 +88,16 @@ public class IdeController {
 
   @FXML private Button assembleButton;
 
+  @FXML private Menu recentFilesMenu;
+
   private int untitledCounter = 1;
+
+  private LruFiles lruFiles = new LruFiles(15);
 
   public void initialize() throws IOException {
     assembleButton.setDisable(true);
     setupSymbolTable();
-    setupErrorsTab();
+    setupMessageTab();
 
     editorTabPane
         .getSelectionModel()
@@ -109,7 +121,7 @@ public class IdeController {
         .getSelectionModel()
         .selectedItemProperty()
         .addListener((v, oldValue, newValue) -> treeHighlightLine(newValue));
-    errorTableView
+    messageTableView
         .getSelectionModel()
         .selectedItemProperty()
         .addListener((v, oldValue, newValue) -> tableHighlightLine(newValue));
@@ -119,12 +131,26 @@ public class IdeController {
     createTab();
   }
 
-  public void openFile(ActionEvent actionEvent) throws IOException {
+  public void openFile(ActionEvent actionEvent) {
     FileChooser fileChooser = new FileChooser();
     File file = fileChooser.showOpenDialog(rootLayout.getScene().getWindow());
 
     if (file != null) {
+      doFileOpen(file);
+    }
+  }
+
+  private void doFileOpen(File file) {
+    try {
       createTab(file.getName(), file);
+      lruFiles.addFile(file.toPath());
+      Config.INSTANCE
+          .setLruFiles(Arrays.asList(lruFiles.getRecentFiles()))
+          .setWorkingDirectory(file.getParentFile().toPath())
+          .save();
+      updateRecentFilesMenu();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 
@@ -138,9 +164,9 @@ public class IdeController {
     EditorTabController controller = getTabController();
     controller.compile();
 
-    statusTabPane.getSelectionModel().select(errorsTab);
+    statusTabPane.getSelectionModel().select(messageTab);
 
-    updateErrors(controller.getErrors());
+    updateMessages(controller.getMessages());
 
     if (!controller.hasErrors()) {
       updateOutput(controller.getLinkResult());
@@ -152,8 +178,7 @@ public class IdeController {
     EditorTabController controller = getTabController();
     String text = controller.getEditor().getText();
     String formattedText = formatter.format(controller.getTabStop(), text);
-    Platform.runLater(
-        () -> getTabController().getEditor().replaceText(formattedText));
+    Platform.runLater(() -> getTabController().getEditor().replaceText(formattedText));
   }
 
   private void updateSymbols(TreeItem<AstTreeValue> node) {
@@ -167,7 +192,7 @@ public class IdeController {
     }
   }
 
-  private void tableHighlightLine(ErrorProperty error) {
+  private void tableHighlightLine(MessageProperty error) {
     if (error != null) {
       getTabController().highlightLine(error.getLine());
     }
@@ -179,25 +204,25 @@ public class IdeController {
     }
 
     astTreeView.setRoot(null);
-    statusTabPane.getSelectionModel().select(errorsTab);
+    statusTabPane.getSelectionModel().select(messageTab);
     EditorTabController controller = getTabController(tab);
     controller.parse();
 
     assembleButton.setDisable(controller.hasErrors());
-    updateErrors(controller.getErrors());
+    updateMessages(controller.getMessages());
     updateOutput(controller.getLinkResult());
     updateListing(controller.getAssembleResult());
   }
 
-  private void updateErrors(List<BaseError<?>> errors) {
-    ObservableList<ErrorProperty> data = errorListBuilder.build(errors, getFile());
+  private void updateMessages(List<BaseMessage> messages) {
+    ObservableList<MessageProperty> data = messageListBuilder.build(messages, getFile());
 
     Platform.runLater(
         () -> {
-          errorTableView.setItems(data);
+          messageTableView.setItems(data);
 
           if (!data.isEmpty()) {
-            statusTabPane.getSelectionModel().select(errorsTab);
+            statusTabPane.getSelectionModel().select(messageTab);
           }
         });
   }
@@ -234,7 +259,7 @@ public class IdeController {
 
     tab.setText(title);
     controller.astTreeProperty().addListener((v, oldValue, newValue) -> treeChanged(newValue));
-    controller.errorsProperty().addListener((v, oldValue, newValue) -> updateErrors(newValue));
+    controller.errorsProperty().addListener((v, oldValue, newValue) -> updateMessages(newValue));
 
     if (file != null) {
       controller.setFile(file);
@@ -274,17 +299,57 @@ public class IdeController {
     symbolTableView.setPlaceholder(new Label(""));
   }
 
-  private void setupErrorsTab() {
-    errorLocation.setCellValueFactory(cellData -> cellData.getValue().locationProperty());
-    errorType.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
-    errorLine.setCellValueFactory(cellData -> cellData.getValue().lineProperty().asObject());
-    errorTask.setCellValueFactory(cellData -> cellData.getValue().taskProperty());
-    errorToken.setCellValueFactory(cellData -> cellData.getValue().tokenProperty());
-    errorDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
-    errorTableView.setPlaceholder(new Label(""));
+  private void setupMessageTab() {
+    messageType.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
+    messageLocation.setCellValueFactory(cellData -> cellData.getValue().locationProperty());
+    messageLine.setCellValueFactory(cellData -> cellData.getValue().lineProperty().asObject());
+    messageTask.setCellValueFactory(cellData -> cellData.getValue().taskProperty());
+    messageToken.setCellValueFactory(cellData -> cellData.getValue().tokenProperty());
+    messageDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
+    messageTableView.setPlaceholder(new Label(""));
   }
 
   public void dispose() {
     taskManager.shutdown();
+  }
+
+  public void about(ActionEvent actionEvent) {
+    Alert aboutDialog = new Alert(AlertType.INFORMATION);
+    aboutDialog.setTitle("About");
+    aboutDialog.setHeaderText("About FAZ80");
+    aboutDialog.setContentText("Version: 1.0\n© 2024 Nikolaj Brinch Jørgensen");
+
+    Stage stage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
+    // stage.getIcons().add(new Image("path_to_icon.png"));
+
+    aboutDialog.showAndWait();
+  }
+
+  private void updateRecentFilesMenu() {
+    recentFilesMenu.getItems().clear();
+
+    Path workingDirectory = Config.INSTANCE.getWorkingDirectory();
+
+    for (Path file : lruFiles.getRecentFiles()) {
+      Path path = file;
+
+      if (workingDirectory != null) {
+        path = workingDirectory.relativize(file);
+      }
+
+      MenuItem fileItem = new MenuItem(path.toString());
+      fileItem.setOnAction(e -> doFileOpen(file.toFile()));
+      recentFilesMenu.getItems().add(fileItem);
+    }
+  }
+
+  public void setLruFiles(List<Path> lruFiles) {
+    if (lruFiles != null) {
+      for (Path file : lruFiles.reversed()) {
+        this.lruFiles.addFile(file);
+      }
+    }
+
+    Platform.runLater(this::updateRecentFilesMenu);
   }
 }

@@ -1,7 +1,8 @@
 package dk.nikolajbrinch.faz80.assembler;
 
+import dk.nikolajbrinch.faz80.parser.base.BaseException;
 import dk.nikolajbrinch.faz80.parser.statements.Statement;
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
+
 
 public class AssembleException extends BaseException {
 

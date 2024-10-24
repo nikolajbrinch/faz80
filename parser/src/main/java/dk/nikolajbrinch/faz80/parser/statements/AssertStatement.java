@@ -8,10 +8,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record AssertStatement(AssemblerToken token, Expression expression) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitAssertStatement(this);
-  }
-  @Override
   public SourceInfo sourceInfo() { return expression.sourceInfo(); }
 
   @Override

@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.faz80.assembler.operands;
 
-import dk.nikolajbrinch.faz80.parser.values.NumberValue.Size;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue.Size;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 
 public class AddressingModeDecoder {
 

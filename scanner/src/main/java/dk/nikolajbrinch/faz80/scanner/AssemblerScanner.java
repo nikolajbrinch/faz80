@@ -2,6 +2,7 @@ package dk.nikolajbrinch.faz80.scanner;
 
 import dk.nikolajbrinch.scanner.BaseScanner;
 import dk.nikolajbrinch.scanner.Char;
+import dk.nikolajbrinch.scanner.CharReaderFactory;
 import dk.nikolajbrinch.scanner.ErrorType;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.Position;
@@ -25,6 +26,11 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     this.numberScanner = new NumberScanner(source.getSourceInfo(), this.getCharReader(), radix);
   }
 
+  public AssemblerScanner(ScannerSource source, CharReaderFactory factory) {
+    super(source, factory);
+    this.numberScanner = new NumberScanner(source.getSourceInfo(), this.getCharReader(), radix);
+  }
+
   public void setMode(Mode mode) {
     this.mode = mode;
   }
@@ -38,9 +44,9 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
   @Override
   protected AssemblerToken createEofToken(
-      SourceInfo sourceInfo, Position position, Line line, int linePosition) {
+      SourceInfo sourceInfo, Position position, Line line, int column) {
     return new AssemblerToken(
-        AssemblerTokenType.EOF, sourceInfo, position, line, linePosition, linePosition, "");
+        AssemblerTokenType.EOF, sourceInfo, position, line, column, column, "");
   }
 
   @Override
@@ -67,7 +73,7 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
             case '}' -> createCharsToken(AssemblerTokenType.RIGHT_BRACE, ch);
             case '+' -> createCharsToken(AssemblerTokenType.PLUS, ch);
             case '-' -> createCharsToken(AssemblerTokenType.MINUS, ch);
-            case '*' -> createCharsToken(AssemblerTokenType.STAR, ch);
+            case '*' -> createStarBasedToken(ch);
             case '/' -> createCharsToken(AssemblerTokenType.SLASH, ch);
             case '^' -> createCaretBaseToken(ch);
             case '&' -> createAmpersandBasedToken(ch);
@@ -126,8 +132,8 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       if (token != null) {
         builder.append(token.text());
         index = builder.length();
-        lastPosition = getCharReader().getPosition();
-        lastColumn = getCharReader().getColumn();
+        lastPosition = getCharReader().getCurrentPosition();
+        lastColumn = getCharReader().getCurrentColumn();
       } else {
         if (isEndOfBody(last)) {
           break;
@@ -196,6 +202,14 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
     return token.type() == AssemblerTokenType.EOF;
   }
 
+  private AssemblerToken createStarBasedToken(Char ch) throws IOException {
+    if (checkNextChar('*')) {
+      return createCharsToken(AssemblerTokenType.STAR_STAR, ch, nextChar());
+    }
+
+    return createCharsToken(AssemblerTokenType.STAR, ch);
+  }
+
   private AssemblerToken createCaretBaseToken(Char ch) throws IOException {
     if (checkNextChar('^')) {
       return createCharsToken(AssemblerTokenType.CARET_CARET, ch, nextChar());
@@ -248,6 +262,9 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       }
       if (checkNextChar('=')) {
         return createCharsToken(AssemblerTokenType.LESS_EQUAL, ch, nextChar());
+      }
+      if (checkNextChar('>')) {
+        return createCharsToken(AssemblerTokenType.LESS_GREATER, ch, nextChar());
       }
     }
 
@@ -409,29 +426,14 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
 
     Char last = nextChar();
     switch (last.character()) {
-      case 'n':
-        builder.append('\n');
-        break;
-      case 'r':
-        builder.append('\r');
-        break;
-      case 't':
-        builder.append('\t');
-        break;
-      case 'f':
-        builder.append('\f');
-        break;
-      case 'b':
-        builder.append('\b');
-        break;
-      case '\\':
-        builder.append('\\');
-        break;
-      case '0':
-        builder.append((char) 0);
-        break;
-      default:
-        appendChar(builder, last);
+      case 'n' -> builder.append('\n');
+      case 'r' -> builder.append('\r');
+      case 't' -> builder.append('\t');
+      case 'f' -> builder.append('\f');
+      case 'b' -> builder.append('\b');
+      case '\\' -> builder.append('\\');
+      case '0' -> builder.append((char) 0);
+      default -> appendChar(builder, last);
     }
 
     return last;
@@ -458,9 +460,9 @@ public class AssemblerScanner extends BaseScanner<AssemblerTokenType, AssemblerT
       SourceInfo sourceInfo,
       Position position,
       Line line,
-      int start,
-      int end,
+      int startColumn,
+      int endColumn,
       String text) {
-    return new AssemblerToken(tokenType, sourceInfo, position, line, start, end, text);
+    return new AssemblerToken(tokenType, sourceInfo, position, line, startColumn, endColumn, text);
   }
 }

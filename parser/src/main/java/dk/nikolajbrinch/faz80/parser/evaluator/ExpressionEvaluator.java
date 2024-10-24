@@ -1,32 +1,32 @@
 package dk.nikolajbrinch.faz80.parser.evaluator;
 
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolException;
-import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
-import dk.nikolajbrinch.faz80.parser.values.BinaryMath;
-import dk.nikolajbrinch.faz80.parser.values.IllegalMathOperationException;
-import dk.nikolajbrinch.faz80.parser.values.IntegerMath;
-import dk.nikolajbrinch.faz80.parser.values.Logic;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue.Size;
-import dk.nikolajbrinch.faz80.parser.values.Value;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue.Size;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
 import dk.nikolajbrinch.faz80.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.Expression;
-import dk.nikolajbrinch.faz80.parser.expressions.ExpressionVisitor;
+import dk.nikolajbrinch.faz80.parser.expressions.ExpressionProcessor;
 import dk.nikolajbrinch.faz80.parser.expressions.GroupingExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.IdentifierExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.MacroCallExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.NumberExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.StringExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.UnaryExpression;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolException;
+import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
+import dk.nikolajbrinch.faz80.parser.values.BinaryMath;
+import dk.nikolajbrinch.faz80.parser.values.IllegalMathOperationException;
+import dk.nikolajbrinch.faz80.parser.values.IntegerMath;
+import dk.nikolajbrinch.faz80.parser.values.Logic;
 import dk.nikolajbrinch.faz80.scanner.AssemblerTokenType;
 import java.util.Optional;
 
-public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
+public class ExpressionEvaluator implements ExpressionProcessor<Evaluated> {
 
   private Context context;
 
-  public Evaluated visitBinaryExpression(BinaryExpression expression) {
+  public Evaluated processBinaryExpression(BinaryExpression expression) {
     Evaluated left = evaluate(expression.left());
     Evaluated right = evaluate(expression.right());
 
@@ -59,7 +59,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
   }
 
   @Override
-  public Evaluated visitUnaryExpression(UnaryExpression expression) {
+  public Evaluated processUnaryExpression(UnaryExpression expression) {
     Evaluated value = evaluate(expression.expression());
 
     try {
@@ -82,17 +82,17 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
   }
 
   @Override
-  public Evaluated visitGroupingExpression(GroupingExpression expression) {
-    return expression.expression().accept(this);
+  public Evaluated processGroupingExpression(GroupingExpression expression) {
+    return process(expression.expression());
   }
 
   @Override
-  public Evaluated visitNumberExpression(NumberExpression expression) {
+  public Evaluated processNumberExpression(NumberExpression expression) {
     return Evaluated.of(expression.numberValue(), expression.numberValue().size());
   }
 
   @Override
-  public Evaluated visitStringExpression(StringExpression expression) {
+  public Evaluated processStringExpression(StringExpression expression) {
     if (expression.stringValue().canBeNumber()) {
       return Evaluated.of(
           expression.stringValue().asNumberValue(),
@@ -103,7 +103,7 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
   }
 
   @Override
-  public Evaluated visitIdentifierExpression(IdentifierExpression expression) {
+  public Evaluated processIdentifierExpression(IdentifierExpression expression) {
     Evaluated evaluated = null;
 
     String symbolName = expression.token().text();
@@ -147,12 +147,12 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
   }
 
   @Override
-  public Evaluated visitMacroCallExpression(MacroCallExpression expression) {
+  public Evaluated processMacroCallExpression(MacroCallExpression expression) {
     return null;
   }
 
   @Override
-  public Evaluated visitAddressExpression(AddressExpression expression) {
+  public Evaluated processAddressExpression(AddressExpression expression) {
     if (expression.token().type() == AssemblerTokenType.DOLLAR) {
       return Evaluated.of(context.currentAddress().logicalAddress(), Size.WORD);
     }
@@ -165,13 +165,13 @@ public class ExpressionEvaluator implements ExpressionVisitor<Evaluated> {
   }
 
   private Evaluated evaluate(Expression expression) {
-    return expression.accept(this);
+    return process(expression);
   }
 
   public Evaluated evaluate(Expression expression, Context context) {
     this.context = context;
 
-    return expression.accept(this);
+    return process(expression);
   }
 
   private Size findSize(IdentifierExpression expression) {

@@ -8,11 +8,6 @@ public record BinaryExpression(Expression left, AssemblerToken operator, Express
     implements Expression {
 
   @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
-    return visitor.visitBinaryExpression(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return left.sourceInfo(); }
 
   @Override

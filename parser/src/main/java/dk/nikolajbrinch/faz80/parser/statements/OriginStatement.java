@@ -8,11 +8,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record OriginStatement(AssemblerToken token, Expression location, Expression fillByte) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitOriginStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return location.sourceInfo(); }
 
   @Override

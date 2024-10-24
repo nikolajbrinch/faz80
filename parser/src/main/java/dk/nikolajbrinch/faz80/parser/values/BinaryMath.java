@@ -1,5 +1,8 @@
 package dk.nikolajbrinch.faz80.parser.values;
 
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
+
 public final class BinaryMath {
 
   public static Value<?> and(Value<?> left, Value<?> right) {

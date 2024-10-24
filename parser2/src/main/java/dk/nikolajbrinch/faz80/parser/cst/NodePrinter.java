@@ -1,15 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.cst;
 
 import dk.nikolajbrinch.faz80.base.util.StringUtil;
-import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.MacroNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
-import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseEndNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseNode;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.PhaseStartNode;
@@ -40,6 +32,14 @@ import dk.nikolajbrinch.faz80.parser.cst.instructions.MacroCallNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.OpcodeNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.OriginNode;
 import dk.nikolajbrinch.faz80.parser.cst.instructions.VariableNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ArgumentsNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroEndNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroStartNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.MacroSymbolNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParameterNode;
+import dk.nikolajbrinch.faz80.parser.cst.macros.ParametersNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ConditionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.ExpressionOperandNode;
 import dk.nikolajbrinch.faz80.parser.cst.operands.GroupingOperandNode;
@@ -55,253 +55,195 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class NodePrinter implements NodeVisitor<String> {
+public class NodePrinter implements NodeProcessor<String> {
 
-  public String print(Node cstNode) {
-    return cstNode.accept(this);
+  public String print(Node node) {
+    return process(node);
   }
 
-  public String print(ProgramNode programNode) {
-    return programNode.accept(this);
+  public String processBinaryExpressionNode(BinaryExpressionNode node) {
+    return "%s %s %s"
+        .formatted(process(node.left()), node.operator().text(), process(node.right()));
   }
 
-  @Override
-  public String visitBinaryExpressionNode(BinaryExpressionNode node) {
-    return String.format(
-        "%s %s %s", node.left().accept(this), node.operator().text(), node.right().accept(this));
+  public String processUnaryExpressionNode(UnaryExpressionNode node) {
+    return node.operator().text() + process(node.expression());
   }
 
-  @Override
-  public String visitUnaryExpressionNode(UnaryExpressionNode node) {
-    return node.operator().text() + node.expression().accept(this);
+  public String processGroupingExpressionNode(GroupingExpressionNode node) {
+    return node.groupStart().text() + process(node.expression()) + node.groupEnd().text();
   }
 
-  @Override
-  public String visitGroupingExpressionNode(GroupingExpressionNode node) {
-    return node.groupStart().text() + node.expression().accept(this) + node.groupEnd().text();
-  }
-
-  @Override
-  public String visitLiteralNumberExpressionNode(LiteralNumberExpressionNode node) {
+  public String processLiteralNumberExpressionNode(LiteralNumberExpressionNode node) {
     return node.numberLiteral().text();
   }
 
-  @Override
-  public String visitLiteralStringExpressionNode(LiteralStringExpressionNode node) {
+  public String processLiteralStringExpressionNode(LiteralStringExpressionNode node) {
     return StringUtil.escape(node.stringLiteral().text());
   }
 
-  @Override
-  public String visitIdentifierExpressionNode(IdentifierExpressionNode node) {
+  public String processIdentifierExpressionNode(IdentifierExpressionNode node) {
     return node.identifier().text();
   }
 
-  @Override
-  public String visitAddressReferenceExpressionNode(AddressReferenceExpressionNode node) {
+  public String processAddressReferenceExpressionNode(AddressReferenceExpressionNode node) {
     return node.addressReference().text();
   }
 
-  @Override
-  public String visitOpcodeNode(OpcodeNode node) {
-    return String.format(
-        "%s %s",
-        node.mnemonic().text(),
-        node.operands().stream()
-            .map(operand -> operand.accept(this))
-            .collect(Collectors.joining(", ")));
+  public String processOpcodeNode(OpcodeNode node) {
+    return "%s %s"
+        .formatted(node.mnemonic().text(), sepraratedValue(node.operands().stream(), ", "));
   }
 
-  @Override
-  public String visitEndNode(EndNode node) {
+  public String processEndNode(EndNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitBlockNode(BlockNode node) {
+  public String processBlockNode(BlockNode<? extends Node> node) {
     return Stream.of(node.start(), node.body(), node.end())
         .filter(Objects::nonNull)
-        .map(child -> child.accept(this))
+        .map(this::process)
         .collect(Collectors.joining());
   }
 
-  @Override
-  public String visitScopeNode(ScopeNode node) {
-    return visitBlockNode(node);
+  public String processScopeNode(ScopeNode<? extends Node> node) {
+    return processBlockNode(node);
   }
 
-  @Override
-  public String visitMacroCallNode(MacroCallNode node) {
+  public String processMacroCallNode(MacroCallNode node) {
     StringBuilder builder = new StringBuilder(node.name().text());
 
     if (node.arguments() != null) {
       builder.append(" ");
-      builder.append(node.arguments().accept(this));
+      builder.append(process(node.arguments()));
     }
 
     return builder.toString();
   }
 
-  @Override
-  public String visitRegisterOperandNode(RegisterOperandNode node) {
+  public String processRegisterOperandNode(RegisterOperandNode node) {
     StringBuilder builder = new StringBuilder(node.register().text());
 
     if (node.operator() != null) {
       builder.append(node.operator().text());
-      builder.append(node.displacement().accept(this));
+      builder.append(process(node.displacement()));
     }
 
     return builder.toString();
   }
 
-  @Override
-  public String visitConditionOperandNode(ConditionOperandNode node) {
+  public String processConditionOperandNode(ConditionOperandNode node) {
     return node.condition().text();
   }
 
-  @Override
-  public String visitExpressionOperandNode(ExpressionOperandNode node) {
-    return node.expression().accept(this);
+  public String processExpressionOperandNode(ExpressionOperandNode node) {
+    return process(node.expression());
   }
 
-  @Override
-  public String visitSingleLineNode(BasicLineNode node) {
+  public String processBasicLineNode(BasicLineNode node) {
     StringBuilder builder = new StringBuilder();
 
     if (node.label() != null) {
-      builder.append(node.label().accept(this));
+      builder.append(process(node.label()));
       builder.append(" ");
     }
 
     if (node.instruction() != null) {
-      builder.append(node.instruction().accept(this));
+      builder.append(process(node.instruction()));
       builder.append(" ");
     }
 
     if (node.comment() != null) {
-      builder.append(node.comment().accept(this));
+      builder.append(process(node.comment()));
       builder.append(" ");
     }
 
-    builder.append(node.newline().accept(this));
+    builder.append(process(node.newline()));
 
     return builder.toString();
   }
 
-  @Override
-  public String visitProgramNode(ProgramNode node) {
-    return node.lines().accept(this);
+  public String processProgramNode(ProgramNode node) {
+    return process(node.lines());
   }
 
-  @Override
-  public String visitAddressReferenceNode(AddressReferenceExpressionNode node) {
-    return node.addressReference().text();
+  public String processGroupingOperandNode(GroupingOperandNode node) {
+    return "%s%s%s"
+        .formatted(node.groupStart().text(), process(node.operand()), node.groupEnd().text());
   }
 
-  @Override
-  public String visitGroupingOperandNode(GroupingOperandNode node) {
-    return String.format(
-        "%s%s%s", node.groupStart().text(), node.operand().accept(this), node.groupEnd().text());
+  public String processVariableNode(VariableNode node) {
+    return "%s %s".formatted(node.operator().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitVariableNode(VariableNode node) {
-    return String.format("%s %s", node.operator().text(), node.expression().accept(this));
+  public String processConstantNode(ConstantNode node) {
+    return "%s %s".formatted(node.operator().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitConstantNode(ConstantNode node) {
-    return String.format("%s %s", node.operator().text(), node.expression().accept(this));
+  public String processDataNode(DataNode node) {
+    return "%s %s"
+        .formatted(node.token().text(), sepraratedValue(node.expressions().stream(), ", "));
   }
 
-  @Override
-  public String visitDataNode(DataNode node) {
-    return String.format(
-        "%s %s",
-        node.token().text(),
-        node.expressions().stream()
-            .map(expression -> expression.accept(this))
-            .collect(Collectors.joining(", ")));
+  public String processOriginNode(OriginNode node) {
+    return "%s %s"
+        .formatted(
+            node.token().text(),
+            sepraratedValue(Stream.of(node.location(), node.fillByte()), ", "));
   }
 
-  @Override
-  public String visitOriginNode(OriginNode node) {
-    return String.format(
-        "%s %s",
-        node.token().text(),
-        Stream.of(node.location(), node.fillByte())
-            .filter(Objects::nonNull)
-            .map(expression -> expression.accept(this))
-            .collect(Collectors.joining(", ")));
+  public String processAlignmentNode(AlignmentNode node) {
+    return "%s %s"
+        .formatted(
+            node.token().text(),
+            sepraratedValue(Stream.of(node.alignment(), node.fillByte()), ", "));
   }
 
-  @Override
-  public String visitAlignmentNode(AlignmentNode node) {
-    return String.format(
-        "%s %s",
-        node.token().text(),
-        Stream.of(node.alignment(), node.fillByte())
-            .filter(Objects::nonNull)
-            .map(expression -> expression.accept(this))
-            .collect(Collectors.joining(", ")));
+  public String processRepeatStartNode(RepeatStartNode node) {
+    return "%s %s".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitRepeatStartNode(RepeatStartNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+  public String processRepeatNode(RepeatNode node) {
+    return processBlockNode(node);
   }
 
-  @Override
-  public String visitRepeatNode(RepeatNode node) {
-    return visitBlockNode(node);
-  }
-
-  @Override
-  public String visitRepeatEndNode(RepeatEndNode node) {
+  public String processRepeatEndNode(RepeatEndNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitGlobalNode(GlobalNode node) {
-    return String.format("%s %s", node.token().text(), node.identifier().text());
+  public String processGlobalNode(GlobalNode node) {
+    return "%s %s".formatted(node.token().text(), node.identifier().text());
   }
 
-  @Override
-  public String visitAssertionNode(AssertionNode node) {
-    return String.format("%s %S", node.token().text(), node.expression().accept(this));
+  public String processAssertionNode(AssertionNode node) {
+    return "%s %S".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitLocalStartNode(LocalStartNode node) {
+  public String processLocalStartNode(LocalStartNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitLocalNode(LocalNode node) {
-    return visitScopeNode(node);
+  public String processLocalNode(LocalNode node) {
+    return processScopeNode(node);
   }
 
-  @Override
-  public String visitLocalEndNode(LocalEndNode node) {
+  public String processLocalEndNode(LocalEndNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitPhaseStartNode(PhaseStartNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+  public String processPhaseStartNode(PhaseStartNode node) {
+    return "%s %s".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitPhaseNode(PhaseNode node) {
-    return visitBlockNode(node);
+  public String processPhaseNode(PhaseNode node) {
+    return processBlockNode(node);
   }
 
-  @Override
-  public String visitPhaseEndNode(PhaseEndNode node) {
+  public String processPhaseEndNode(PhaseEndNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitMacroStartNode(MacroStartNode node) {
+  public String processMacroStartNode(MacroStartNode node) {
     StringBuilder builder = new StringBuilder(node.token().text());
 
     if (node.name() != null) {
@@ -310,50 +252,42 @@ public class NodePrinter implements NodeVisitor<String> {
     }
 
     builder.append(" ");
-    builder.append(node.parameters().accept(this));
+    builder.append(process(node.parameters()));
 
     return builder.toString();
   }
 
-  @Override
-  public String visitMacroNode(MacroNode node) {
-    return visitBlockNode(node);
+  public String processMacroNode(MacroNode node) {
+    return processBlockNode(node);
   }
 
-  @Override
-  public String visitMacroSymbolNode(MacroSymbolNode node) {
-    return visitBlockNode(node);
+  public String processMacroSymbolNode(MacroSymbolNode node) {
+    return processBlockNode(node);
   }
 
-  @Override
-  public String visitMacroEndNode(MacroEndNode node) {
+  public String processMacroEndNode(MacroEndNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitParameterNode(ParameterNode node) {
+  public String processParameterNode(ParameterNode node) {
     StringBuilder builder = new StringBuilder(node.name().text());
 
     if (node.defaultValue() != null) {
       builder.append("=");
-      builder.append(node.defaultValue().accept(this));
+      builder.append(process(node.defaultValue()));
     }
 
     return builder.toString();
   }
 
-  @Override
-  public String visitArgumentsNode(ArgumentsNode node) {
+  public String processArgumentsNode(ArgumentsNode node) {
     StringBuilder builder = new StringBuilder();
 
     if (node.groupStart() != null) {
       builder.append(node.groupStart().text());
     }
 
-    builder.append(
-        node.arguments().stream()
-            .map(argument -> argument.accept(this))
-            .collect(Collectors.joining(", ")));
+    builder.append(sepraratedValue(node.arguments().stream(), ", "));
 
     if (node.groupEnd() != null) {
       builder.append(node.groupEnd().text());
@@ -362,8 +296,7 @@ public class NodePrinter implements NodeVisitor<String> {
     return builder.toString();
   }
 
-  @Override
-  public String visitArgumentNode(ArgumentNode node) {
+  public String processArgumentNode(ArgumentNode node) {
     StringBuilder builder = new StringBuilder();
 
     if (node.boundsStart() != null) {
@@ -376,7 +309,7 @@ public class NodePrinter implements NodeVisitor<String> {
       builder.append(prevToken.text());
 
       for (AssemblerToken token : tokens) {
-        builder.append(" ".repeat(token.start() - (prevToken.end() + 1)));
+        builder.append(" ".repeat(token.startColumn() - (prevToken.endColumn() + 1)));
         builder.append(token.text());
         prevToken = token;
       }
@@ -389,103 +322,95 @@ public class NodePrinter implements NodeVisitor<String> {
     return builder.toString();
   }
 
-  @Override
-  public String visitIfNode(IfNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+  public String processIfNode(IfNode node) {
+    return "%s %s".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitEndIfNode(EndIfNode node) {
+  public String processEndIfNode(EndIfNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitConditionalNode(ConditionalNode node) {
-    return Stream.of(
-            node.ifLine(), node.thenLines(), node.elseLine(), node.elseLines(), node.elseIfLine())
-        .filter(Objects::nonNull)
-        .map(child -> child.accept(this))
-        .collect(Collectors.joining());
+  public String processConditionalNode(ConditionalNode node) {
+    return values(
+        Stream.of(
+            node.ifLine(), node.thenLines(), node.elseLine(), node.elseLines(), node.elseIfLine()));
   }
 
-  @Override
-  public String visitElseIfNode(ElseIfNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+  public String processElseIfNode(ElseIfNode node) {
+    return "%s %s".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitElseNode(ElseNode node) {
+  public String processElseNode(ElseNode node) {
     return node.token().text();
   }
 
-  @Override
-  public String visitInsertNode(InsertNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+  public String processInsertNode(InsertNode node) {
+    return "%s %s".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitIncludeNode(IncludeNode node) {
-    return String.format("%s %s", node.token().text(), node.expression().accept(this));
+  public String processIncludeNode(IncludeNode node) {
+    return "%s %s".formatted(node.token().text(), process(node.expression()));
   }
 
-  @Override
-  public String visitCommentNode(CommentNode node) {
+  public String processCommentNode(CommentNode node) {
     return node.comment().text();
   }
 
-  @Override
-  public String visitNewlineNode(NewlineNode node) {
+  public String processNewlineNode(NewlineNode node) {
     return node.newline().text();
   }
 
-  @Override
-  public String visitLabelNode(LabelNode node) {
+  public String processLabelNode(LabelNode node) {
     return node.label().text();
   }
 
-  @Override
-  public String visitLinesNode(LinesNode node) {
-    return node.lines().stream().map(line -> line.accept(this)).collect(Collectors.joining());
+  public String processLinesNode(LinesNode node) {
+    return values(node.lines().stream());
   }
 
-  @Override
-  public String visitEmptyNode(EmptyNode node) {
+  public String processEmptyNode(EmptyNode node) {
     return "";
   }
 
   @Override
-  public String visitSpaceNode(SpaceNode node) {
-    return String.format(
-        "%s %s",
-        node.token().text(),
-        Stream.of(node.count(), node.value())
-            .filter(Objects::nonNull)
-            .map(value -> value.accept(this))
-            .collect(Collectors.joining(", ")));
+  public String processSectionNode(SectionNode node) {
+    return "%s %s".formatted(node.token().text(), node.name().text());
   }
 
-  @Override
-  public String visitTextNode(TextNode node) {
+  public String processSpaceNode(SpaceNode node) {
+    return "%s %s"
+        .formatted(
+            node.token().text(), sepraratedValue(Stream.of(node.count(), node.value()), ", "));
+  }
+
+  public String processTextNode(TextNode node) {
     return node.text().text();
   }
 
-  @Override
-  public String visitParametersNode(ParametersNode node) {
+  public String processParametersNode(ParametersNode node) {
     StringBuilder builder = new StringBuilder();
 
     if (node.groupStart() != null) {
       builder.append(node.groupStart().text());
     }
 
-    builder.append(
-        node.parameters().stream()
-            .map(parameter -> parameter.accept(this))
-            .collect(Collectors.joining(", ")));
+    builder.append(sepraratedValue(node.parameters().stream(), ", "));
 
     if (node.groupEnd() != null) {
       builder.append(node.groupEnd().text());
     }
 
     return builder.toString();
+  }
+
+  private <T extends Node> String sepraratedValue(Stream<T> stream, String separator) {
+    return stream
+        .filter(Objects::nonNull)
+        .map(this::process)
+        .collect(Collectors.joining(separator));
+  }
+
+  private <T extends Node> String values(Stream<T> stream) {
+    return sepraratedValue(stream, "");
   }
 }

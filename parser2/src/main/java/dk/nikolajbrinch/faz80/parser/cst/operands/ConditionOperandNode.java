@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.faz80.parser.cst.operands;
 
-import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
 public record ConditionOperandNode(AssemblerToken condition) implements OperandNode {
@@ -10,8 +9,4 @@ public record ConditionOperandNode(AssemblerToken condition) implements OperandN
     return OperandType.CONDITION;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitConditionOperandNode(this);
-  }
 }

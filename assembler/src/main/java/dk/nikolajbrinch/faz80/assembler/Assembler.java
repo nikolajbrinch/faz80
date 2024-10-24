@@ -4,6 +4,10 @@ import dk.nikolajbrinch.faz80.assembler.instructions.IllegalInstructionException
 import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.faz80.assembler.operands.OperandEvaluator;
 import dk.nikolajbrinch.faz80.parser.Parameter;
+import dk.nikolajbrinch.faz80.parser.base.values.BooleanValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.StringValue;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
 import dk.nikolajbrinch.faz80.parser.evaluator.Context;
 import dk.nikolajbrinch.faz80.parser.evaluator.EvaluationException;
@@ -32,17 +36,14 @@ import dk.nikolajbrinch.faz80.parser.statements.MacroStatement;
 import dk.nikolajbrinch.faz80.parser.statements.OriginStatement;
 import dk.nikolajbrinch.faz80.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.faz80.parser.statements.RepeatStatement;
+import dk.nikolajbrinch.faz80.parser.statements.SectionStatement;
 import dk.nikolajbrinch.faz80.parser.statements.Statement;
-import dk.nikolajbrinch.faz80.parser.statements.StatementVisitor;
+import dk.nikolajbrinch.faz80.parser.statements.StatementProcessor;
 import dk.nikolajbrinch.faz80.parser.statements.ValuesStatement;
 import dk.nikolajbrinch.faz80.parser.symbols.Macro;
 import dk.nikolajbrinch.faz80.parser.symbols.SymbolException;
 import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
 import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
-import dk.nikolajbrinch.faz80.parser.values.BooleanValue;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.StringValue;
-import dk.nikolajbrinch.faz80.parser.values.Value;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class Assembler implements StatementVisitor<Void> {
+public class Assembler implements StatementProcessor<Void> {
 
   private final InstructionByteSourceFactory instructionByteSourceFactory =
       new InstructionByteSourceFactory();
@@ -60,7 +61,7 @@ public class Assembler implements StatementVisitor<Void> {
   private final Assembled assembled = new Assembled();
   private SymbolTable globals;
   private SymbolTable symbols = globals;
-  private final List<AssembleError> errors = new ArrayList<>();
+  private final List<AssembleMessage> errors = new ArrayList<>();
   private Address currentAddress =
       new Address(NumberValue.createWord(0), NumberValue.createWord(0));
 
@@ -72,13 +73,18 @@ public class Assembler implements StatementVisitor<Void> {
     globals = new SymbolTable();
     symbols = block.symbols().copy(globals);
 
-    block.accept(this);
+    process(block);
 
     return new AssembleResult(assembled, errors);
   }
 
   @Override
-  public Void visitExpressionStatement(ExpressionStatement statement) {
+  public Void processSectionStatement(SectionStatement statement) {
+    return null;
+  }
+
+  @Override
+  public Void processExpressionStatement(ExpressionStatement statement) {
     try {
       evaluate(statement.expression());
     } catch (EvaluationException e) {
@@ -89,7 +95,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitInstructionStatement(InstructionStatement statement) {
+  public Void processInstructionStatement(InstructionStatement statement) {
     try {
       List<EvaluatedOperand> operands =
           statement.operands().stream()
@@ -121,7 +127,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitAssignStatement(AssignStatement statement) {
+  public Void processAssignStatement(AssignStatement statement) {
     try {
       symbols.assign(
           sanitizeName(statement.identifier().text()),
@@ -135,12 +141,12 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitCommentStatement(CommentStatement statement) {
+  public Void processCommentStatement(CommentStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitEndStatement(EndStatement endStatement) {
+  public Void processEndStatement(EndStatement endStatement) {
     return null;
   }
 
@@ -157,35 +163,35 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitDataByteStatement(DataByteStatement statement) {
+  public Void processDataByteStatement(DataByteStatement statement) {
     handleValuesStatement(statement, Assembler::byteToByteSuppliers);
 
     return null;
   }
 
   @Override
-  public Void visitDataLongStatement(DataLongStatement statement) {
+  public Void processDataLongStatement(DataLongStatement statement) {
     handleValuesStatement(statement, Assembler::longToByteSuppliers);
 
     return null;
   }
 
   @Override
-  public Void visitDataTextStatement(DataTextStatement statement) {
+  public Void processDataTextStatement(DataTextStatement statement) {
     handleValuesStatement(statement, Assembler::textToByteSuppliers);
 
     return null;
   }
 
   @Override
-  public Void visitDataWordStatement(DataWordStatement statement) {
+  public Void processDataWordStatement(DataWordStatement statement) {
     handleValuesStatement(statement, Assembler::wordToByteSuppliers);
 
     return null;
   }
 
   @Override
-  public Void visitOriginStatement(OriginStatement statement) {
+  public Void processOriginStatement(OriginStatement statement) {
     try {
       Object location = evaluate(statement.location());
 
@@ -203,12 +209,12 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitAlignStatement(AlignStatement statement) {
+  public Void processAlignStatement(AlignStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitBlockStatement(BlockStatement statement) {
+  public Void processBlockStatement(BlockStatement statement) {
     withSymbols(
         statement.symbols().copy(),
         () ->
@@ -221,19 +227,19 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitLocalStatement(LocalStatement statement) {
-    statement.block().accept(this);
+  public Void processLocalStatement(LocalStatement statement) {
+    process(statement.block());
 
     return null;
   }
 
   @Override
-  public Void visitMacroStatement(MacroStatement statement) {
+  public Void processMacroStatement(MacroStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitPhaseStatement(PhaseStatement statement) {
+  public Void processPhaseStatement(PhaseStatement statement) {
     try {
       Object address = evaluate(statement.expression());
       if (address instanceof NumberValue numberValue) {
@@ -242,7 +248,7 @@ public class Assembler implements StatementVisitor<Void> {
         throw new IllegalValueException(
             statement, address + " is not a valid value for phase address");
       }
-      statement.block().accept(this);
+      process(statement.block());
     } catch (EvaluationException e) {
       reportError(new AssembleException(statement, e.getMessage(), e));
     } finally {
@@ -254,7 +260,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitRepeatStatement(RepeatStatement statement) {
+  public Void processRepeatStatement(RepeatStatement statement) {
     try {
       Object result = evaluate(statement.count());
 
@@ -266,7 +272,7 @@ public class Assembler implements StatementVisitor<Void> {
         }
 
         for (int i = 0; i < count; i++) {
-          statement.block().accept(this);
+          process(statement.block());
         }
       } else {
         reportError(new AssembleException(statement, "Count is not a number"));
@@ -280,16 +286,16 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitConditionalStatement(ConditionalStatement statement) {
+  public Void processConditionalStatement(ConditionalStatement statement) {
     try {
       Object result = evaluate(statement.condition());
 
       if (result instanceof BooleanValue value) {
         if (value.value()) {
-          statement.thenBranch().accept(this);
+          process(statement.thenBranch());
         } else {
           if (statement.elseBranch() != null) {
-            statement.elseBranch().accept(this);
+            process(statement.elseBranch());
           }
         }
       } else {
@@ -303,7 +309,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitAssertStatement(AssertStatement statement) {
+  public Void processAssertStatement(AssertStatement statement) {
     try {
       Object result = evaluate(statement.expression());
 
@@ -322,34 +328,34 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   @Override
-  public Void visitGlobalStatement(GlobalStatement statement) {
+  public Void processGlobalStatement(GlobalStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitMacroCallStatement(MacroCallStatement statement) {
+  public Void processMacroCallStatement(MacroCallStatement statement) {
     expandMacro(statement);
 
     return null;
   }
 
   @Override
-  public Void visitEmptyStatement(EmptyStatement statement) {
+  public Void processEmptyStatement(EmptyStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitInsertStatement(InsertStatement statement) {
+  public Void processInsertStatement(InsertStatement statement) {
     return null;
   }
 
   @Override
-  public Void visitIncludeStatement(IncludeStatement statement) {
+  public Void processIncludeStatement(IncludeStatement statement) {
     return null;
   }
 
   private void execute(Statement statement) {
-    statement.accept(this);
+    process(statement);
   }
 
   private void expandMacro(MacroCallStatement statement) {
@@ -395,7 +401,7 @@ public class Assembler implements StatementVisitor<Void> {
         }
       }
 
-      withSymbols(macroEnvironment, () -> macro.block().accept(this));
+      withSymbols(macroEnvironment, () -> process(macro.block()));
     } catch (SymbolException | EvaluationException e) {
       reportError(new AssembleException(statement, e.getMessage(), e));
     }
@@ -417,7 +423,7 @@ public class Assembler implements StatementVisitor<Void> {
   }
 
   private void reportError(AssembleException e) {
-    errors.add(new AssembleError(e));
+    errors.add(AssembleMessage.error(e));
   }
 
   private void handleValuesStatement(

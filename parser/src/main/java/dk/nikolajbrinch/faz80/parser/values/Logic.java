@@ -1,5 +1,10 @@
 package dk.nikolajbrinch.faz80.parser.values;
 
+import dk.nikolajbrinch.faz80.parser.base.values.BooleanValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.StringValue;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
+
 public final class Logic {
 
   public static Value<?> not(Value<?> value) {

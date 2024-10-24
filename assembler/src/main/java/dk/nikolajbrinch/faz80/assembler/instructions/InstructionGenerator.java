@@ -5,9 +5,9 @@ import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.ByteSupplier;
 import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue.Size;
-import dk.nikolajbrinch.faz80.parser.Condition;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue.Size;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public interface InstructionGenerator {
     return generated;
   }
 
-  private ByteSource generateSingleOperand(Address currentAddress, EvaluatedOperand operand) {
+  default ByteSource generateSingleOperand(Address currentAddress, EvaluatedOperand operand) {
     return switch (operand.addressingMode()) {
       case REGISTER -> generateRegister(currentAddress, operand.asRegister());
       case REGISTER_INDIRECT -> generateRegisterIndirect(currentAddress, operand.asRegister());
@@ -80,7 +80,7 @@ public interface InstructionGenerator {
     return null;
   }
 
-  private ByteSource generateTwoOperands(
+  default ByteSource generateTwoOperands(
       Address currentAddress, EvaluatedOperand targetOperand, EvaluatedOperand sourceOperand) {
     return switch (sourceOperand.addressingMode()) {
       case REGISTER ->

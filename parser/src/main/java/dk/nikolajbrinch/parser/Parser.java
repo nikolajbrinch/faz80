@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.faz80.base.TaskResult;
+import dk.nikolajbrinch.faz80.parser.base.TaskResult;
 import java.io.File;
 import java.io.IOException;
 

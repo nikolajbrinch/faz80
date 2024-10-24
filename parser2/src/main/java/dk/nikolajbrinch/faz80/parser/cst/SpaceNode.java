@@ -12,8 +12,4 @@ public record SpaceNode(AssemblerToken token, ExpressionNode count, ExpressionNo
     return NodeType.SPACE;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitSpaceNode(this);
-  }
 }

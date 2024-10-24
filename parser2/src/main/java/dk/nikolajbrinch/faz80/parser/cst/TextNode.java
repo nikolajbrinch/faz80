@@ -10,8 +10,4 @@ public record TextNode(AssemblerToken text) implements Node, BodyNode {
     return NodeType.TEXT;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitTextNode(this);
-  }
 }

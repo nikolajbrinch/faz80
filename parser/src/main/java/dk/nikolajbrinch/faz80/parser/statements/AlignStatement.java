@@ -8,11 +8,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record AlignStatement(AssemblerToken token, Expression alignment, Expression fillByte) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitAlignStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return alignment.sourceInfo(); }
 
   @Override

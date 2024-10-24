@@ -1,5 +1,8 @@
 package dk.nikolajbrinch.faz80.parser.values;
 
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
+
 public final class IntegerMath {
 
   public static Value<?> divide(Value<?> left, Value<?> right) {

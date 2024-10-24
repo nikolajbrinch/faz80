@@ -8,11 +8,6 @@ public record UnaryExpression(AssemblerToken operator, Expression expression)
     implements Expression {
 
   @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
-    return visitor.visitUnaryExpression(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return operator.sourceInfo(); }
 
   @Override

@@ -3,9 +3,9 @@ package dk.nikolajbrinch.faz80.scanner;
 import java.util.Arrays;
 
 public enum Mnemonic {
-  ADC("ADC", 2),
+  ADC("ADC",  2),
   ADD("ADD", 2),
-  AND("AND", 1),
+  AND("AND", 1, 2),
   BIT("BTI", 2),
   CALL("CALL", 1, 2),
   CCF("CCF", 0),
@@ -70,7 +70,7 @@ public enum Mnemonic {
   SLL("SLL", 1),
   SRA("SRA", 1),
   SRL("SRL", 1),
-  SUB("SUB", 1, 2),
+  SUB("SUB", 1),
   XOR("XOR", 1);
 
   private String text;

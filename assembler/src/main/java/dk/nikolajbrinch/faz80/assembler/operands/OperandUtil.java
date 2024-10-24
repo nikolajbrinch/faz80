@@ -2,8 +2,8 @@ package dk.nikolajbrinch.faz80.assembler.operands;
 
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
 import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue.Size;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue.Size;
 
 public class OperandUtil {
 

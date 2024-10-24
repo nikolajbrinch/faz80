@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.assembler;
 
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
 import dk.nikolajbrinch.faz80.parser.statements.Statement;
 import java.util.ArrayList;
 import java.util.List;

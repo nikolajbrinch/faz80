@@ -6,11 +6,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record GroupingExpression(Expression expression) implements Expression {
 
   @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
-    return visitor.visitGroupingExpression(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return expression.sourceInfo(); }
 
   @Override

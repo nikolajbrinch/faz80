@@ -9,6 +9,11 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * A base reader implementation
+ *
+ * @param <T> The type of token
+ */
 public abstract class BaseReader<T> implements Reader<T> {
 
   private final List<T> buffer = new LinkedList<>();

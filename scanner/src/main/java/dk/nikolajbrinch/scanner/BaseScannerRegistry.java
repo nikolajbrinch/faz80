@@ -12,6 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The BaseScannerRegistry class is an abstract class that manages a registry of scanners. It
+ * provides methods to register and unregister scanners, manage directories, and handle cyclic
+ * dependencies. Here's a breakdown of its components:
+ *
+ * @param <T>
+ */
 public abstract class BaseScannerRegistry<T> implements ScannerRegistry<T> {
 
   private final Logger logger = LoggerFactory.getLogger();

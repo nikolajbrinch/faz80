@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.evaluator;
 
-import dk.nikolajbrinch.faz80.parser.values.NumberValue.Size;
-import dk.nikolajbrinch.faz80.parser.values.Value;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue.Size;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
 
 public record Evaluated(Value<?> value, ValueSupplier valueSupplier, Size size, boolean isLazy) {
 

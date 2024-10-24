@@ -7,11 +7,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record EmptyStatement(AssemblerToken eol) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitEmptyStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() {
     return eol.sourceInfo();
   }

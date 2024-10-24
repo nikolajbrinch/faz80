@@ -10,8 +10,4 @@ public record CommentNode(AssemblerToken comment) implements InstructionNode {
     return NodeType.COMMENT;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitCommentNode(this);
-  }
 }

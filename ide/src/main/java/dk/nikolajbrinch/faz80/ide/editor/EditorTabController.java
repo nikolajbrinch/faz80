@@ -1,13 +1,14 @@
 package dk.nikolajbrinch.faz80.ide.editor;
 
 import dk.nikolajbrinch.faz80.assembler.AssembleResult;
-import dk.nikolajbrinch.faz80.base.errors.BaseError;
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
+import dk.nikolajbrinch.faz80.base.logging.Logger;
+import dk.nikolajbrinch.faz80.base.logging.LoggerFactory;
 import dk.nikolajbrinch.faz80.compiler.Compiler;
 import dk.nikolajbrinch.faz80.ide.CompileResultProperty;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeBuilder;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeValue;
 import dk.nikolajbrinch.faz80.linker.LinkResult;
+import dk.nikolajbrinch.faz80.parser.base.BaseMessage;
 import dk.nikolajbrinch.scanner.ScannerSource;
 import dk.nikolajbrinch.scanner.impl.FileSource;
 import dk.nikolajbrinch.scanner.impl.StringSource;
@@ -23,6 +24,8 @@ import javafx.scene.control.TreeItem;
 import org.fxmisc.richtext.model.PlainTextChange;
 
 public class EditorTabController {
+
+  private final Logger logger = LoggerFactory.getLogger();
 
   private final SyntaxHighlighter syntaxHighlighter = new SyntaxHighlighter();
 
@@ -45,24 +48,37 @@ public class EditorTabController {
   public SimpleObjectProperty<PlainTextChange> textChange = new SimpleObjectProperty<>(null);
 
   public void initialize() {
+    long currentTime = System.currentTimeMillis();
+
     editor
         .plainTextChanges()
         .filter(ch -> !ch.getInserted().equals(ch.getRemoved()))
         .subscribe(this::textChanged);
     editor.setTabStop(tabStop);
+
+    logger.debug(
+        "Editor tab controller initialized in: "
+            + (System.currentTimeMillis() - currentTime)
+            + "ms");
   }
 
   private void textChanged(PlainTextChange textChange) {
+    long currentTime = System.currentTimeMillis();
+
+    logger.debug("Text changed");
+
     try {
       parse();
       editor.setStyleSpans(
           0,
           syntaxHighlighter.createStyleSpans(
-              editor.getText(), compileResultProperty.getErrors(), source.getSourceInfo()));
+              editor.getText(), compileResultProperty.getMessages(), source.getSourceInfo()));
       this.textChange.set(textChange);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+
+    logger.debug("Text changed took: " + (System.currentTimeMillis() - currentTime) + "ms");
   }
 
   public ScannerSource getSource() {
@@ -78,7 +94,7 @@ public class EditorTabController {
   public void parse() throws IOException {
     compiler.parse(editor.getText());
     compileResultProperty.setHasErrors(compiler.hasErrors());
-    compileResultProperty.setErrors(compiler.getErrors());
+    compileResultProperty.setMessages(compiler.getMessages());
     compileResultProperty.setParseResult(compiler.getParseResult());
 
     if (compiler.getParseResult() != null) {
@@ -91,7 +107,7 @@ public class EditorTabController {
     compiler.compile(editor.getText());
 
     compileResultProperty.setHasErrors(compiler.hasErrors());
-    compileResultProperty.setErrors(compiler.getErrors());
+    compileResultProperty.setMessages(compiler.getMessages());
     compileResultProperty.setParseResult(compiler.getParseResult());
     compileResultProperty.setAssembleResult(compiler.getAssembleResult());
     compileResultProperty.setLinkResult(compiler.getLinkResult());
@@ -106,8 +122,8 @@ public class EditorTabController {
     return compileResultProperty.hasErrors();
   }
 
-  public List<BaseError<?>> getErrors() {
-    return compileResultProperty.getErrors();
+  public List<BaseMessage> getMessages() {
+    return compileResultProperty.getMessages();
   }
 
   public TreeItem<AstTreeValue> getAstTree() {
@@ -118,8 +134,8 @@ public class EditorTabController {
     return compileResultProperty.astTreeProperty();
   }
 
-  public ListProperty<BaseError<? extends BaseException>> errorsProperty() {
-    return compileResultProperty.errorsProperty();
+  public ListProperty<BaseMessage> errorsProperty() {
+    return compileResultProperty.messagesProperty();
   }
 
   public AssembleResult getAssembleResult() {

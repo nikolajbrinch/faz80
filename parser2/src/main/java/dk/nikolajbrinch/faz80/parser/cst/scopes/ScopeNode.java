@@ -5,7 +5,7 @@ import dk.nikolajbrinch.faz80.parser.cst.blocks.BlockType;
 import dk.nikolajbrinch.faz80.parser.cst.blocks.BodyNode;
 import dk.nikolajbrinch.faz80.parser.cst.symbols.Symbols;
 
-public interface ScopeNode<B extends BodyNode> extends BlockNode<B> {
+public sealed interface ScopeNode<B extends BodyNode> extends BlockNode<B> permits LocalNode {
   ScopeType scopeType();
 
   Symbols symbols();

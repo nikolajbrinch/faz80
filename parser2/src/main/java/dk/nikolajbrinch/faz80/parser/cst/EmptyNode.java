@@ -9,8 +9,4 @@ public record EmptyNode() implements InstructionNode {
     return NodeType.EMPTY;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitEmptyNode(this);
-  }
 }

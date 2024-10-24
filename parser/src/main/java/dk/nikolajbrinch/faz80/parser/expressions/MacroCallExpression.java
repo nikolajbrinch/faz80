@@ -10,11 +10,6 @@ public record MacroCallExpression(AssemblerToken name, List<Statement> arguments
     implements Expression {
 
   @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
-    return visitor.visitMacroCallExpression(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return name.sourceInfo(); }
 
   @Override

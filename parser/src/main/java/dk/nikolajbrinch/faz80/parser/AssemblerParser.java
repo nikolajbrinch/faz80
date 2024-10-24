@@ -1,6 +1,12 @@
 package dk.nikolajbrinch.faz80.parser;
 
 import dk.nikolajbrinch.faz80.base.util.StringUtil;
+import dk.nikolajbrinch.faz80.parser.base.AssemblerTokenProducer;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
+import dk.nikolajbrinch.faz80.parser.base.Grouping;
+import dk.nikolajbrinch.faz80.parser.base.Register;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.StringValue;
 import dk.nikolajbrinch.faz80.parser.expressions.AddressExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.BinaryExpression;
 import dk.nikolajbrinch.faz80.parser.expressions.Expression;
@@ -36,19 +42,18 @@ import dk.nikolajbrinch.faz80.parser.statements.MacroStatement;
 import dk.nikolajbrinch.faz80.parser.statements.OriginStatement;
 import dk.nikolajbrinch.faz80.parser.statements.PhaseStatement;
 import dk.nikolajbrinch.faz80.parser.statements.RepeatStatement;
+import dk.nikolajbrinch.faz80.parser.statements.SectionStatement;
 import dk.nikolajbrinch.faz80.parser.statements.Statement;
 import dk.nikolajbrinch.faz80.parser.symbols.Macro;
 import dk.nikolajbrinch.faz80.parser.symbols.SymbolTable;
 import dk.nikolajbrinch.faz80.parser.symbols.SymbolType;
 import dk.nikolajbrinch.faz80.parser.symbols.UndefinedSymbolException;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.StringValue;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import dk.nikolajbrinch.faz80.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.faz80.scanner.Mnemonic;
 import dk.nikolajbrinch.parser.BaseParser;
-import dk.nikolajbrinch.parser.ParseError;
 import dk.nikolajbrinch.parser.ParseException;
+import dk.nikolajbrinch.parser.ParseMessage;
 import dk.nikolajbrinch.scanner.impl.FileSource;
 import dk.nikolajbrinch.scanner.impl.StringSource;
 import java.io.File;
@@ -130,24 +135,27 @@ public class AssemblerParser
       if (currentSymbolTable.exists(token.text())) {
         iterator.remove();
       } else {
-        getErrors().add(new ParseError(new ParseException(token, "Undefined identifier.")));
+        getMessages().add(ParseMessage.error(token, "Undefined identifier."));
       }
     }
 
     return new AssemblerParseResult(
-        new BlockStatement(currentSymbolTable, statements), getErrors());
+        new BlockStatement(currentSymbolTable, statements), getMessages());
   }
 
   private Statement declaration() {
     try {
-      return switch (peek().type()) {
+      AssemblerTokenType type = peek().type();
+
+      return switch (type) {
         case IDENTIFIER -> identifier();
+        case SECTION -> section();
         case ORIGIN -> origin();
         case ALIGN -> align();
         case INCLUDE -> include();
         case INSERT -> insert();
         case DATA_BYTE -> dataByte();
-        case DATA_WORD -> dataWord();
+        case DATA_WORD_BE, DATA_WORD_LE -> dataWord(type);
         case DATA_LONG -> dataLong();
         case DATA_TEXT -> dataText();
         case DATA_BLOCK -> dataBlock();
@@ -233,6 +241,15 @@ public class AssemblerParser
     return statement;
   }
 
+  private Statement section() {
+    AssemblerToken token = consume(AssemblerTokenType.SECTION, "Expect ection");
+
+    AssemblerToken name =
+        consume(AssemblerTokenType.IDENTIFIER, "Expect identifier for section name after section");
+
+    return new SectionStatement(token, name);
+  }
+
   private Statement set(AssemblerToken identifier) {
     if (lineHasToken(AssemblerTokenType.COMMA)) {
       return label(identifier);
@@ -256,8 +273,8 @@ public class AssemblerParser
                 identifier.sourceInfo(),
                 identifier.position(),
                 identifier.line(),
-                identifier.start(),
-                identifier.end(),
+                identifier.startColumn(),
+                identifier.endColumn(),
                 "$")));
   }
 
@@ -342,31 +359,19 @@ public class AssemblerParser
   private Statement dataByte() {
     AssemblerToken token = consume(AssemblerTokenType.DATA_BYTE, "Expect byte");
 
-    List<Expression> values = new ArrayList<>();
-    values.add(expression());
+    List<Expression> values = commaSeparatedExpressions();
 
-    while (match(AssemblerTokenType.COMMA)) {
-      nextToken();
-      values.add(expression());
-    }
-
-    AssemblerToken eol = expectEol("Expect newline or eof after byte declaration.");
+    expectEol("Expect newline or eof after byte declaration.");
 
     return new DataByteStatement(token, values);
   }
 
-  private Statement dataWord() {
-    AssemblerToken token = consume(AssemblerTokenType.DATA_WORD, "Expect word");
+  private Statement dataWord(AssemblerTokenType tokenType) {
+    AssemblerToken token = consume(tokenType, "Expect word");
 
-    List<Expression> values = new ArrayList<>();
-    values.add(expression());
+    List<Expression> values = commaSeparatedExpressions();
 
-    while (match(AssemblerTokenType.COMMA)) {
-      nextToken();
-      values.add(expression());
-    }
-
-    AssemblerToken eol = expectEol("Expect newline or eof after word declaration.");
+    expectEol("Expect newline or eof after word declaration.");
 
     return new DataWordStatement(token, values);
   }
@@ -374,15 +379,9 @@ public class AssemblerParser
   private Statement dataLong() {
     AssemblerToken token = consume(AssemblerTokenType.DATA_LONG, "Expect long");
 
-    List<Expression> values = new ArrayList<>();
-    values.add(expression());
+    List<Expression> values = commaSeparatedExpressions();
 
-    while (match(AssemblerTokenType.COMMA)) {
-      nextToken();
-      values.add(expression());
-    }
-
-    AssemblerToken eol = expectEol("Expect newline or eof after long declaration.");
+    expectEol("Expect newline or eof after long declaration.");
 
     return new DataLongStatement(token, values);
   }
@@ -390,15 +389,9 @@ public class AssemblerParser
   private Statement dataText() {
     AssemblerToken token = consume(AssemblerTokenType.DATA_TEXT, "Expect text");
 
-    List<Expression> values = new ArrayList<>();
-    values.add(expression());
+    List<Expression> values = commaSeparatedExpressions();
 
-    while (match(AssemblerTokenType.COMMA)) {
-      nextToken();
-      values.add(expression());
-    }
-
-    AssemblerToken eol = expectEol("Expect newline or eof after long declaration.");
+    expectEol("Expect newline or eof after text declaration.");
 
     return new DataTextStatement(token, values);
   }
@@ -433,7 +426,7 @@ public class AssemblerParser
 
     Expression expression = expression();
 
-    AssemblerToken eol = expectEol("Expect newline or eof after assert declaration.");
+    expectEol("Expect newline or eof after assert declaration.");
 
     return new AssertStatement(token, expression);
   }
@@ -575,8 +568,8 @@ public class AssemblerParser
                     getSourceInfo(),
                     token.position(),
                     token.line(),
-                    token.start(),
-                    token.end() - 1,
+                    token.startColumn(),
+                    token.endColumn() - 1,
                     "'>'");
             arguments.add(
                 new ExpressionStatement(
@@ -602,8 +595,8 @@ public class AssemblerParser
                     getSourceInfo(),
                     token.position(),
                     token.line(),
-                    token.start() + 1,
-                    token.end(),
+                    token.startColumn() + 1,
+                    token.endColumn(),
                     "'<'");
             arguments.add(
                 new ExpressionStatement(
@@ -637,7 +630,7 @@ public class AssemblerParser
 
     consume(AssemblerTokenType.NEWLINE, "Expect newline after repeat.");
 
-    Statement block = block(AssemblerTokenType.ENDREPEAT);
+    BlockStatement block = block(AssemblerTokenType.ENDREPEAT);
 
     AssemblerToken endToken = consume(AssemblerTokenType.ENDREPEAT, "Expect endr after body!");
     expectEol("Expect newline or eof after endr.");
@@ -652,7 +645,7 @@ public class AssemblerParser
 
     consume(AssemblerTokenType.NEWLINE, "Expect newline after duplicate.");
 
-    Statement block = block(AssemblerTokenType.ENDDUPLICATE);
+    BlockStatement block = block(AssemblerTokenType.ENDDUPLICATE);
 
     AssemblerToken endToken = consume(AssemblerTokenType.ENDDUPLICATE, "Expect edup after body!");
     expectEol("Expect newline or eof after edup.");
@@ -667,7 +660,7 @@ public class AssemblerParser
     BlockStatement block = block(AssemblerTokenType.ENDLOCAL);
 
     AssemblerToken endToken = consume(AssemblerTokenType.ENDLOCAL, "Expect endlocal after body!");
-    AssemblerToken eol = expectEol("Expect newline or eof after endlocal.");
+    expectEol("Expect newline or eof after endlocal.");
 
     return new LocalStatement(startToken, endToken, block);
   }
@@ -678,7 +671,7 @@ public class AssemblerParser
 
     consume(AssemblerTokenType.NEWLINE, "Expect newline after phase.");
 
-    Statement block = block(AssemblerTokenType.DEPHASE);
+    BlockStatement block = block(AssemblerTokenType.DEPHASE);
 
     AssemblerToken endToken = consume(AssemblerTokenType.DEPHASE, "Expect dephase after body!");
     expectEol("Expect newline or eof after dephase.");
@@ -823,23 +816,23 @@ public class AssemblerParser
 
     Mnemonic instruction = Mnemonic.find(mnemonic.text());
 
-    if (operands.size() < instruction.getOperandsLowerBound()) {
-      throw new ParseException(
-          mnemonic,
-          "Instruction "
-              + instruction
-              + " requires at least "
-              + instruction.getOperandsLowerBound()
-              + " operands");
-    } else if (operands.size() > instruction.getOperandsUpperBound()) {
-      throw new ParseException(
-          mnemonic,
-          "Instruction "
-              + instruction
-              + " accepts maximum "
-              + instruction.getOperandsLowerBound()
-              + " operands");
-    }
+    //    if (operands.size() < instruction.getOperandsLowerBound()) {
+    //      throw new ParseException(
+    //          mnemonic,
+    //          "Instruction "
+    //              + instruction
+    //              + " requires at least "
+    //              + instruction.getOperandsLowerBound()
+    //              + " operands");
+    //    } else if (operands.size() > instruction.getOperandsUpperBound()) {
+    //      throw new ParseException(
+    //          mnemonic,
+    //          "Instruction "
+    //              + instruction
+    //              + " accepts maximum "
+    //              + instruction.getOperandsLowerBound()
+    //              + " operands");
+    //    }
 
     return new InstructionStatement(mnemonic, operands);
   }
@@ -1205,5 +1198,17 @@ public class AssemblerParser
   enum Mode {
     NORMAL,
     MACRO_CALL
+  }
+
+  private List<Expression> commaSeparatedExpressions() {
+    List<Expression> values = new ArrayList<>();
+    values.add(expression());
+
+    while (match(AssemblerTokenType.COMMA)) {
+      nextToken();
+      values.add(expression());
+    }
+
+    return values;
   }
 }

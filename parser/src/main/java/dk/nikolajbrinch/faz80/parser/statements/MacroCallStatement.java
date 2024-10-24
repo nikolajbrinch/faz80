@@ -9,11 +9,6 @@ public record MacroCallStatement(AssemblerToken name, List<Statement> arguments)
     implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitMacroCallStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() {
     return name.sourceInfo();
   }

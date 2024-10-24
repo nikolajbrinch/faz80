@@ -14,12 +14,6 @@ public record ConditionalStatement(
     Statement elseBranch)
     implements Statement {
 
-
-  @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitConditionalStatement(this);
-  }
-
   @Override
   public SourceInfo sourceInfo() {
     return condition.sourceInfo();

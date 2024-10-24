@@ -1,7 +1,7 @@
 package dk.nikolajbrinch.faz80.parser.evaluator;
 
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
-import dk.nikolajbrinch.faz80.parser.values.Value;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
 import java.util.function.Supplier;
 
 public interface ValueSupplier extends Supplier<Value<?>> {

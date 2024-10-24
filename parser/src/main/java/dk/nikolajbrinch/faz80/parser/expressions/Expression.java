@@ -3,9 +3,15 @@ package dk.nikolajbrinch.faz80.parser.expressions;
 import dk.nikolajbrinch.scanner.Line;
 import dk.nikolajbrinch.scanner.SourceInfo;
 
-public interface Expression {
-
-  <R> R accept(ExpressionVisitor<R> visitor);
+public sealed interface Expression
+    permits BinaryExpression,
+        UnaryExpression,
+        GroupingExpression,
+        IdentifierExpression,
+        AddressExpression,
+        MacroCallExpression,
+        NumberExpression,
+        StringExpression {
 
   SourceInfo sourceInfo();
 

@@ -10,11 +10,6 @@ public record AssignStatement(AssemblerToken token, AssemblerToken identifier, S
     implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitAssignStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return identifier.sourceInfo(); }
 
   @Override

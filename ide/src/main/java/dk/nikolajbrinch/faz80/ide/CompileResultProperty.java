@@ -4,8 +4,7 @@ import dk.nikolajbrinch.faz80.assembler.AssembleResult;
 import dk.nikolajbrinch.faz80.ide.ast.AstTreeValue;
 import dk.nikolajbrinch.faz80.linker.LinkResult;
 import dk.nikolajbrinch.faz80.parser.AssemblerParseResult;
-import dk.nikolajbrinch.faz80.base.errors.BaseError;
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
+import dk.nikolajbrinch.faz80.parser.base.BaseMessage;
 import java.util.List;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -17,7 +16,7 @@ public class CompileResultProperty {
 
   private final SimpleBooleanProperty hasErrors = new SimpleBooleanProperty();
 
-  private final SimpleListProperty<BaseError<?>> errors =
+  private final SimpleListProperty<BaseMessage> messages =
       new SimpleListProperty<>(FXCollections.emptyObservableList());
 
   private final SimpleObjectProperty<AssemblerParseResult> parseResult = new SimpleObjectProperty<>(null);
@@ -35,13 +34,13 @@ public class CompileResultProperty {
 
   public CompileResultProperty(
       boolean hasErrors,
-      List<BaseError<?>> errors,
+      List<BaseMessage> messages,
       AssemblerParseResult parseResult,
       AssembleResult assembleResult,
       LinkResult linkResult,
       TreeItem<AstTreeValue> astTree) {
     setHasErrors(hasErrors);
-    setErrors(errors);
+    setMessages(messages);
     setParseResult(parseResult);
     setAssembleResult(assembleResult);
     setLinkResult(linkResult);
@@ -60,16 +59,16 @@ public class CompileResultProperty {
     return hasErrors;
   }
 
-  public List<BaseError<? extends BaseException>> getErrors() {
-    return errors.get();
+  public List<BaseMessage> getMessages() {
+    return messages.get();
   }
 
-  public void setErrors(List<BaseError<? extends BaseException>> value) {
-    errors.set(FXCollections.observableList(value));
+  public void setMessages(List<BaseMessage> value) {
+    messages.set(FXCollections.observableList(value));
   }
 
-  public SimpleListProperty<BaseError<? extends BaseException>> errorsProperty() {
-    return errors;
+  public SimpleListProperty<BaseMessage> messagesProperty() {
+    return messages;
   }
 
   public AssemblerParseResult getParseResult() {

@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.parser.evaluator;
 
-import dk.nikolajbrinch.faz80.parser.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
 
 public record Address(NumberValue logicalAddress, NumberValue physicalAddress) {
 

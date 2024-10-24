@@ -8,11 +8,6 @@ import dk.nikolajbrinch.scanner.SourceInfo;
 public record ExpressionStatement(Expression expression) implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitExpressionStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return expression.sourceInfo(); }
 
   @Override

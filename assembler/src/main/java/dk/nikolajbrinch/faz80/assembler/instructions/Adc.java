@@ -2,12 +2,25 @@ package dk.nikolajbrinch.faz80.assembler.instructions;
 
 import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.ByteSupplier;
+import dk.nikolajbrinch.faz80.assembler.operands.AddressingMode;
+import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.faz80.assembler.operands.Registers;
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
 
 public class Adc implements InstructionGenerator {
+
+  /**
+   * Shorthand for generating a single operand instruction
+   * @param currentAddress
+   * @param operand
+   * @return
+   */
+  @Override
+  public ByteSource generateSingleOperand(Address currentAddress, EvaluatedOperand operand) {
+    return generateTwoOperands(currentAddress, new EvaluatedOperand(Register.A, null,false, AddressingMode.REGISTER), operand);
+  }
 
   @Override
   public ByteSource generateRegisterToRegister(

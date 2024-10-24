@@ -5,9 +5,9 @@ import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.ByteSupplier;
 import dk.nikolajbrinch.faz80.assembler.operands.Registers;
 import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
-import dk.nikolajbrinch.faz80.parser.values.IllegalSizeException;
-import dk.nikolajbrinch.faz80.parser.values.NumberValue.Size;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.values.IllegalSizeException;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue.Size;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 
 public class Ld implements InstructionGenerator {
 

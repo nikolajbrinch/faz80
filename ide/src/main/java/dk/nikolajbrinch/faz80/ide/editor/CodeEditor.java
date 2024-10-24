@@ -64,11 +64,15 @@ public class CodeEditor extends CodeArea {
   }
 
   public void newText(File file) throws IOException {
+    long currentTime = System.currentTimeMillis();
+
     String content = Files.readString(file.toPath());
 
     replaceText(content);
     moveTo(0);
     requestFollowCaret();
+
+    logger.debug("Setting new text took: " + (System.currentTimeMillis() - currentTime) + "ms");
   }
 
 }

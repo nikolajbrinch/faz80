@@ -17,11 +17,6 @@ public record MacroStatement(
     implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitMacroStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() {
     return name.sourceInfo();
   }

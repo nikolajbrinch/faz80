@@ -1,11 +1,10 @@
 package dk.nikolajbrinch.faz80.base.logging;
 
-import dk.nikolajbrinch.faz80.base.logging.Logger;
 
 public enum LoggerImpl implements Logger {
   INSTANCE;
 
-  private Level level;
+  private Level level = Level.DEBUG;
 
   @Override
   public void debug(String message, Object... args) {

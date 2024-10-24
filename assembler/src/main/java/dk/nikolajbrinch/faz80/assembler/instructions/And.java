@@ -2,12 +2,26 @@ package dk.nikolajbrinch.faz80.assembler.instructions;
 
 import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.ByteSupplier;
+import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.faz80.assembler.operands.Registers;
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
 
 public class And implements InstructionGenerator {
+
+  @Override
+  public ByteSource generateTwoOperands(
+      Address currentAddress, EvaluatedOperand targetOperand, EvaluatedOperand sourceOperand) {
+    return switch (targetOperand.addressingMode()) {
+      case REGISTER ->
+          switch (targetOperand.asRegister()) {
+            case Register.A -> generateSingleOperand(currentAddress, sourceOperand);
+            default -> null;
+          };
+      default -> null;
+    };
+  }
 
   @Override
   public ByteSource generateRegister(Address currentAddress, Register register) {

@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
+import dk.nikolajbrinch.faz80.parser.base.BaseException;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
 public class ParseException extends BaseException {

@@ -6,11 +6,6 @@ import dk.nikolajbrinch.scanner.Line;
 public record ExpressionOperand(Expression expression) implements Operand {
 
   @Override
-  public <R> R accept(OperandVisitor<R> visitor) {
-    return visitor.visitExpressionOperand(this);
-  }
-
-  @Override
   public Line line() {
     return expression.line();
   }

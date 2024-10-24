@@ -3,7 +3,7 @@ package dk.nikolajbrinch.faz80.assembler.instructions;
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
 import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.operands.Registers;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 
 public class Push implements InstructionGenerator {
 

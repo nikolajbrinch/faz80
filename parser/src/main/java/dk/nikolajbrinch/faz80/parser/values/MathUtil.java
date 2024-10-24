@@ -1,5 +1,9 @@
 package dk.nikolajbrinch.faz80.parser.values;
 
+import dk.nikolajbrinch.faz80.parser.base.values.BooleanValue;
+import dk.nikolajbrinch.faz80.parser.base.values.NumberValue;
+import dk.nikolajbrinch.faz80.parser.base.values.StringValue;
+import dk.nikolajbrinch.faz80.parser.base.values.Value;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;

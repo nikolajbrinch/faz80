@@ -2,6 +2,7 @@ package dk.nikolajbrinch.faz80.parser.cst;
 
 public enum NodeType {
   COMMENT,
+  SECTION,
   NEWLINE,
   DIRECTIVE,
   OPCODE,
@@ -37,6 +38,11 @@ public enum NodeType {
   CONDITIONAL,
   ELSE_IF,
   PROGRAM,
-  NDOES,
-  LINES, EMPTY, SPACE, BLOCK, TEXT, PARAMETERS, LABEL
+  LINES,
+  EMPTY,
+  SPACE,
+  BLOCK,
+  TEXT,
+  PARAMETERS,
+  LABEL
 }

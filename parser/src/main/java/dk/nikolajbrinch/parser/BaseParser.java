@@ -1,8 +1,8 @@
 package dk.nikolajbrinch.parser;
 
-import dk.nikolajbrinch.faz80.base.TaskResult;
 import dk.nikolajbrinch.faz80.base.logging.Logger;
 import dk.nikolajbrinch.faz80.base.logging.LoggerFactory;
+import dk.nikolajbrinch.faz80.parser.base.TaskResult;
 import dk.nikolajbrinch.scanner.ScannerSource;
 import dk.nikolajbrinch.scanner.SourceInfo;
 import dk.nikolajbrinch.scanner.Token;
@@ -23,7 +23,7 @@ public abstract class BaseParser<
   private final Logger logger = LoggerFactory.getLogger();
   private final C configuration;
   private final TokenProducer<T> tokenProducer;
-  private final List<ParseError> errors = new ArrayList<>();
+  private final List<ParseMessage> messages = new ArrayList<>();
 
   protected BaseParser(C configuration, TokenProducer<T> tokenProducer) {
     this.tokenProducer = tokenProducer;
@@ -34,8 +34,8 @@ public abstract class BaseParser<
     return configuration;
   }
 
-  public List<ParseError> getErrors() {
-    return errors;
+  public List<ParseMessage> getMessages() {
+    return messages;
   }
 
   protected void newSource(ScannerSource source) throws IOException {
@@ -100,7 +100,7 @@ public abstract class BaseParser<
 
     T token = tokenProducer.next();
 
-    logger.debug("nextToken(%s)", token);
+    //    logger.debug("nextToken(%s)", token);
 
     return token;
   }
@@ -183,6 +183,6 @@ public abstract class BaseParser<
   protected abstract boolean isType(T token, E type);
 
   protected void reportError(ParseException e) {
-    errors.add(new ParseError(e));
+    messages.add(ParseMessage.error(e));
   }
 }

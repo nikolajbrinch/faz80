@@ -10,11 +10,6 @@ public record InstructionStatement(AssemblerToken mnemonic, List<Operand> operan
     implements Statement {
 
   @Override
-  public <R> R accept(StatementVisitor<R> visitor) {
-    return visitor.visitInstructionStatement(this);
-  }
-
-  @Override
   public SourceInfo sourceInfo() { return mnemonic.sourceInfo(); }
 
   @Override

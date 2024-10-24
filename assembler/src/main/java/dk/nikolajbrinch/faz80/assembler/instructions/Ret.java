@@ -4,7 +4,7 @@ import dk.nikolajbrinch.faz80.parser.evaluator.Address;
 import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.operands.Conditions;
 import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
-import dk.nikolajbrinch.faz80.parser.Condition;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
 
 public class Ret implements InstructionGenerator {
 

@@ -1,6 +1,5 @@
 package dk.nikolajbrinch.faz80.parser.cst.operands;
 
-import dk.nikolajbrinch.faz80.parser.cst.NodeVisitor;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 
 public record GroupingOperandNode(
@@ -12,8 +11,4 @@ public record GroupingOperandNode(
     return OperandType.GROUPING;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitGroupingOperandNode(this);
-  }
 }

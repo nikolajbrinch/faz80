@@ -1,6 +1,6 @@
 package dk.nikolajbrinch.faz80.assembler.operands;
 
-import dk.nikolajbrinch.faz80.parser.Condition;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
 import java.util.Map;
 
 public class Conditions {

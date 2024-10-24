@@ -1,6 +1,7 @@
 package dk.nikolajbrinch.faz80.linker;
 
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
+
+import dk.nikolajbrinch.faz80.parser.base.BaseException;
 
 public class LinkException extends BaseException {
 

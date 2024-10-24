@@ -2,45 +2,67 @@ package dk.nikolajbrinch.faz80.assembler.instructions;
 
 import dk.nikolajbrinch.faz80.assembler.ByteSource;
 import dk.nikolajbrinch.faz80.assembler.ByteSupplier;
+import dk.nikolajbrinch.faz80.assembler.operands.AddressingMode;
 import dk.nikolajbrinch.faz80.assembler.operands.EvaluatedOperand;
 import dk.nikolajbrinch.faz80.assembler.operands.Registers;
 import dk.nikolajbrinch.faz80.parser.evaluator.Address;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.parser.base.Register;
+import dk.nikolajbrinch.faz80.parser.evaluator.ValueSupplier;
 
 public class Sbc implements InstructionGenerator {
 
+  /**
+   * Shorthand for generating a single operand instruction
+   * @param currentAddress
+   * @param operand
+   * @return
+   */
   @Override
-  public ByteSource generate(
-      Address currentAddress, EvaluatedOperand targetOperand, EvaluatedOperand sourceOperand, EvaluatedOperand extraOperand) {
-    ByteSource resolved = null;
-
-    if (targetOperand.operand() instanceof Register register) {
-      if (register == Register.A) {
-        resolved =
-            switch (sourceOperand.addressingMode()) {
-              case REGISTER ->
-                  ByteSource.of(0b10011000 | Registers.r.get(sourceOperand.asRegister()));
-              case REGISTER_INDIRECT -> {
-                if (sourceOperand.asRegister() == Register.HL) {
-                  yield ByteSource.of(() -> 0x9E);
-                }
-                yield null;
-              }
-              case INDEXED -> null;
-              case IMMEDIATE ->
-                  ByteSource.of(
-                      0xDE, ByteSupplier.of(() -> sourceOperand.asValue().number().value()));
-              default -> null;
-            };
-      } else if (register == Register.HL) {
-        resolved = ByteSource.of(0xED, 0b01000010 | Registers.ss.get(sourceOperand.asRegister()));
-      }
-    }
-
-    if (resolved == null) {
-      throw new IllegalStateException();
-    }
-
-    return resolved;
+  public ByteSource generateSingleOperand(Address currentAddress, EvaluatedOperand operand) {
+    return generateTwoOperands(currentAddress, new EvaluatedOperand(Register.A, null,false, AddressingMode.REGISTER), operand);
   }
+
+  @Override
+  public ByteSource generateRegisterToRegister(
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
+    return switch (targetRegister) {
+      case A -> ByteSource.of(implied1(0b10011000, Registers.r, sourceRegister));
+      case HL -> ByteSource.of(0xED, implied5(0b01000010, Registers.ss, sourceRegister));
+      default -> null;
+    };
+  }
+
+  @Override
+  public ByteSource generateImmediateToRegister(
+      Address currentAddress, Register targetRegister, ValueSupplier value) {
+    return switch (targetRegister) {
+      case A -> ByteSource.of(0xDE, val(value));
+      default -> null;
+    };
+  }
+
+  @Override
+  public ByteSource generateRegisterIndirectToRegister(
+      Address currentAddress, Register targetRegister, Register sourceRegister) {
+    if (targetRegister == Register.A && sourceRegister == Register.HL) {
+      return ByteSource.of(0x9E);
+    }
+
+    return null;
+  }
+
+  @Override
+  public ByteSource generateIndexedToRegister(
+      Address currentAddress, Register targetRegister, Register sourceRegister, ByteSupplier displacement) {
+    if (targetRegister == Register.A) {
+      return switch (sourceRegister) {
+        case IX -> ByteSource.of(0xDD, 0x9E, displacement);
+        case IY -> ByteSource.of(0xFD, 0x9E, displacement);
+        default -> null;
+      };
+    }
+
+    return null;
+  }
+
 }

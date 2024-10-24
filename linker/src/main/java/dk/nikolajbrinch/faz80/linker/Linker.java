@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Linker {
 
-  private List<LinkError> errors = new ArrayList<>();
+  private List<LinkMessage> errors = new ArrayList<>();
 
   public LinkResult link(Assembled assembled) {
     errors.clear();
@@ -44,6 +44,6 @@ public class Linker {
       cause = invocationTargetException.getCause();
     }
 
-    errors.add(new LinkError(new LinkException(cause.getMessage(), cause)));
+    errors.add(LinkMessage.error(cause.getMessage()));
   }
 }

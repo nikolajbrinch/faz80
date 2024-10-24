@@ -1,19 +1,22 @@
 package dk.nikolajbrinch.faz80.ide.editor;
 
-import dk.nikolajbrinch.faz80.parser.Condition;
-import dk.nikolajbrinch.faz80.parser.Register;
+import dk.nikolajbrinch.faz80.base.logging.Logger;
+import dk.nikolajbrinch.faz80.base.logging.LoggerFactory;
+import dk.nikolajbrinch.faz80.parser.base.BaseMessage;
+import dk.nikolajbrinch.faz80.parser.base.Condition;
+import dk.nikolajbrinch.faz80.parser.base.MessageType;
+import dk.nikolajbrinch.faz80.parser.base.Register;
 import dk.nikolajbrinch.faz80.scanner.AssemblerScanner;
 import dk.nikolajbrinch.faz80.scanner.AssemblerToken;
 import dk.nikolajbrinch.faz80.scanner.AssemblerTokenType;
 import dk.nikolajbrinch.faz80.scanner.Directive;
 import dk.nikolajbrinch.faz80.scanner.Mnemonic;
-import dk.nikolajbrinch.faz80.base.errors.BaseError;
-import dk.nikolajbrinch.faz80.base.errors.BaseException;
-import dk.nikolajbrinch.parser.ParseException;
+import dk.nikolajbrinch.parser.ParseMessage;
 import dk.nikolajbrinch.scanner.SourceInfo;
 import dk.nikolajbrinch.scanner.impl.StringSource;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,9 +26,13 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 
 public class SyntaxHighlighter {
 
+  private final Logger logger = LoggerFactory.getLogger();
+
   public StyleSpans<Collection<String>> createStyleSpans(
-      String text, List<BaseError<? extends BaseException>> errors, SourceInfo sourceInfo) {
-    List<AssemblerToken> errorTokens = collectErrorTokens(errors);
+      String text, List<BaseMessage> messages, SourceInfo sourceInfo) {
+    long currentTime = System.currentTimeMillis();
+    List<AssemblerToken> errorTokens = collectErrorTokens(MessageType.ERROR, messages);
+    List<AssemblerToken> warningTokens = collectErrorTokens(MessageType.WARNING, messages);
 
     StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
 
@@ -39,10 +46,15 @@ public class SyntaxHighlighter {
 
         if (token.position().start() + 1 <= text.length()) {
           addEmpty(spansBuilder, token.position().start() - lastPos);
+          String styleClass = getStyleClassForTokenType(token, errorTokens);
+          String[] styleClasses = new String[] {styleClass};
+
+          if (isTokenInTokens(token, warningTokens)) {
+            styleClasses = new String[] {styleClass, "warning-class"};
+          }
+
           addStyleClass(
-              spansBuilder,
-              token.position().end() - token.position().start() + 1,
-              getStyleClassForTokenType(token, errorTokens));
+              spansBuilder, token.position().end() - token.position().start() + 1, styleClasses);
           lastPos = token.position().end() + 1;
         }
       }
@@ -51,21 +63,21 @@ public class SyntaxHighlighter {
       return spansBuilder.create();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
+    } finally {
+      long endTime = System.currentTimeMillis();
+      logger.debug("SyntaxHighlighter.createStyleSpans() took " + (endTime - currentTime) + " ms");
     }
   }
 
-  private List<AssemblerToken> collectErrorTokens(List<BaseError<? extends BaseException>> errors) {
+  private List<AssemblerToken> collectErrorTokens(MessageType type, List<BaseMessage> errors) {
     return errors.stream()
         .map(
-            error -> {
-              Exception exception = error.exception();
-
-              if (exception instanceof ParseException parseException) {
-                return parseException.getToken();
-              }
-
-              return null;
-            })
+            message ->
+                switch (message) {
+                  case ParseMessage parseMessage ->
+                      parseMessage.type() == type ? parseMessage.token() : null;
+                  default -> null;
+                })
         .filter(Objects::nonNull)
         .toList();
   }
@@ -75,15 +87,15 @@ public class SyntaxHighlighter {
   }
 
   private void addStyleClass(
-      StyleSpansBuilder<Collection<String>> spansBuilder, int length, String styleClass) {
+      StyleSpansBuilder<Collection<String>> spansBuilder, int length, String... styleClasses) {
     if (length >= 0) {
       spansBuilder.add(
-          styleClass == null ? Collections.emptyList() : Collections.singleton(styleClass), length);
+          styleClasses == null ? Collections.emptyList() : Arrays.asList(styleClasses), length);
     }
   }
 
   private String getStyleClassForTokenType(AssemblerToken token, List<AssemblerToken> errorTokens) {
-    if (tokenInErrorTokens(token, errorTokens)) {
+    if (isTokenInTokens(token, errorTokens)) {
       return "error-class";
     }
 
@@ -105,7 +117,11 @@ public class SyntaxHighlighter {
 
     return switch (token.type()) {
       case AssemblerTokenType.IDENTIFIER -> "identifier-class";
-      case AssemblerTokenType.HEX_NUMBER, AssemblerTokenType.OCTAL_NUMBER, AssemblerTokenType.BINARY_NUMBER, AssemblerTokenType.DECIMAL_NUMBER -> "number-class";
+      case AssemblerTokenType.HEX_NUMBER,
+              AssemblerTokenType.OCTAL_NUMBER,
+              AssemblerTokenType.BINARY_NUMBER,
+              AssemblerTokenType.DECIMAL_NUMBER ->
+          "number-class";
       case AssemblerTokenType.DOLLAR, AssemblerTokenType.DOLLAR_DOLLAR -> "dollar-class";
       case AssemblerTokenType.PLUS,
               AssemblerTokenType.MINUS,
@@ -130,7 +146,12 @@ public class SyntaxHighlighter {
               AssemblerTokenType.PIPE,
               AssemblerTokenType.PIPE_PIPE ->
           "operator-class";
-      case AssemblerTokenType.LEFT_BRACE, AssemblerTokenType.LEFT_BRACKET, AssemblerTokenType.LEFT_PAREN, AssemblerTokenType.RIGHT_BRACE, AssemblerTokenType.RIGHT_BRACKET, AssemblerTokenType.RIGHT_PAREN ->
+      case AssemblerTokenType.LEFT_BRACE,
+              AssemblerTokenType.LEFT_BRACKET,
+              AssemblerTokenType.LEFT_PAREN,
+              AssemblerTokenType.RIGHT_BRACE,
+              AssemblerTokenType.RIGHT_BRACKET,
+              AssemblerTokenType.RIGHT_PAREN ->
           "paren-class";
       case AssemblerTokenType.STRING, AssemblerTokenType.CHAR -> "string-class";
       case AssemblerTokenType.COMMENT -> "comment-class";
@@ -139,11 +160,11 @@ public class SyntaxHighlighter {
     };
   }
 
-  private boolean tokenInErrorTokens(AssemblerToken token, List<AssemblerToken> errorTokens) {
-    return errorTokens.stream().anyMatch(errorToken -> matchTokens(token, errorToken));
+  private boolean isTokenInTokens(AssemblerToken token, Collection<AssemblerToken> tokens) {
+    return tokens.stream().anyMatch(t -> matchTokens(token, t));
   }
 
-  private boolean matchTokens(AssemblerToken token, AssemblerToken errorToken) {
-    return token.type() == errorToken.type() && token.position().equals(errorToken.position());
+  private boolean matchTokens(AssemblerToken token1, AssemblerToken token2) {
+    return token1.type() == token2.type() && token1.position().equals(token2.position());
   }
 }

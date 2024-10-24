@@ -10,8 +10,4 @@ public record NewlineNode(AssemblerToken newline) implements InstructionNode {
     return NodeType.NEWLINE;
   }
 
-  @Override
-  public <R> R accept(NodeVisitor<R> visitor) {
-    return visitor.visitNewlineNode(this);
-  }
 }
